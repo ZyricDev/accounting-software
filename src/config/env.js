@@ -3,6 +3,12 @@ const config = {
     port: process.env.PORT || 4000,
     nodeEnv: process.env.NODE_ENV || "development",
   },
+
+  auth: {
+    tokenSecretKey: process.env.TOKEN_SECRET_KEY,
+    tokenExpiresInHour: process.env.TOKEN_EXPIRES_IN_Hour || 8, //h
+    idleLimitMinutes: process.env.IDLE_LIMIT_MINUTES || 10, //m
+  },
 };
 
 export default config;

@@ -13,7 +13,18 @@ const login = async (req, res) => {
 
   logger.info("Admin logged in");
 
-  return sendSuccess(res, "Login successfully");
+  return sendSuccess(res, "با موفقیت وارد سیستم شد");
 };
 
-export default { login };
+const logout = async (req, res) => {
+  await authService.logoutAdmin();
+
+  logger.info("Admin logged out");
+
+  res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+  res.clearCookie("lastActivity", { httpOnly: true, sameSite: "strict" });
+
+  return sendSuccess(res, "با موفقیت از سیستم خارج شد");
+};
+
+export default { login, logout };

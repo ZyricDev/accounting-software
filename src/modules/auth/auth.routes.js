@@ -8,4 +8,6 @@ const router = Router();
 
 router.post("/login", validate(authValidation.login), authController.login);
 
+router.delete("/logout", authController.logout);
+
 export default router;

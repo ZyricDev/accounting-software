@@ -39,4 +39,10 @@ const login = async (userData) => {
   return token;
 };
 
-export default { login };
+const logoutAdmin = async () => {
+  await authRepository.incrementTokenVersion();
+
+  return;
+};
+
+export default { login, logoutAdmin };

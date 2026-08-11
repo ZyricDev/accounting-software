@@ -17,17 +17,17 @@ const _generateAuthTokens = (userObj) => {
   return { token };
 };
 
-const login = async (userData) => {
-  const { username, password } = userData;
+const login = async (adminData) => {
+  const { username, password } = adminData;
 
-  const user = await authRepository.findUserByUsername(username);
-  if (!user) {
-    logger.warn("Failed login: username not found");
+  const admin = await authRepository.getAdmin();
+  if (!admin || admin.username !== username) {
+    logger.warn("Failed login: Invalid username");
 
     throw new AppError("یوزرنیم یا پسورد اشتباه است", 401);
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await bcrypt.compare(password, admin.password);
   if (!isPasswordValid) {
     logger.warn("Failed login: wrong password");
 

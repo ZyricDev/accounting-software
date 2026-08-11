@@ -4,9 +4,9 @@ import { sendSuccess } from "../../shared/utils/apiResponse.js";
 import cookie from "../../shared/utils/cookie.js";
 
 const login = async (req, res) => {
-  const userData = req.body;
+  const adminData = req.body;
 
-  const token = await authService.login(userData);
+  const token = await authService.login(adminData);
 
   cookie.setTokenCookie(res, "token", token);
   cookie.setTokenCookie(res, "lastActivity", Date.now());

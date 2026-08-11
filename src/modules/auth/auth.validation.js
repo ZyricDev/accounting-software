@@ -35,6 +35,23 @@ const login = {
   }),
 };
 
+const changePassword = {
+  body: createBodyObjectSchema({
+    oldPassword: passwordSchema,
+    newPassword: passwordSchema,
+    confirmPassword: joi
+      .string()
+      .trim()
+      .equal(joi.ref("newPassword"))
+      .required()
+      .messages({
+        "any.only": "تکرار رمز عبور باید با رمز عبور یکسان باشد",
+        "any.required": "تکرار رمز عبور الزامی است",
+      }),
+  }),
+};
+
 export default {
   login,
+  changePassword,
 };

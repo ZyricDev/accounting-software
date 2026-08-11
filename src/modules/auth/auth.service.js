@@ -34,9 +34,27 @@ const login = async (adminData) => {
     throw new AppError("یوزرنیم یا پسورد اشتباه است", 401);
   }
 
-  const token = _generateAuthTokens(user);
+  const token = _generateAuthTokens(admin);
 
   return token;
+};
+
+const changePassword = async (oldPassword, newPassword) => {
+  const admin = await authRepository.getAdmin();
+
+  const isPasswordValid = await bcrypt.compare(oldPassword, admin.password);
+  if (!isPasswordValid) {
+    logger.warn("Failed login: wrong password");
+
+    throw new AppError("پسورد قدیمی اشتباه است", 401);
+  }
+
+  await Promise.all([
+    authRepository.updateAdminPassword(newPassword),
+    authRepository.incrementTokenVersion(),
+  ]);
+
+  return;
 };
 
 const logoutAdmin = async () => {
@@ -45,4 +63,4 @@ const logoutAdmin = async () => {
   return;
 };
 
-export default { login, logoutAdmin };
+export default { login, logoutAdmin, changePassword };

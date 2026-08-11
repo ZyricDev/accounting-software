@@ -8,6 +8,13 @@ const router = Router();
 
 router.post("/login", validate(authValidation.login), authController.login);
 
+router.post(
+  "/change-password",
+  /*requireAuth,*/
+  validate(authValidation.changePassword),
+  authController.changePassword,
+);
+
 router.delete("/logout", authController.logout);
 
 export default router;

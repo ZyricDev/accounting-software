@@ -16,6 +16,20 @@ const login = async (req, res) => {
   return sendSuccess(res, "با موفقیت وارد سیستم شد");
 };
 
+const changePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  await authService.changePassword(oldPassword, newPassword);
+
+  res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+  res.clearCookie("lastActivity", { httpOnly: true, sameSite: "strict" });
+
+  return sendSuccess(
+    res,
+    "رمز عبور با موفقیت تغییر کرد، لطفا مجدد وارد سیستم شوید.",
+  );
+};
+
 const logout = async (req, res) => {
   await authService.logoutAdmin();
 
@@ -27,4 +41,4 @@ const logout = async (req, res) => {
   return sendSuccess(res, "با موفقیت از سیستم خارج شد");
 };
 
-export default { login, logout };
+export default { login, changePassword, logout };

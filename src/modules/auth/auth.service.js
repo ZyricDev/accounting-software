@@ -4,6 +4,7 @@ import authRepository from "./auth.repository.js";
 import logger from "../../shared/utils/logger.js";
 import AppError from "../../shared/errors/AppError.js";
 import jwt from "../../shared/utils/jwt.js";
+import config from "../../config/env.js";
 
 const _generateAuthTokens = (userObj) => {
   const tokenPayload = {
@@ -14,7 +15,7 @@ const _generateAuthTokens = (userObj) => {
 
   const token = jwt.generateToken(tokenPayload);
 
-  return { token };
+  return  token ;
 };
 
 const login = async (adminData) => {
@@ -63,4 +64,25 @@ const logoutAdmin = async () => {
   return;
 };
 
-export default { login, logoutAdmin, changePassword };
+const validateSession = async (payload, lastActivity) => {
+  const admin = await authRepository.getAdmin();
+  if (!admin || admin.tokenVersion !== payload.tokenVersion) {
+    logger.warn(
+      `Revoked token used: token has version ${payload.tokenVersion}, current version is ${admin?.tokenVersion}`,
+    );
+
+    throw new AppError("ورود شما منقضی شده است، لطفاً دوباره وارد شوید", 401);
+  }
+
+  const idlMinutes = (Date.now() - Number(lastActivity)) / 60 / 1000;
+  if (idlMinutes > config.auth.idleLimitMinutes) {
+    throw new AppError(
+      "ورود شما به دلیل عدم فعالیت منقضی شده است، لطفاً دوباره وارد شوید",
+      401,
+    );
+  }
+
+  return { id: admin.id, role: admin.role };
+};
+
+export default { login, logoutAdmin, changePassword, validateSession };

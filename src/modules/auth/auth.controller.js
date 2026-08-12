@@ -12,7 +12,6 @@ const login = async (req, res) => {
   cookie.setTokenCookie(res, "lastActivity", Date.now());
 
   logger.info("Admin logged in");
-
   return sendSuccess(res, "با موفقیت وارد سیستم شد");
 };
 
@@ -24,6 +23,7 @@ const changePassword = async (req, res) => {
   res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
   res.clearCookie("lastActivity", { httpOnly: true, sameSite: "strict" });
 
+  logger.info("Change password");
   return sendSuccess(
     res,
     "رمز عبور با موفقیت تغییر کرد، لطفا مجدد وارد سیستم شوید.",
@@ -33,11 +33,10 @@ const changePassword = async (req, res) => {
 const logout = async (req, res) => {
   await authService.logoutAdmin();
 
-  logger.info("Admin logged out");
-
   res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
   res.clearCookie("lastActivity", { httpOnly: true, sameSite: "strict" });
 
+  logger.info("Admin logged out");
   return sendSuccess(res, "با موفقیت از سیستم خارج شد");
 };
 

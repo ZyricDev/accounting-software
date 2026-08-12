@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import config from "../../config/env.js";
+import AppError from "../errors/AppError.js";
 
 const generateToken = (user) => {
   const token = jwt.sign(
@@ -15,4 +16,12 @@ const generateToken = (user) => {
   return token;
 };
 
-export default { generateToken };
+const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, config.auth.tokenSecretKey);
+  } catch (err) {
+    throw new AppError("نشست شما منقضی شده است، لطفاً دوباره وارد شوید", 401);
+  }
+};
+
+export default { generateToken, verifyToken };

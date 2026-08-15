@@ -4,8 +4,6 @@ import jwt from "../utils/jwt.js";
 
 const createRequireAuth = (sessionValidator) => {
   return async (req, res, next) => {
-    console.log("RAW cookies header:", req.headers.cookie);
-    console.log("PARSED cookies:", req.cookies);
     const { token, lastActivity } = req.cookies;
     if (!token) {
       throw new AppError("لطفاً ابتدا وارد سیستم شوید", 401);

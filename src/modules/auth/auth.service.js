@@ -15,7 +15,7 @@ const _generateAuthTokens = (userObj) => {
 
   const token = jwt.generateToken(tokenPayload);
 
-  return  token ;
+  return token;
 };
 
 const login = async (adminData) => {
@@ -75,7 +75,7 @@ const validateSession = async (payload, lastActivity) => {
   }
 
   const idlMinutes = (Date.now() - Number(lastActivity)) / 60 / 1000;
-  if (idlMinutes > config.auth.idleLimitMinutes) {
+  if (!idlMinutes || idlMinutes > config.auth.idleLimitMinutes) {
     throw new AppError(
       "ورود شما به دلیل عدم فعالیت منقضی شده است، لطفاً دوباره وارد شوید",
       401,

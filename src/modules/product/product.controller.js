@@ -7,7 +7,10 @@ const addProduct = async (req, res) => {
 
   const newProduct = await productService.addProduct(productData);
 
-  logger.info("Added new product");
+  logger.info("Added new product", {
+    id: newProduct.id,
+    name: newProduct.name,
+  });
 
   return sendSuccess(
     res,

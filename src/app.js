@@ -16,7 +16,7 @@ app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use(cookieParser());
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/products", productRoutes);
 
 //* 404 Handler
 app.use(notFoundHandler);

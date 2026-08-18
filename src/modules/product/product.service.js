@@ -56,11 +56,46 @@ const addProduct = async (productData) => {
     ? await productRepository.restoreProduct(deletedProduct.id, payload)
     : await productRepository.createProduct(payload);
 
-  return {
-    id: savedProduct.id,
-    ...productData,
-    lastStockInAt: savedProduct.last_stock_in_at,
-  };
+  return _toApiFields(savedProduct);
 };
 
-export default { addProduct };
+const updateProduct = async (productId, productData) => {
+  const { name, barcode, salePrice } = productData;
+  const product = await productRepository.getProductById(productId);
+  if (!product) {
+    throw new AppError("محصول پیدا نشد", 404);
+  }
+
+  if (name && name !== product.name) {
+    const nameExist = await productRepository.isProductNameTaken(name);
+
+    if (nameExist) {
+      throw new AppError("محصول با این نام در انبار موجود است", 409);
+    }
+  }
+
+  if (barcode && barcode !== product.barcode) {
+    const barcodeExist = await productRepository.isBarcodeTaken(barcode);
+
+    if (barcodeExist) {
+      throw new AppError("محصول با این بارکد در انبار موجود است", 409);
+    }
+  }
+
+  const now = new Date();
+
+  const payload = {
+    ..._toDbFields(productData),
+    updated_at: now,
+  };
+
+  const updatedProduct = await productRepository.updateProduct(
+    productId,
+    payload,
+  );
+console.log(_toApiFields(updatedProduct));
+
+  return _toApiFields(updatedProduct);
+};
+
+export default { addProduct, updateProduct };

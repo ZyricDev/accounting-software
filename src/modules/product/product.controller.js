@@ -20,4 +20,23 @@ const addProduct = async (req, res) => {
   );
 };
 
-export default { addProduct };
+const updateProduct = async (req, res) => {
+  const productId = req.params.id;
+  const productData = req.body;
+
+  const updatedProduct = await productService.updateProduct(
+    productId,
+    productData,
+  );
+
+  logger.info("Updated product", {
+    id: updatedProduct.id,
+    name: updatedProduct.name,
+  });
+
+  return sendSuccess(res, "محصول با موفقیت بروزرسانی شد", {
+    product: updatedProduct,
+  });
+};
+
+export default { addProduct, updateProduct };

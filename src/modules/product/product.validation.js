@@ -41,4 +41,26 @@ const addProduct = {
   }),
 };
 
-export default { addProduct };
+const updateProduct = {
+  body: createBodyObjectSchema({
+    name: joi.string().trim().min(2).max(255).messages({
+      "string.empty": "نام محصول الزامی است.",
+      "string.min": "نام محصول باید حداقل ۲ کاراکتر باشد.",
+      "string.max": "نام محصول نباید بیشتر از ۲۵۵ کاراکتر باشد.",
+    }),
+
+    barcode: joi.string().trim().min(4).max(100).messages({
+      "string.empty": "بارکد محصول الزامی است.",
+      "string.min": "بارکد وارد شده معتبر نیست.",
+      "string.max": "بارکد وارد شده معتبر نیست.",
+    }),
+
+    salePrice: joi.number().integer().positive().messages({
+      "number.base": "قیمت فروش باید عدد باشد.",
+      "number.integer": "قیمت فروش نباید اعشاری باشد.",
+      "number.positive": "قیمت فروش باید بیشتر از صفر باشد.",
+    }),
+  }),
+};
+
+export default { addProduct, updateProduct };

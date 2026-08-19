@@ -8,4 +8,11 @@ const createBodyObjectSchema = (fields) => {
   });
 };
 
-export { createBodyObjectSchema };
+const createQuerySchema = (fields) => {
+  return joi.object(fields).unknown(false).messages({
+    "object.base": "کوئری درخواست باید یک آبجکت باشد",
+    "object.unknown": "فیلد اضافه و غیرمجاز '{#child}' ارسال شده است",
+  });
+};
+
+export { createBodyObjectSchema, createQuerySchema };

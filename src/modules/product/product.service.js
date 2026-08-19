@@ -93,9 +93,23 @@ const updateProduct = async (productId, productData) => {
     productId,
     payload,
   );
-console.log(_toApiFields(updatedProduct));
+  console.log(_toApiFields(updatedProduct));
 
   return _toApiFields(updatedProduct);
 };
 
-export default { addProduct, updateProduct };
+const deleteProduct = async (productId) => {
+  const product = await productRepository.getProductById(productId);
+  if (!product) {
+    throw new AppError("محصول پیدا نشد", 404);
+  }
+
+  const deletedProduct = await productRepository.softDeleteProduct(
+    productId,
+    new Date(),
+  );
+
+  return { name: deletedProduct.name };
+};
+
+export default { addProduct, updateProduct, deleteProduct };

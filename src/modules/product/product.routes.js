@@ -22,6 +22,7 @@ router
     validateParams("id"),
     validate(productValidation.updateProduct),
     productController.updateProduct,
-  );
+  )
+  .delete(validateParams("id"), productController.deleteProduct);
 
 export default router;

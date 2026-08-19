@@ -39,4 +39,19 @@ const updateProduct = async (req, res) => {
   });
 };
 
-export default { addProduct, updateProduct };
+const deleteProduct = async (req, res) => {
+  const productId = req.params.id;
+
+  const deletedProduct = await productService.deleteProduct(productId);
+
+  logger.info("Deleted product", {
+    id: deletedProduct.id,
+    name: deletedProduct.name,
+  });
+
+  return sendSuccess(res, "محصول با موفقیت حذف شد", {
+    product: { name: deletedProduct.name },
+  });
+};
+
+export default { addProduct, updateProduct, deleteProduct };

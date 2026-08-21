@@ -10,3 +10,12 @@ export const sendSuccess = (
     data,
   });
 };
+
+export const generatePaginationData = (data) => {
+  return {
+    page: data.page,
+    limit: data.limit,
+    total: data.total,
+    totalPages: Math.ceil(data.total / data.limit),
+  };
+};

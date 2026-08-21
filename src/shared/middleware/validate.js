@@ -7,12 +7,18 @@ const validate = (schema) => {
 
     partsToValidate.forEach((part) => {
       if (schema[part]) {
-        const { error } = schema[part].validate(req[part], {
+        const { error, value } = schema[part].validate(req[part], {
           abortEarly: false,
         });
 
         if (error) {
           errors.push(...error.details);
+        }
+
+        if (part === "query") {
+          req.validatedQuery = value;
+        } else {
+          req[part] = value;
         }
       }
     });

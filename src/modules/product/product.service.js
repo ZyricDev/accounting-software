@@ -1,5 +1,6 @@
 import productRepository from "./product.repository.js";
 import AppError from "../../shared/errors/AppError.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 
 const FIELD_NAME_MAP = {
   purchasePrice: "purchase_price",
@@ -20,9 +21,22 @@ const _toApiFields = (dbRow) => ({
   barcode: dbRow.barcode,
   stock: dbRow.stock,
   purchasePrice: dbRow.purchase_price,
-  salePrice: dbRow.selling_price,
+  salePrice: dbRow.sale_price,
   lastStockInAt: dbRow.last_stock_in_at,
 });
+
+const getProducts = async (filters) => {
+  const { products, total } = await productRepository.getProducts(filters);
+
+  return {
+    products: products.map(_toApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
 
 const addProduct = async (productData) => {
   const { name, barcode } = productData;
@@ -60,7 +74,7 @@ const addProduct = async (productData) => {
 };
 
 const updateProduct = async (productId, productData) => {
-  const { name, barcode, salePrice } = productData;
+  const { name, barcode } = productData;
   const product = await productRepository.getProductById(productId);
   if (!product) {
     throw new AppError("محصول پیدا نشد", 404);
@@ -112,4 +126,4 @@ const deleteProduct = async (productId) => {
   return { name: deletedProduct.name };
 };
 
-export default { addProduct, updateProduct, deleteProduct };
+export default { getProducts, addProduct, updateProduct, deleteProduct };

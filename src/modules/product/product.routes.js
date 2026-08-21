@@ -10,11 +10,10 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.post(
-  "/",
-  validate(productValidation.addProduct),
-  productController.addProduct,
-);
+router
+  .route("/")
+  .get(validate(productValidation.getProducts), productController.getProducts)
+  .post(validate(productValidation.addProduct), productController.addProduct);
 
 router
   .route("/:id")

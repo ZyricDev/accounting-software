@@ -1,6 +1,47 @@
 import joi from "joi";
 
-import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js";
+import {
+  createBodyObjectSchema,
+  createQuerySchema,
+} from "../../shared/utils/validationHelpers.js";
+
+const ALLOWED_SORT_FIELDS = [
+  "name",
+  "stock",
+  "purchasePrice",
+  "salePrice",
+  "lastStockInAt",
+];
+
+const getProducts = {
+  query: createQuerySchema({
+    sortBy: joi
+      .string()
+      .valid(...ALLOWED_SORT_FIELDS)
+      .default("stock")
+      .messages({
+        "string.base": "فیلد مرتب‌سازی (sortBy) باید یک رشته متنی باشد.",
+        "any.only": "فیلد مرتب‌سازی نامعتبر است. مقادیر مجاز: {#valids}",
+      }),
+
+    order: joi.string().valid("asc", "desc").default("desc").messages({
+      "string.base": "جهت مرتب‌سازی (order) باید یک رشته متنی باشد.",
+      "any.only":
+        "جهت مرتب‌سازی نامعتبر است و فقط می‌تواند 'asc' یا 'desc' باشد.",
+    }),
+
+    page: joi.number().integer().min(1).default(1).messages({
+      "number.base": "شماره صفحه باید عدد باشد.",
+      "number.min": "شماره صفحه باید حداقل ۱ باشد.",
+    }),
+
+    limit: joi.number().integer().min(1).max(100).default(20).messages({
+      "number.base": "تعداد آیتم در هر صفحه باید عدد باشد.",
+      "number.min": "تعداد آیتم باید حداقل ۱ باشد.",
+      "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
+    }),
+  }),
+};
 
 const addProduct = {
   body: createBodyObjectSchema({
@@ -63,4 +104,4 @@ const updateProduct = {
   }),
 };
 
-export default { addProduct, updateProduct };
+export default { getProducts, addProduct, updateProduct };

@@ -26,6 +26,14 @@ const addProduct = async (req, res) => {
   );
 };
 
+const getProduct = async (req, res) => {
+  const { id } = req.query;
+
+  const product = await productService.getProduct(id);
+
+  return sendSuccess(res, "محصول با موفقیت دریافت شد", { product });
+};
+
 const updateProduct = async (req, res) => {
   const productId = req.params.id;
   const productData = req.body;
@@ -60,4 +68,10 @@ const deleteProduct = async (req, res) => {
   });
 };
 
-export default { getProducts, addProduct, updateProduct, deleteProduct };
+export default {
+  getProducts,
+  addProduct,
+  getProduct,
+  updateProduct,
+  deleteProduct,
+};

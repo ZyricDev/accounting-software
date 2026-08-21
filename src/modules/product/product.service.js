@@ -73,6 +73,16 @@ const addProduct = async (productData) => {
   return _toApiFields(savedProduct);
 };
 
+const getProduct = async (productId) => {
+  const product = await productRepository.getProductById(productId);
+
+  if (!product) {
+    throw new AppError("محصول پیدا نشد", 404);
+  }
+
+  return product;
+};
+
 const updateProduct = async (productId, productData) => {
   const { name, barcode } = productData;
   const product = await productRepository.getProductById(productId);
@@ -126,4 +136,10 @@ const deleteProduct = async (productId) => {
   return { name: deletedProduct.name };
 };
 
-export default { getProducts, addProduct, updateProduct, deleteProduct };
+export default {
+  getProducts,
+  addProduct,
+  getProduct,
+  updateProduct,
+  deleteProduct,
+};

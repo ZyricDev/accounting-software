@@ -17,6 +17,7 @@ router
 
 router
   .route("/:id")
+  .get(validateParams("id"), productController.getProduct)
   .patch(
     validateParams("id"),
     validate(productValidation.updateProduct),

@@ -41,7 +41,7 @@ const getProducts = {
       "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
     }),
 
-    search: Joi.string().trim().max(100).empty("").default(null).messages({
+    search: joi.string().trim().max(100).empty("").default(null).messages({
       "string.base": "عبارت جستجو باید متن باشد.",
       "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
     }),

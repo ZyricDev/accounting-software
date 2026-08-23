@@ -9,6 +9,8 @@ const router = Router();
 
 router.post("/", cartController.createCart);
 
+router.get("/:cartId", validateParams("cartId"), cartController.getCart)
+
 router.post(
   "/:cartId/items",
   validateParams("cartId"),

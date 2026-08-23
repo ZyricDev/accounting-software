@@ -52,6 +52,8 @@ const createCart = async () => {
 const getCartById = async (cartId) => {
   const cart = await cartRepository.getCartById(cartId);
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+
+  return _toApiCart(cart);
 };
 
 const addItem = async (cartId, { productId, quantity }) => {

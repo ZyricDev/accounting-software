@@ -81,7 +81,7 @@ const addItem = async (cartId, { productId, quantity }) => {
     existingItem.quantity = totalRequestedQuantity;
   } else {
     cart.items.push({
-      itemId: randomUUID(),
+      id: randomUUID(),
       productId: product.id,
       productName: product.name,
       salePrice: product.sale_price,
@@ -95,4 +95,29 @@ const addItem = async (cartId, { productId, quantity }) => {
   return _toApiCart(cart);
 };
 
-export default { createCart, getCartById, addItem };
+const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
+  const cart = await cartRepository.getCartById(cartId);
+  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+
+  const existingItem = cart.items.find((item) => item.id === itemId);
+  if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
+
+  const product = await productRepository.getProductById(
+    existingItem.productId,
+  );
+
+  if (quantity > product.stock) {
+    throw new AppError(
+      `تعداد درخواستی بیشتر از موجودی است.\n موجودی محصول «${product.name}» فقط ${product.stock} عدد می‌باشد.`,
+      400,
+    );
+  }
+
+  existingItem.quantity = quantity;
+
+  await cartRepository.saveCartItems(cartId, cart.items);
+
+  return _toApiCart(cart);
+};
+
+export default { createCart, getCartById, addItem, updateQuantityItemById };

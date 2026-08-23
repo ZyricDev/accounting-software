@@ -38,4 +38,24 @@ const updateQuantityItem = async (req, res) => {
   return sendSuccess(res, "تعداد محصول با موفقیت آپدیت شد", { cart });
 };
 
-export default { createCart, getCart, addItem, updateQuantityItem };
+const updatePriceItem = async (req, res) => {
+  const { cartId } = req.params;
+  const { itemId } = req.params;
+  const { salePrice } = req.body;
+
+  const cart = await cartService.updateSalePriceItemById({
+    cartId,
+    itemId,
+    salePrice,
+  });
+
+  return sendSuccess(res, "قیمت محصول با موفقیت تغییر کرد", { cart });
+};
+
+export default {
+  createCart,
+  getCart,
+  addItem,
+  updateQuantityItem,
+  updatePriceItem,
+};

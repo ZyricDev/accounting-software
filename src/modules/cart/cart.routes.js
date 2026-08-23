@@ -26,4 +26,10 @@ router.patch(
   cartController.updateQuantityItem,
 );
 
+router.patch(
+  "/:cartId/items/:itemId/price",
+  validate(cartValidation.priceItem),
+  cartController.updatePriceItem,
+);
+
 export default router;

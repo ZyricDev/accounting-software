@@ -46,7 +46,25 @@ const quantityItem = {
     cartId: cartIdParamSchema,
     itemId: itemIdParamSchema,
   }),
+
   body: createBodyObjectSchema({ quantity: quantitySchema }),
 };
 
-export default { addItem, getCart, quantityItem };
+const priceItem = {
+  params: joi.object({
+    cartId: cartIdParamSchema,
+    itemId: itemIdParamSchema,
+  }),
+
+  body: createBodyObjectSchema({
+    salePrice: joi.number().integer().min(0).required().messages({
+      "number.base": "مبلغ قیمت باید عدد باشد.",
+      "number.integer": "مبلغ قیمت باید یک عدد صحیح (بدون اعشار) باشد.",
+      "number.min":
+        "مبلغ قیمت نمی‌تواند منفی باشد (برای کالای رایگان یا اشانتیون عدد ۰ وارد شود).",
+      "any.required": "وارد کردن مبلغ قیمت الزامی است.",
+    }),
+  }),
+};
+
+export default { addItem, getCart, quantityItem, priceItem };

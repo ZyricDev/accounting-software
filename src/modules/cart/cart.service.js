@@ -120,4 +120,24 @@ const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
   return _toApiCart(cart);
 };
 
-export default { createCart, getCartById, addItem, updateQuantityItemById };
+const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
+  const cart = await cartRepository.getCartById(cartId);
+  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+
+  const existingItem = cart.items.find((item) => item.id === itemId);
+  if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
+
+  existingItem.salePrice = salePrice;
+
+  await cartRepository.saveCartItems(cartId, cart.items);
+
+  return _toApiCart(cart);
+};
+
+export default {
+  createCart,
+  getCartById,
+  addItem,
+  updateQuantityItemById,
+  updateSalePriceItemById,
+};

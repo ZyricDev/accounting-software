@@ -13,6 +13,21 @@ const ALLOWED_SORT_FIELDS = [
   "lastStockInAt",
 ];
 
+const productIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه محصول باید عدد باشد.",
+    "number.positive": "شناسه محصول نامعتبر است.",
+    "any.required": "شناسه محصول الزامی است.",
+  });
+
+const productIdParams = {
+  params: joi.object({ id: productIdParamSchema }),
+};
+
 const getProducts = {
   query: createQuerySchema({
     sortBy: joi
@@ -88,6 +103,7 @@ const addProduct = {
 };
 
 const updateProduct = {
+  params: joi.object({ id: productIdParamSchema }),
   body: createBodyObjectSchema({
     name: joi.string().trim().min(2).max(255).messages({
       "string.empty": "نام محصول الزامی است.",
@@ -106,7 +122,20 @@ const updateProduct = {
       "number.integer": "قیمت فروش نباید اعشاری باشد.",
       "number.positive": "قیمت فروش باید بیشتر از صفر باشد.",
     }),
-  }),
+  })
+    .min(1)
+    .messages({
+      "object.min": "حداقل یک فیلد برای ویرایش باید ارسال شود.",
+    }),
 };
 
-export default { getProducts, addProduct, updateProduct };
+const getProduct = productIdParams;
+const deleteProduct = productIdParams;
+
+export default {
+  getProducts,
+  addProduct,
+  updateProduct,
+  getProduct,
+  deleteProduct,
+};

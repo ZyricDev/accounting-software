@@ -27,7 +27,7 @@ const addProduct = async (req, res) => {
 };
 
 const getProduct = async (req, res) => {
-  const { id } = req.query;
+  const { id } = req.params;
 
   const product = await productService.getProduct(id);
 

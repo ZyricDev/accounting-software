@@ -1,7 +1,6 @@
 import { Router } from "express";
 
 import validate from "../../shared/middleware/validate.js";
-import validateParams from "../../shared/middleware/validateParams.js";
 import requireAuth from "../../shared/middleware/index.js";
 import productController from "./product.controller.js";
 import productValidation from "./product.validation.js";
@@ -17,12 +16,14 @@ router
 
 router
   .route("/:id")
-  .get(validateParams("id"), productController.getProduct)
+  .get(validate(productValidation.getProduct), productController.getProduct)
   .patch(
-    validateParams("id"),
     validate(productValidation.updateProduct),
     productController.updateProduct,
   )
-  .delete(validateParams("id"), productController.deleteProduct);
+  .delete(
+    validate(productValidation.deleteProduct),
+    productController.deleteProduct,
+  );
 
 export default router;

@@ -73,4 +73,18 @@ const priceItem = {
   }),
 };
 
-export default { addItem, getCart, cartId, quantityItem, priceItem };
+const deleteItem = {
+  params: joi.object({
+    cartId: cartIdParamSchema,
+    itemId: itemIdParamSchema,
+  }),
+};
+
+export default {
+  addItem,
+  getCart,
+  cartId,
+  quantityItem,
+  priceItem,
+  deleteItem,
+};

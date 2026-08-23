@@ -33,8 +33,7 @@ const addItem = async (req, res) => {
 };
 
 const updateQuantityItem = async (req, res) => {
-  const { cartId } = req.params;
-  const { itemId } = req.params;
+  const { cartId, itemId } = req.params;
   const { quantity } = req.body;
 
   const cart = await cartService.updateQuantityItemById({
@@ -47,8 +46,8 @@ const updateQuantityItem = async (req, res) => {
 };
 
 const updatePriceItem = async (req, res) => {
-  const { cartId } = req.params;
-  const { itemId } = req.params;
+  const { cartId, itemId } = req.params;
+
   const { salePrice } = req.body;
 
   const cart = await cartService.updateSalePriceItemById({
@@ -60,6 +59,14 @@ const updatePriceItem = async (req, res) => {
   return sendSuccess(res, "قیمت محصول با موفقیت تغییر کرد", { cart });
 };
 
+const deleteItem = async (req, res) => {
+  const { cartId, itemId } = req.params;
+
+  const cart = await cartService.deleteItemById({ cartId, itemId });
+
+  return sendSuccess(res, " محصول با موفقیت حذف شد", { cart });
+};
+
 export default {
   createCart,
   getCart,
@@ -67,4 +74,5 @@ export default {
   addItem,
   updateQuantityItem,
   updatePriceItem,
+  deleteItem,
 };

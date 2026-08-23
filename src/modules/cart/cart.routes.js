@@ -19,6 +19,12 @@ router.post(
   cartController.addItem,
 );
 
+router.delete(
+  "/:cartId/items/:itemId",
+  validate(cartValidation.deleteItem),
+  cartController.deleteItem,
+);
+
 router.patch(
   "/:cartId/items/:itemId/quantity",
   validate(cartValidation.quantityItem),

@@ -1,5 +1,6 @@
 import logger from "../utils/logger.js";
 import config from "../../config/env.js";
+import AppError from "./AppError.js";
 
 const isProduction = config.app.nodeEnv === "production";
 
@@ -43,8 +44,7 @@ const globalErrorHandler = (err, req, res, next) => {
   }
 
   if (err.code === "ER_DUP_ENTRY") {
-    return sendError(
-      res,
+    throw new AppError(
       "این نام یا بارکد قبلاً برای یک محصول فعال ثبت شده است",
       409,
     );

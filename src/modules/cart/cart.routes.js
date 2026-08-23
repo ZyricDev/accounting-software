@@ -7,6 +7,13 @@ import cartValidation from "./cart.validation.js";
 
 const router = Router();
 
-router.post("/", cartController.createCart)
+router.post("/", cartController.createCart);
+
+router.post(
+  "/:cartId/items",
+  validateParams("cartId"),
+  validate(cartValidation.addItem),
+  cartController.addItem,
+);
 
 export default router;

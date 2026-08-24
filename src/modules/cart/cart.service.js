@@ -56,18 +56,6 @@ const getCartById = async (cartId) => {
   return _toApiCart(cart);
 };
 
-const deleteCartById = async (cartId) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
-
-  cart.items = [];
-  cart.discountAmount = 0;
-
-  await cartRepository.saveCartItems(cartId, cart.items);
-
-  return _toApiCart(cart);
-};
-
 const addItem = async (cartId, { productId, quantity }) => {
   const cart = await cartRepository.getCartById(cartId);
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
@@ -146,6 +134,18 @@ const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
   return _toApiCart(cart);
 };
 
+const clearCartItems = async (cartId) => {
+  const cart = await cartRepository.getCartById(cartId);
+  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+
+  cart.items = [];
+  cart.discountAmount = 0;
+
+  await cartRepository.saveCartItems(cartId, cart.items);
+
+  return _toApiCart(cart);
+};
+
 const deleteItemById = async ({ cartId, itemId }) => {
   const cart = await cartRepository.getCartById(cartId);
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
@@ -166,9 +166,9 @@ const deleteItemById = async ({ cartId, itemId }) => {
 export default {
   createCart,
   getCartById,
-  deleteCartById,
   addItem,
   updateQuantityItemById,
   updateSalePriceItemById,
+  clearCartItems,
   deleteItemById,
 };

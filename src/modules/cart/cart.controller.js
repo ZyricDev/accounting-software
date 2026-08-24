@@ -15,14 +15,6 @@ const getCart = async (req, res) => {
   return sendSuccess(res, "سبد با موفقیت دریافت شد", { cart });
 };
 
-const deleteCart = async (req, res) => {
-  const { cartId } = req.params;
-
-  const cart = await cartService.deleteCartById(cartId);
-
-  return sendSuccess(res, "سبد با موفقیت حذف شد", { cart });
-};
-
 const addItem = async (req, res) => {
   const { cartId } = req.params;
   const itemData = req.body;
@@ -59,6 +51,14 @@ const updatePriceItem = async (req, res) => {
   return sendSuccess(res, "قیمت محصول با موفقیت تغییر کرد", { cart });
 };
 
+const deleteItems = async (req, res) => {
+  const { cartId } = req.params;
+
+  const cart = await cartService.clearCartItems(cartId);
+
+  return sendSuccess(res, "سبد با موفقیت خالی شد", { cart });
+};
+
 const deleteItem = async (req, res) => {
   const { cartId, itemId } = req.params;
 
@@ -70,9 +70,9 @@ const deleteItem = async (req, res) => {
 export default {
   createCart,
   getCart,
-  deleteCart,
   addItem,
   updateQuantityItem,
   updatePriceItem,
+  deleteItems,
   deleteItem,
 };

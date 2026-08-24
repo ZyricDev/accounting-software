@@ -8,16 +8,16 @@ const router = Router();
 
 router.post("/", cartController.createCart);
 
-router
-  .route("/:cartId")
-  .get(validate(cartValidation.getCart), cartController.getCart)
-  .delete(validate(cartValidation.cartId), cartController.deleteCart);
-
-router.post(
-  "/:cartId/items",
-  validate(cartValidation.addItem),
-  cartController.addItem,
+router.get(
+  "/:cartId",
+  validate(cartValidation.getCart),
+  cartController.getCart,
 );
+
+router
+  .route("/:cartId/items")
+  .post(validate(cartValidation.addItem), cartController.addItem)
+  .delete(validate(cartValidation.cartId), cartController.deleteItems);
 
 router.delete(
   "/:cartId/items/:itemId",

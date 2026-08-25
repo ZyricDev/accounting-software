@@ -63,14 +63,9 @@ const addProduct = async (productData) => {
     deleted_at: null,
   };
 
-  const deletedProduct =
-    await productRepository.findDeletedProductByBarcode(barcode);
+  const newProduct = await productRepository.createProduct(payload);
 
-  const savedProduct = deletedProduct
-    ? await productRepository.restoreProduct(deletedProduct.id, payload)
-    : await productRepository.createProduct(payload);
-
-  return _toApiFields(savedProduct);
+  return _toApiFields(newProduct);
 };
 
 const getProduct = async (productId) => {
@@ -128,12 +123,9 @@ const deleteProduct = async (productId) => {
     throw new AppError("محصول پیدا نشد", 404);
   }
 
-  const deletedProduct = await productRepository.softDeleteProduct(
-    productId,
-    new Date(),
-  );
+  await productRepository.softDeleteProduct(productId, new Date());
 
-  return { name: deletedProduct.name };
+  return { name: product.name };
 };
 
 export default {

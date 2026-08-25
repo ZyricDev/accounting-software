@@ -9,6 +9,14 @@ const config = {
     tokenExpiresInHour: process.env.TOKEN_EXPIRES_IN_Hour || 8, //h
     idleLimitMinutes: process.env.IDLE_LIMIT_MINUTES || 10, //m
   },
+
+  DB: {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    name: process.env.DB_NAME,
+  },
 };
 
 export default config;

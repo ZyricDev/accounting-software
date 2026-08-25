@@ -1,7 +1,16 @@
 import app from "./app.js";
 import config from "./config/env.js";
+import { testConnection } from "./database/connection.js";
 
-const connectToDB = async () => {};
+const connectToDB = async () => {
+   try {
+    await testConnection();
+
+  } catch (err) {
+    console.error("❌ Failed to connect to database:", err.message);
+    process.exit(1);
+  }
+};
 
 const startServer = () => {
   const port = config.app.port;

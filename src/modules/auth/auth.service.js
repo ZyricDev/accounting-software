@@ -50,8 +50,10 @@ const changePassword = async (oldPassword, newPassword) => {
     throw new AppError("پسورد قدیمی اشتباه است", 401);
   }
 
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
   await Promise.all([
-    authRepository.updateAdminPassword(newPassword),
+    authRepository.updateAdminPassword(hashedPassword),
     authRepository.incrementTokenVersion(),
   ]);
 

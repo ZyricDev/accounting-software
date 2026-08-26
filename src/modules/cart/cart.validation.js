@@ -2,12 +2,6 @@ import joi from "joi";
 
 import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js";
 
-const quantitySchema = joi.number().integer().min(0).default(1).messages({
-  "number.base": "تعداد باید عدد باشد.",
-  "number.integer": "تعداد باید یک عدد صحیح باشد.",
-  "number.min": "تعداد نمی‌تواند منفی باشد.",
-});
-
 const cartIdParamSchema = joi
   .number()
   .integer()
@@ -25,13 +19,18 @@ const itemIdParamSchema = joi.string().guid().required().messages({
 
 const addItem = {
   params: joi.object({ cartId: cartIdParamSchema }),
+
   body: createBodyObjectSchema({
     productId: joi.number().integer().positive().required().messages({
       "number.base": "شناسه محصول باید عدد باشد.",
       "number.positive": "شناسه محصول نامعتبر است.",
       "any.required": "شناسه محصول الزامی است.",
     }),
-    quantity: quantitySchema,
+    quantity: joi.number().integer().min(0).default(1).messages({
+      "number.base": "تعداد باید عدد باشد.",
+      "number.integer": "تعداد باید یک عدد صحیح باشد.",
+      "number.min": "تعداد نمی‌تواند منفی باشد.",
+    }),
   }),
 };
 
@@ -53,7 +52,13 @@ const quantityItem = {
     itemId: itemIdParamSchema,
   }),
 
-  body: createBodyObjectSchema({ quantity: quantitySchema }),
+  body: createBodyObjectSchema({
+    quantity: joi.number().integer().min(1).required().messages({
+      "number.base": "تعداد باید عدد باشد.",
+      "number.min": "تعداد نمی‌تواند کمتر از ۱ باشد.",
+      "any.required": "وارد کردن تعداد الزامی است.",
+    }),
+  }),
 };
 
 const priceItem = {

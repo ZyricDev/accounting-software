@@ -18,19 +18,15 @@ const _buildCartSummary = (items, discountAmount = 0) => {
     return { ...item, lineTotal };
   });
 
-  const total = Math.max(subtotal - discountAmount, 0);
-
   return {
     items: mappedItems || [],
     totalQuantity,
     subtotal,
-    discountAmount,
-    total,
   };
 };
 
 const _toApiCart = (cart) => {
-  const summary = _buildCartSummary(cart.items, cart.discountAmount ?? 0);
+  const summary = _buildCartSummary(cart.items);
 
   return {
     id: cart.id,
@@ -41,7 +37,7 @@ const _toApiCart = (cart) => {
 const createCart = async () => {
   const cartCount = await cartRepository.countActiveCarts();
 
-  if (cartCount > MAX_ACTIVE_CARTS) {
+  if (cartCount >= MAX_ACTIVE_CARTS) {
     throw new AppError("تعداد سبدهای باز به حداکثر مجاز رسیده", 400);
   }
 
@@ -49,11 +45,24 @@ const createCart = async () => {
   return _toApiCart(cart);
 };
 
+const getCarts = async () => {
+  return await cartRepository.getCarts();
+};
+
 const getCartById = async (cartId) => {
   const cart = await cartRepository.getCartById(cartId);
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
 
   return _toApiCart(cart);
+};
+
+const deleteCart = async (cartId) => {
+  const cart = await cartRepository.getCartById(cartId);
+  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+
+  await cartRepository.deleteCartById(cartId);
+
+  return;
 };
 
 const addItem = async (cartId, { productId, quantity }) => {
@@ -139,7 +148,6 @@ const clearCartItems = async (cartId) => {
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
 
   cart.items = [];
-  cart.discountAmount = 0;
 
   await cartRepository.saveCartItems(cartId, cart.items);
 
@@ -165,7 +173,9 @@ const deleteItemById = async ({ cartId, itemId }) => {
 
 export default {
   createCart,
+  getCarts,
   getCartById,
+  deleteCart,
   addItem,
   updateQuantityItemById,
   updateSalePriceItemById,

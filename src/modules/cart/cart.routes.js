@@ -6,13 +6,12 @@ import cartValidation from "./cart.validation.js";
 
 const router = Router();
 
-router.post("/", cartController.createCart);
+router.route("/").post(cartController.createCart).get(cartController.getCarts);
 
-router.get(
-  "/:cartId",
-  validate(cartValidation.getCart),
-  cartController.getCart,
-);
+router
+  .route("/:cartId")
+  .get(validate(cartValidation.getCart), cartController.getCart)
+  .delete(validate(cartValidation.cartId), cartController.deleteCart);
 
 router
   .route("/:cartId/items")

@@ -7,12 +7,26 @@ const createCart = async (req, res) => {
   return sendSuccess(res, "سبد خرید با موفقیت ایجاد شد", { cart }, 201);
 };
 
+const getCarts = async (req, res) => {
+  const carts = await cartService.getCarts();
+
+  return sendSuccess(res, "سبدها با موفقیت دریافت شد", { carts });
+};
+
 const getCart = async (req, res) => {
   const { cartId } = req.params;
 
   const cart = await cartService.getCartById(cartId);
 
   return sendSuccess(res, "سبد با موفقیت دریافت شد", { cart });
+};
+
+const deleteCart = async (req, res) => {
+  const { cartId } = req.params;
+
+  await cartService.deleteCart(cartId);
+
+  return sendSuccess(res, "سبد با موفقیت حذف شد");
 };
 
 const addItem = async (req, res) => {
@@ -69,7 +83,9 @@ const deleteItem = async (req, res) => {
 
 export default {
   createCart,
+  getCarts,
   getCart,
+  deleteCart,
   addItem,
   updateQuantityItem,
   updatePriceItem,

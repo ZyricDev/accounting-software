@@ -16,7 +16,7 @@ const getProducts = async ({ search, page, limit, sortBy, order }) => {
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
   const [rows] = await pool.query(
-    `SELECT * FROM products 
+    `SELECT id, name, stock, purchase_price, sale_price, last_stock_in_at FROM products 
      WHERE deleted_at IS NULL ${whereClause} 
      ORDER BY ${sortColumn} ${order.toUpperCase()}
      LIMIT ? OFFSET ?`,
@@ -38,7 +38,17 @@ const getProductById = async (id) => {
     [id],
   );
 
-  return rows[0] ?? null;
+  const product = rows[0];
+  if (!product) {
+    return null;
+  }
+
+  product.stock_history =
+    typeof product.stock_history === "string"
+      ? JSON.parse(product.stock_history)
+      : product.stock_history;
+
+  return product;
 };
 
 const isProductNameTaken = async (name) => {
@@ -60,9 +70,14 @@ const isBarcodeTaken = async (barcode) => {
 };
 
 const createProduct = async (productData) => {
-  const columns = Object.keys(productData);
-  const values = Object.values(productData);
+  const payload = { ...productData };
 
+  if (payload.stock_history) {
+    payload.stock_history = JSON.stringify(payload.stock_history);
+  }
+
+  const columns = Object.keys(payload);
+  const values = Object.values(payload);
   const placeholders = columns.map(() => "?").join(", ");
 
   const [result] = await pool.query(
@@ -94,6 +109,20 @@ const softDeleteProduct = async (id, deletedAt) => {
   ]);
 };
 
+const setStockInfo = async (
+  id,
+  { stock, purchase_price, stock_history, sale_price },
+) => {
+  await pool.query(
+    `UPDATE products
+     SET stock = ?, purchase_price = ?, stock_history = ?, sale_price = ?, last_stock_in_at = NOW()
+     WHERE id = ? AND deleted_at IS NULL`,
+    [stock, purchase_price, JSON.stringify(stock_history), sale_price, id],
+  );
+
+  return getProductById(id);
+};
+
 export default {
   getProducts,
   getProductById,
@@ -102,4 +131,5 @@ export default {
   createProduct,
   updateProduct,
   softDeleteProduct,
+  setStockInfo,
 };

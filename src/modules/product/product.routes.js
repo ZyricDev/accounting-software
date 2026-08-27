@@ -15,7 +15,7 @@ router
   .post(validate(productValidation.addProduct), productController.addProduct);
 
 router
-  .route("/:id")
+  .route("/:productId")
   .get(validate(productValidation.getProduct), productController.getProduct)
   .patch(
     validate(productValidation.updateProduct),
@@ -25,5 +25,11 @@ router
     validate(productValidation.deleteProduct),
     productController.deleteProduct,
   );
+
+router.post(
+  "/:productId/stock-entries",
+  validate(productValidation.addStockEntry),
+  productController.addStockEntry,
+);
 
 export default router;

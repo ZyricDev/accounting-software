@@ -1,11 +1,12 @@
 import app from "./app.js";
 import config from "./config/env.js";
 import { testConnection } from "./database/connection.js";
+import createTables from "./database/init_db.js";
 
 const connectToDB = async () => {
-   try {
+  try {
     await testConnection();
-
+    await createTables();
   } catch (err) {
     console.error("❌ Failed to connect to database:", err.message);
     process.exit(1);

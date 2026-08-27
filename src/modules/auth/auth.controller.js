@@ -30,6 +30,10 @@ const changePassword = async (req, res) => {
   );
 };
 
+const checkAuth = async (req, res) => {
+  return sendSuccess(res);
+};
+
 const logout = async (req, res) => {
   await authService.logoutAdmin();
 
@@ -40,4 +44,4 @@ const logout = async (req, res) => {
   return sendSuccess(res, "با موفقیت از سیستم خارج شد");
 };
 
-export default { login, changePassword, logout };
+export default { login, changePassword, checkAuth, logout };

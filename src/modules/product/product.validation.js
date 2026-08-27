@@ -25,7 +25,7 @@ const productIdParamSchema = joi
   });
 
 const productIdParams = {
-  params: joi.object({ id: productIdParamSchema }),
+  params: joi.object({ productId: productIdParamSchema }),
 };
 
 const getProducts = {
@@ -103,7 +103,8 @@ const addProduct = {
 };
 
 const updateProduct = {
-  params: joi.object({ id: productIdParamSchema }),
+  params: joi.object({ productId: productIdParamSchema }),
+
   body: createBodyObjectSchema({
     name: joi.string().trim().min(2).max(255).messages({
       "string.empty": "نام محصول الزامی است.",
@@ -132,10 +133,35 @@ const updateProduct = {
 const getProduct = productIdParams;
 const deleteProduct = productIdParams;
 
+const addStockEntry = {
+  params: joi.object({ productId: productIdParamSchema }),
+
+  body: createBodyObjectSchema({
+    stock: joi.number().integer().positive().required().messages({
+      "number.base": "تعداد باید عدد باشد.",
+      "number.positive": "تعداد باید بیشتر از صفر باشد.",
+      "any.required": "تعداد الزامی است.",
+    }),
+
+    purchasePrice: joi.number().integer().min(0).required().messages({
+      "number.base": "قیمت خرید باید عدد باشد.",
+      "number.min": "قیمت خرید نمی‌تواند منفی باشد.",
+      "any.required": "قیمت خرید الزامی است.",
+    }),
+
+    salePrice: joi.number().integer().positive().messages({
+      "number.base": "قیمت فروش باید عدد باشد.",
+      "number.integer": "قیمت فروش نباید اعشاری باشد.",
+      "number.positive": "قیمت فروش باید بیشتر از صفر باشد.",
+    }),
+  }),
+};
+
 export default {
   getProducts,
   addProduct,
   updateProduct,
   getProduct,
   deleteProduct,
+  addStockEntry,
 };

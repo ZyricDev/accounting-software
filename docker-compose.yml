@@ -3,28 +3,48 @@ services:
     image: mariadb:11
     container_name: accounting_mariadb
     restart: unless-stopped
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-    env_file:
-      - .env
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USER}
       MARIADB_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3306:3306"
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "no"
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     networks:
       - accounting_network
+      - my-proxy-net
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  app:
+    build: .
+    container_name: accounting_app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      DB_HOST: mariadb
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      TOKEN_SECRET_KEY: ${TOKEN_SECRET_KEY}
+      VIRTUAL_HOST: test.zyric.ir,www.test.zyric.ir
+      VIRTUAL_PORT: ${PORT}
+      LETSENCRYPT_HOST: test.zyric.ir,www.test.zyric.ir
+      LETSENCRYPT_EMAIL: amirhossei82zareei@gmail.com
+    networks:
+      - accounting_network
+      - my-proxy-net
 
 volumes:
   mariadb_data:
@@ -33,3 +53,5 @@ volumes:
 networks:
   accounting_network:
     driver: bridge
+  my-proxy-net:
+    external: true

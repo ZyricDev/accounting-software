@@ -16,6 +16,8 @@ router.post(
   authController.changePassword,
 );
 
+router.get('/check', requireAuth, authController.checkAuth);
+
 router.delete("/logout", authController.logout);
 
 export default router;

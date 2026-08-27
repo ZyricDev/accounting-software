@@ -27,15 +27,15 @@ const addProduct = async (req, res) => {
 };
 
 const getProduct = async (req, res) => {
-  const { id } = req.params;
+  const { productId } = req.params;
 
-  const product = await productService.getProduct(id);
+  const product = await productService.getProduct(productId);
 
   return sendSuccess(res, "محصول با موفقیت دریافت شد", { product });
 };
 
 const updateProduct = async (req, res) => {
-  const productId = req.params.id;
+  const { productId } = req.params;
   const productData = req.body;
 
   const updatedProduct = await productService.updateProduct(
@@ -54,7 +54,7 @@ const updateProduct = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
-  const productId = req.params.id;
+  const { productId } = req.params;
 
   const deletedProduct = await productService.deleteProduct(productId);
 
@@ -68,10 +68,20 @@ const deleteProduct = async (req, res) => {
   });
 };
 
+const addStockEntry = async (req, res) => {
+  const { productId } = req.params;
+  const productData = req.body;
+
+  const product = await productService.addStockEntry(productId, productData);
+
+  return sendSuccess(res, "ورود کالا با موفقیت ثبت شد", { product }, 201);
+};
+
 export default {
   getProducts,
   addProduct,
   getProduct,
   updateProduct,
   deleteProduct,
+  addStockEntry,
 };

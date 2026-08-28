@@ -13,6 +13,14 @@ const getCarts = async (req, res) => {
   return sendSuccess(res, "سبدها با موفقیت دریافت شد", { carts });
 };
 
+const searchProducts = async (req, res) => {
+  const { q } = req.validatedQuery;
+
+  const products = await cartService.searchProducts(q);
+
+  return sendSuccess(res, "محصولات با موفقیت دریافت شد", { products });
+};
+
 const getCart = async (req, res) => {
   const { cartId } = req.params;
 
@@ -84,6 +92,7 @@ const deleteItem = async (req, res) => {
 export default {
   createCart,
   getCarts,
+  searchProducts,
   getCart,
   deleteCart,
   addItem,

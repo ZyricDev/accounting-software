@@ -8,6 +8,12 @@ const router = Router();
 
 router.route("/").post(cartController.createCart).get(cartController.getCarts);
 
+router.get(
+  "/products/search",
+  validate(cartValidation.searchProducts),
+  cartController.searchProducts,
+);
+
 router
   .route("/:cartId")
   .get(validate(cartValidation.getCart), cartController.getCart)

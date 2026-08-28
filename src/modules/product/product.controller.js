@@ -74,7 +74,12 @@ const addStockEntry = async (req, res) => {
 
   const product = await productService.addStockEntry(productId, productData);
 
-  return sendSuccess(res, "ورود کالا با موفقیت ثبت شد", { product }, 201);
+  logger.info("added stock", {
+    id: product.id,
+    name: product.name,
+  });
+
+  return sendSuccess(res, "ورود کالا با موفقیت ثبت شد", { product });
 };
 
 export default {

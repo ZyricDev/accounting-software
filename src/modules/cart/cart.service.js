@@ -34,6 +34,13 @@ const _toApiCart = (cart) => {
   };
 };
 
+const _toSearchResult = (dbRow) => ({
+  id: dbRow.id,
+  name: dbRow.name,
+  stock: dbRow.stock,
+  salePrice: dbRow.sale_price,
+});
+
 const createCart = async () => {
   const cartCount = await cartRepository.countActiveCarts();
 
@@ -47,6 +54,11 @@ const createCart = async () => {
 
 const getCarts = async () => {
   return await cartRepository.getCarts();
+};
+
+const searchProducts = async (searchTerm) => {
+  const products = await cartRepository.searchProducts(searchTerm);
+  return products.map(_toSearchResult);
 };
 
 const getCartById = async (cartId) => {
@@ -174,6 +186,7 @@ const deleteItemById = async ({ cartId, itemId }) => {
 export default {
   createCart,
   getCarts,
+  searchProducts,
   getCartById,
   deleteCart,
   addItem,

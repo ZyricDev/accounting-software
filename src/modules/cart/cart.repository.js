@@ -19,6 +19,20 @@ const getCarts = async () => {
   return rows;
 };
 
+const searchProducts = async (searchTerm) => {
+  const [rows] = await pool.query(
+    `SELECT id, name, stock, sale_price
+     FROM products
+     WHERE deleted_at IS NULL
+       AND (barcode = ? OR name LIKE ?)
+     ORDER BY CASE WHEN barcode = ? THEN 0 ELSE 1 END, name ASC
+     LIMIT 10`,
+    [searchTerm, `%${searchTerm}%`, searchTerm],
+  );
+
+  return rows;
+};
+
 const getCartById = async (id) => {
   const [rows] = await pool.query("SELECT * FROM carts WHERE id = ?", [id]);
 
@@ -46,6 +60,7 @@ export default {
   countActiveCarts,
   createCart,
   getCarts,
+  searchProducts,
   getCartById,
   deleteCartById,
   saveCartItems,

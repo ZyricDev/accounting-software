@@ -1,6 +1,9 @@
 import joi from "joi";
 
-import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js";
+import {
+  createBodyObjectSchema,
+  createQuerySchema,
+} from "../../shared/utils/validationHelpers.js";
 
 const cartIdParamSchema = joi
   .number()
@@ -37,6 +40,16 @@ const addItem = {
 const getCart = {
   params: joi.object({
     cartId: cartIdParamSchema,
+  }),
+};
+
+const searchProducts = {
+  query: createQuerySchema({
+    q: joi.string().trim().max(100).required().messages({
+      "string.base": "عبارت جستجو باید متن باشد.",
+      "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+      "any.required": "وارد کردن عبارت جتسجو الزامی است",
+    }),
   }),
 };
 
@@ -88,6 +101,7 @@ const deleteItem = {
 export default {
   addItem,
   getCart,
+  searchProducts,
   cartId,
   quantityItem,
   priceItem,

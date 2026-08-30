@@ -45,8 +45,10 @@ const getCartById = async (id) => {
   };
 };
 
-const deleteCartById = async (id) => {
-  await pool.query("DELETE FROM carts WHERE id = ?", [id]);
+const deleteCartById = async (id, executor = pool) => {
+  const [result] = await executor.query("DELETE FROM carts WHERE id = ?", [id]);
+
+  return result.affectedRows;
 };
 
 const saveCartItems = async (id, items) => {

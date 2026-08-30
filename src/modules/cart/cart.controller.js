@@ -24,7 +24,7 @@ const searchProducts = async (req, res) => {
 const getCart = async (req, res) => {
   const { cartId } = req.params;
 
-  const cart = await cartService.getCartById(cartId);
+  const cart = await cartService.getCartByIdForView(cartId);
 
   return sendSuccess(res, "سبد با موفقیت دریافت شد", { cart });
 };

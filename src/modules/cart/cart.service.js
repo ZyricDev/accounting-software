@@ -6,11 +6,13 @@ import AppError from "../../shared/errors/AppError.js";
 import cartRepository from "./cart.repository.js";
 import productRepository from "../product/product.repository.js";
 
-const _buildCartSummary = (items, discountAmount = 0) => {
+// --- Internal helpers ---
+
+const _buildCartSummary = (items) => {
   let subtotal = 0;
   let totalQuantity = 0;
 
-  const mappedItems = items?.map(({ purchasePrice, ...item }) => {
+  const mappedItems = items.map(({ purchasePrice, ...item }) => {
     const lineTotal = item.salePrice * item.quantity;
     subtotal += lineTotal;
     totalQuantity += item.quantity;
@@ -19,27 +21,32 @@ const _buildCartSummary = (items, discountAmount = 0) => {
   });
 
   return {
-    items: mappedItems || [],
+    items: mappedItems,
     totalQuantity,
     subtotal,
   };
 };
 
-const _toApiCart = (cart) => {
-  const summary = _buildCartSummary(cart.items);
-
-  return {
-    id: cart.id,
-    ...summary,
-  };
-};
+const _toApiCart = (cart) => ({
+  id: cart.id,
+  ..._buildCartSummary(cart.items),
+});
 
 const _toSearchResult = (dbRow) => ({
   id: dbRow.id,
   name: dbRow.name,
   stock: dbRow.stock,
-  salePrice: dbRow.sale_price,
+  salePrice: dbRow.sale_Price,
 });
+
+const _getCartOrThrow = async (cartId) => {
+  const cart = await cartRepository.getCartById(cartId);
+  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+
+  return cart;
+};
+
+// --- Service functions ---
 
 const createCart = async () => {
   const cartCount = await cartRepository.countActiveCarts();
@@ -53,7 +60,8 @@ const createCart = async () => {
 };
 
 const getCarts = async () => {
-  return await cartRepository.getCarts();
+  const carts = await cartRepository.getCarts();
+  return {carts};
 };
 
 const searchProducts = async (searchTerm) => {
@@ -61,25 +69,18 @@ const searchProducts = async (searchTerm) => {
   return products.map(_toSearchResult);
 };
 
-const getCartById = async (cartId) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
-
+const getCartByIdForView = async (cartId) => {
+  const cart = await _getCartOrThrow(cartId);
   return _toApiCart(cart);
 };
 
 const deleteCart = async (cartId) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
-
+  await _getCartOrThrow(cartId);
   await cartRepository.deleteCartById(cartId);
-
-  return;
 };
 
 const addItem = async (cartId, { productId, quantity }) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+  const cart = await _getCartOrThrow(cartId);
 
   const product = await productRepository.getProductById(productId);
   if (!product) throw new AppError("محصول پیدا نشد", 404);
@@ -93,7 +94,7 @@ const addItem = async (cartId, { productId, quantity }) => {
 
   if (product.stock < totalRequestedQuantity) {
     throw new AppError(
-      `تعداد درخواستی بیشتر از موجودی است.\n موجودی محصول «${product.name}» فقط ${product.stock} عدد می‌باشد.`,
+      `تعداد درخواستی بیشتر از موجودی است.\nموجودی محصول «${product.name}» فقط ${product.stock} عدد می‌باشد.`,
       400,
     );
   }
@@ -117,8 +118,7 @@ const addItem = async (cartId, { productId, quantity }) => {
 };
 
 const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+  const cart = await _getCartOrThrow(cartId);
 
   const existingItem = cart.items.find((item) => item.id === itemId);
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
@@ -126,10 +126,11 @@ const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
   const product = await productRepository.getProductById(
     existingItem.productId,
   );
+  if (!product) throw new AppError("محصول پیدا نشد", 404);
 
   if (quantity > product.stock) {
     throw new AppError(
-      `تعداد درخواستی بیشتر از موجودی است.\n موجودی محصول «${product.name}» فقط ${product.stock} عدد می‌باشد.`,
+      `تعداد درخواستی بیشتر از موجودی است.\nموجودی محصول «${product.name}» فقط ${product.stock} عدد می‌باشد.`,
       400,
     );
   }
@@ -142,8 +143,7 @@ const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
 };
 
 const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+  const cart = await _getCartOrThrow(cartId);
 
   const existingItem = cart.items.find((item) => item.id === itemId);
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
@@ -156,8 +156,7 @@ const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
 };
 
 const clearCartItems = async (cartId) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+  const cart = await _getCartOrThrow(cartId);
 
   cart.items = [];
 
@@ -167,8 +166,7 @@ const clearCartItems = async (cartId) => {
 };
 
 const deleteItemById = async ({ cartId, itemId }) => {
-  const cart = await cartRepository.getCartById(cartId);
-  if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
+  const cart = await _getCartOrThrow(cartId);
 
   const remainingItems = cart.items.filter((item) => item.id !== itemId);
 
@@ -187,7 +185,7 @@ export default {
   createCart,
   getCarts,
   searchProducts,
-  getCartById,
+  getCartByIdForView,
   deleteCart,
   addItem,
   updateQuantityItemById,

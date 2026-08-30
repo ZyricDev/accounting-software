@@ -123,6 +123,13 @@ const setStockInfo = async (
   return getProductById(id);
 };
 
+const decrementStock = async (id, quantity, executor = pool) => {
+  await executor.query(
+    "UPDATE products SET stock = stock - ?, updated_at = NOW() WHERE id = ?",
+    [quantity, id],
+  );
+};
+
 export default {
   getProducts,
   getProductById,
@@ -132,4 +139,5 @@ export default {
   updateProduct,
   softDeleteProduct,
   setStockInfo,
+  decrementStock,
 };

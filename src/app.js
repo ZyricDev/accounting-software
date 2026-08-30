@@ -8,6 +8,7 @@ import globalErrorHandler from "./shared/errors/globalErrorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
+import invoiceRoutes from "./modules/invoices/invoice.routes.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/carts", cartRoutes);
+app.use("/api/v1/carts", invoiceRoutes);
 
 //* 404 Handler
 app.use(notFoundHandler);

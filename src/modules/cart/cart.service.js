@@ -36,7 +36,7 @@ const _toSearchResult = (dbRow) => ({
   id: dbRow.id,
   name: dbRow.name,
   stock: dbRow.stock,
-  salePrice: dbRow.sale_Price,
+  salePrice: dbRow.sale_price,
 });
 
 const _getCartOrThrow = async (cartId) => {

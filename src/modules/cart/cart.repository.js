@@ -24,6 +24,7 @@ const searchProducts = async (searchTerm) => {
     `SELECT id, name, stock, sale_price
      FROM products
      WHERE deleted_at IS NULL
+       AND stock > 0
        AND (barcode = ? OR name LIKE ?)
      ORDER BY CASE WHEN barcode = ? THEN 0 ELSE 1 END, name ASC
      LIMIT 10`,

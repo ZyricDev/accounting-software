@@ -4,6 +4,23 @@ import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js"
 
 const ALLOWED_PAYMENT_METHOD_FIELDS = ["cash", "card", "pos"];
 
+const persianToEnglishDigits = (value) => {
+  const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+  const englishDigits = "0123456789";
+
+  return value
+    .split("")
+    .map((char) => {
+      const persianIndex = persianDigits.indexOf(char);
+      if (persianIndex !== -1) {
+        return englishDigits[persianIndex];
+      }
+
+      return char;
+    })
+    .join("");
+};
+
 const checkout = {
   params: joi.object({
     cartId: joi.number().integer().positive().required().messages({
@@ -37,9 +54,16 @@ const checkout = {
     customerPhone: joi
       .string()
       .trim()
-      .pattern(/^09\d{9}$/)
       .empty("")
       .default(null)
+      .custom((value, helpers) => {
+        if (value === null) {
+          return value;
+        }
+
+        return persianToEnglishDigits(value);
+      })
+      .pattern(/^09\d{9}$/)
       .messages({
         "string.base": "شماره تماس مشتری باید متن باشد.",
         "string.pattern.base": "فرمت شماره تماس نامعتبر است.",

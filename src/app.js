@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 
 import notFoundHandler from "./shared/middleware/notFound.js";
@@ -9,6 +11,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
 import invoiceRoutes from "./modules/invoices/invoice.routes.js";
+import backupRoutes from "./modules/backup/backup.routes.js";
 
 const app = express();
 
@@ -17,10 +20,19 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
 app.use(cookieParser());
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, "../public")));
+
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/carts", cartRoutes);
 app.use("/api/v1/carts", invoiceRoutes);
+app.use("/api/v1/backup", backupRoutes);
+
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public", "index.html"));
+});
 
 //* 404 Handler
 app.use(notFoundHandler);

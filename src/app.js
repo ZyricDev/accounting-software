@@ -12,6 +12,7 @@ import productRoutes from "./modules/product/product.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
 import invoiceRoutes from "./modules/invoices/invoice.routes.js";
 import backupRoutes from "./modules/backup/backup.routes.js";
+import supplierRoutes from "./modules/supplier/supplier.routes.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/carts", cartRoutes);
 app.use("/api/v1/carts", invoiceRoutes);
 app.use("/api/v1/backup", backupRoutes);
+app.use("/api/v1/suppliers", supplierRoutes);
 
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

@@ -17,6 +17,8 @@ const config = {
     password: process.env.DB_PASSWORD,
     name: process.env.DB_NAME,
   },
+
+  backupRootDir: process.env.BACKUP_DIR
 };
 
 export default config;

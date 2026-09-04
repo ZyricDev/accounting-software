@@ -39,6 +39,10 @@ const logger = createLogger({
   ],
 });
 
+logger.on("error", (err) => {
+  console.error("Logger transport error:", err.message);
+});
+
 if (!isProduction) {
   logger.add(
     new transports.Console({

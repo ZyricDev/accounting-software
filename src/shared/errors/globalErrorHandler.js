@@ -43,13 +43,6 @@ const globalErrorHandler = (err, req, res, next) => {
     response.stack = err.stack;
   }
 
-  if (err.code === "ER_DUP_ENTRY") {
-    throw new AppError(
-      "این نام یا بارکد قبلاً برای یک محصول فعال ثبت شده است",
-      409,
-    );
-  }
-
   return res.status(statusCode).json(response);
 };
 

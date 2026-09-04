@@ -14,6 +14,21 @@ const createTables = async () => {
     );
   `;
 
+  const suppliersTable = `
+  CREATE TABLE IF NOT EXISTS suppliers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    phone VARCHAR(11) DEFAULT NULL,
+    address VARCHAR(255) DEFAULT NULL,
+    current_balance BIGINT NOT NULL DEFAULT 0,
+    is_blocked TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX (name),
+    INDEX (phone)
+  );
+`;
+
   // Products table
   // NOTE: barcode is intentionally NOT unique at the DB level.
   // Uniqueness among ACTIVE products is enforced in the service layer
@@ -102,6 +117,7 @@ const createTables = async () => {
   try {
     // Order matters: referenced tables must exist before FK-dependent tables
     await pool.query(adminTable);
+    await pool.query(suppliersTable);
     await pool.query(productsTable);
     await pool.query(customersTable);
     await pool.query(cartsTable);

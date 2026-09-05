@@ -21,4 +21,10 @@ const getSuppliers = async (req, res) => {
   return sendSuccess(res, "تامین‌کننده ها با موفقیت دریافت شد", result);
 };
 
-export default { addSupplier, getSuppliers };
+const getSupplier = async (req, res) => {
+  const supplier = await supplierService.getSupplierById(req.params.id);
+
+  return sendSuccess(res, "تامین کننده با موفقیت دریافت شد", { supplier });
+};
+
+export default { addSupplier, getSuppliers, getSupplier };

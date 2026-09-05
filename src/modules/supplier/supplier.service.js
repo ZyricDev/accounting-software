@@ -47,4 +47,15 @@ const getSuppliers = async (filters) => {
   };
 };
 
-export default { addSupplier, getSuppliers };
+const getSupplierById = async (supplierId) => {
+  const supplier = await supplierRepository.getSupplierById(supplierId);
+  if (!supplier) {
+    throw new AppError("تامین کننده یافت نشد", 404);
+  }
+
+  return _toApiFields(supplier);
+};
+
+
+
+export default { addSupplier, getSuppliers, getSupplierById };

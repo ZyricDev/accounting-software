@@ -27,6 +27,17 @@ const persianToEnglishDigits = (value) => {
     .join("");
 };
 
+const supplierIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه محصول باید عدد باشد.",
+    "number.positive": "شناسه محصول نامعتبر است.",
+    "any.required": "شناسه محصول الزامی است.",
+  });
+
 const getSuppliers = {
   query: createQuerySchema({
     balanceOrder: joi
@@ -92,7 +103,12 @@ const addSupplier = {
   }),
 };
 
+const getSupplier = {
+  params: joi.object({ id: supplierIdParamSchema }),
+};
+
 export default {
   getSuppliers,
   addSupplier,
+  getSupplier,
 };

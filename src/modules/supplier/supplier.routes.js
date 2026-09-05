@@ -20,4 +20,6 @@ router
     supplierController.getSuppliers,
   );
 
+router.route("/:id").get(validate(supplierValidation.getSupplier), supplierController.getSupplier);
+
 export default router;

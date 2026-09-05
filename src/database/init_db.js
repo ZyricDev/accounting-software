@@ -79,8 +79,8 @@ const createTables = async () => {
   // cart_id has NO real FK: the cart row is deleted (claimed) right before
   // the invoice is created, so a live FK would always fail. It's kept only
   // as a reference value, not a relational integrity constraint.
-  const invoiceTable = `
-    CREATE TABLE IF NOT EXISTS invoices (
+  const salesInvoicesTable = `
+    CREATE TABLE IF NOT EXISTS sales_invoices (
       id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       cart_id INT(11) DEFAULT NULL,
       customer_id INT(11) DEFAULT NULL,
@@ -96,8 +96,8 @@ const createTables = async () => {
   // Invoice items table (snapshot of the sale — frozen price/name at sale time)
   // product_id MUST be signed INT(11) to match products.id's type exactly,
   // otherwise the FOREIGN KEY constraint fails to create.
-  const invoiceItemsTable = `
-    CREATE TABLE IF NOT EXISTS invoice_items (
+  const salesInvoicesItemsTable = `
+    CREATE TABLE IF NOT EXISTS sales_invoices_items (
       id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       invoice_id INT(11) UNSIGNED NOT NULL,
       product_id INT(11) NOT NULL,
@@ -121,8 +121,8 @@ const createTables = async () => {
     await pool.query(productsTable);
     await pool.query(customersTable);
     await pool.query(cartsTable);
-    await pool.query(invoiceTable);
-    await pool.query(invoiceItemsTable);
+    await pool.query(salesInvoicesTable);
+    await pool.query(salesInvoicesItemsTable);
 
     const [checkAdmin] = await pool.query(
       `SELECT COUNT(*) as count FROM admin`,

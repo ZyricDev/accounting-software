@@ -1,4 +1,5 @@
 import AppError from "../../shared/errors/AppError.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import supplierRepository from "./supplier.repository.js";
 
 const _toApiFields = (data) => ({
@@ -33,4 +34,17 @@ const addSupplier = async ({ name, phone, address }) => {
   return _toApiFields(supplier);
 };
 
-export default { addSupplier };
+const getSuppliers = async (filters) => {
+  const { suppliers, total } = await supplierRepository.getSuppliers(filters);
+
+  return {
+    suppliers: suppliers.map(_toApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
+
+export default { addSupplier, getSuppliers };

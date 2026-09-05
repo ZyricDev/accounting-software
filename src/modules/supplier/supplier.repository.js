@@ -35,8 +35,38 @@ const createSupplier = async (supplierData) => {
   return getSupplierById(result.insertId);
 };
 
+const getSuppliers = async ({ search, limit = 20, page = 1, balanceOrder }) => {
+  const offset = (page - 1) * limit;
+
+  let orderClause = "ORDER BY name ASC";
+  if (balanceOrder === "most_debt") {
+    orderClause = "ORDER BY current_balance DESC"; // بیشترین بدهی ما بالا
+  } else if (balanceOrder === "least_debt") {
+    orderClause = "ORDER BY current_balance ASC"; // بیشترین طلب ما بالا
+  }
+
+  const whereClause = search ? "WHERE (name LIKE ? OR phone LIKE ?)" : "";
+  const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
+
+  const [rows] = await pool.query(
+    `SELECT * FROM suppliers
+       ${whereClause}
+       ${orderClause}
+       LIMIT ? OFFSET ?`,
+    [...searchParams, Number(limit), Number(offset)],
+  );
+
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM suppliers ${whereClause}`,
+    searchParams,
+  );
+
+  return { suppliers: rows, total };
+};
+
 export default {
   isSupplierPhoneTaken,
   getSupplierById,
   createSupplier,
+  getSuppliers,
 };

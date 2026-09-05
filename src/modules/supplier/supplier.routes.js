@@ -9,6 +9,15 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.route("/").post(validate(supplierValidation.addSupplier), supplierController.addSupplier)
+router
+  .route("/")
+  .post(
+    validate(supplierValidation.addSupplier),
+    supplierController.addSupplier,
+  )
+  .get(
+    validate(supplierValidation.getSuppliers),
+    supplierController.getSuppliers,
+  );
 
 export default router;

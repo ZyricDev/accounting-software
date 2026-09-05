@@ -27,4 +27,18 @@ const getSupplier = async (req, res) => {
   return sendSuccess(res, "تامین کننده با موفقیت دریافت شد", { supplier });
 };
 
-export default { addSupplier, getSuppliers, getSupplier };
+const updateSupplier = async (req, res) => {
+  const supplier = await supplierService.updateSupplier(
+    req.params.id,
+    req.body,
+  );
+
+  logger.info("Updated supplier successfully", {
+    id: supplier.id,
+    phone: supplier.phone,
+  });
+
+  return sendSuccess(res, "تامین‌کننده با موفقیت آپدیت شد", { supplier });
+};
+
+export default { addSupplier, getSuppliers, getSupplier, updateSupplier };

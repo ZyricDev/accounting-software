@@ -107,8 +107,62 @@ const getSupplier = {
   params: joi.object({ id: supplierIdParamSchema }),
 };
 
+const updateSupplier = {
+  params: joi.object({ id: supplierIdParamSchema }),
+
+  body: createBodyObjectSchema({
+    name: joi
+      .string()
+      .trim()
+      .max(120)
+      .empty("")
+      .default(null)
+      .when(joi.valid(null), {
+        then: joi.strip(),
+      })
+      .messages({
+        "string.base": "نام تأمین‌کننده باید متن باشد.",
+        "string.max": "نام تأمین‌کننده نمی‌تواند بیشتر از ۱۲۰ کاراکتر باشد.",
+      }),
+
+    phone: joi
+      .string()
+      .trim()
+      .empty("")
+      .default(null)
+      .custom((value) => {
+        if (value === null) return value;
+        return persianToEnglishDigits(value);
+      })
+      .pattern(/^09\d{9}$/)
+      .when(joi.valid(null), {
+        then: joi.strip(),
+      })
+      .messages({
+        "string.base": "شماره تماس تأمین‌کننده باید متن باشد.",
+        "string.pattern.base":
+          "شماره تماس باید با ۰۹ شروع شود و شامل ۱۱ رقم باشد.",
+      }),
+
+    address: joi
+      .string()
+      .trim()
+      .max(255)
+      .empty("")
+      .default(null)
+      .when(joi.valid(null), {
+        then: joi.strip(),
+      })
+      .messages({
+        "string.base": "آدرس تأمین‌کننده باید متن باشد.",
+        "string.max": "آدرس تأمین‌کننده نمی‌تواند بیشتر از ۲۵۵ کاراکتر باشد.",
+      }),
+  }),
+};
+
 export default {
   getSuppliers,
   addSupplier,
   getSupplier,
+  updateSupplier,
 };

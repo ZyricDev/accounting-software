@@ -64,9 +64,24 @@ const getSuppliers = async ({ search, limit = 20, page = 1, balanceOrder }) => {
   return { suppliers: rows, total };
 };
 
+const updateSupplierById = async (id, supplierData) => {
+  const columns = Object.keys(supplierData);
+  const values = Object.values(supplierData);
+
+  const setClause = columns.map((col) => `${col} = ?`).join(", ");
+
+  await pool.query(`UPDATE suppliers SET ${setClause} WHERE id = ? `, [
+    ...values,
+    id,
+  ]);
+
+  return getSupplierById(id);
+};
+
 export default {
   isSupplierPhoneTaken,
   getSupplierById,
   createSupplier,
   getSuppliers,
+  updateSupplierById,
 };

@@ -56,6 +56,27 @@ const getSupplierById = async (supplierId) => {
   return _toApiFields(supplier);
 };
 
+const updateSupplier = async (supplierId, supplierData) => {
+  const supplier = await supplierRepository.getSupplierById(supplierId);
+  if (!supplier) {
+    throw new AppError("تامین کننده یافت نشد", 404);
+  }
 
+  if (supplierData.phone && supplierData.phone !== supplier.phone) {
+    const phoneExist = await supplierRepository.isSupplierPhoneTaken(
+      supplierData.phone,
+    );
+    if (phoneExist) {
+      throw new AppError("تامین‌کننده با این شماره تلفن موجود است", 409);
+    }
+  }
 
-export default { addSupplier, getSuppliers, getSupplierById };
+  const updatedSupplier = await supplierRepository.updateSupplierById(
+    supplierId,
+    supplierData,
+  );
+
+  return _toApiFields(updatedSupplier);
+};
+
+export default { addSupplier, getSuppliers, getSupplierById, updateSupplier };

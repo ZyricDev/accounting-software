@@ -42,4 +42,9 @@ router.patch(
   cartController.updatePriceItem,
 );
 
+router
+  .route("/:cartId/discount")
+  .post(validate(cartValidation.applyDiscount), cartController.applyDiscount)
+  .delete(validate(cartValidation.cartId), cartController.removeDiscount);
+
 export default router;

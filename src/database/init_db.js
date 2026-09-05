@@ -5,10 +5,10 @@ const createTables = async () => {
   // Admin table (single-row table — only ONE admin ever exists)
   const adminTable = `
     CREATE TABLE IF NOT EXISTS admin (
-      id INT(11) AUTO_INCREMENT PRIMARY KEY,
+      id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(100) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL,
-      token_version INT(11) DEFAULT 1,
+      token_version INT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
@@ -36,12 +36,12 @@ const createTables = async () => {
   // so a soft-deleted product's barcode can be reused by a new one.
   const productsTable = `
     CREATE TABLE IF NOT EXISTS products (
-      id INT(11) AUTO_INCREMENT PRIMARY KEY,
+      id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
       barcode VARCHAR(100) NOT NULL,
-      stock INT(10) UNSIGNED NOT NULL DEFAULT 0,
-      purchase_price INT(10) UNSIGNED NOT NULL,
-      sale_price INT(10) UNSIGNED NOT NULL,
+      stock INT UNSIGNED NOT NULL DEFAULT 0,
+      purchase_price INT UNSIGNED NOT NULL,
+      sale_price INT UNSIGNED NOT NULL,
       last_stock_in_at TIMESTAMP NULL DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -55,7 +55,7 @@ const createTables = async () => {
   // Customers table — required for invoices.customer_id FK
   const customersTable = `
     CREATE TABLE IF NOT EXISTS customers (
-      id INT(11) AUTO_INCREMENT PRIMARY KEY,
+      id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(150) DEFAULT NULL,
       phone VARCHAR(20) NOT NULL UNIQUE,
       birth_date DATE DEFAULT NULL,
@@ -67,11 +67,11 @@ const createTables = async () => {
   // Carts table (ephemeral — deleted once checked out / "claimed")
   const cartsTable = `
     CREATE TABLE IF NOT EXISTS carts (
-      id INT(11) AUTO_INCREMENT PRIMARY KEY,
-      items LONGTEXT NOT NULL DEFAULT '[]',
-      discount_amount BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
-      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      items JSON NOT NULL DEFAULT (JSON_ARRAY()),
+      discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
   `;
 
@@ -81,12 +81,12 @@ const createTables = async () => {
   // as a reference value, not a relational integrity constraint.
   const salesInvoicesTable = `
     CREATE TABLE IF NOT EXISTS sales_invoices (
-      id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-      cart_id INT(11) DEFAULT NULL,
-      customer_id INT(11) DEFAULT NULL,
+      id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      cart_id INT DEFAULT NULL,
+      customer_id INT DEFAULT NULL,
       payment_method ENUM('cash', 'card', 'pos') NOT NULL DEFAULT 'pos',
-      total_quantity INT(10) UNSIGNED NOT NULL,
-      total_amount INT(10) UNSIGNED NOT NULL,
+      total_quantity INT UNSIGNED NOT NULL,
+      total_amount INT UNSIGNED NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
       FOREIGN KEY (customer_id) REFERENCES customers(id)
@@ -98,19 +98,19 @@ const createTables = async () => {
   // otherwise the FOREIGN KEY constraint fails to create.
   const salesInvoicesItemsTable = `
     CREATE TABLE IF NOT EXISTS sales_invoices_items (
-      id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-      invoice_id INT(11) UNSIGNED NOT NULL,
-      product_id INT(11) NOT NULL,
+      id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      sales_invoices_id INT UNSIGNED NOT NULL,
+      product_id INT NOT NULL,
       product_name VARCHAR(255) NOT NULL,
-      quantity INT(10) UNSIGNED NOT NULL,
-      sale_price INT(10) UNSIGNED NOT NULL,
-      purchase_price INT(10) UNSIGNED NOT NULL,
-      line_total INT(10) UNSIGNED NOT NULL,
+      quantity INT UNSIGNED NOT NULL,
+      sale_price INT UNSIGNED NOT NULL,
+      purchase_price INT UNSIGNED NOT NULL,
+      line_total INT UNSIGNED NOT NULL,
 
-      FOREIGN KEY (invoice_id) REFERENCES invoices(id),
+      FOREIGN KEY (sales_invoices_id) REFERENCES sales_invoices(id),
       FOREIGN KEY (product_id) REFERENCES products(id),
 
-      INDEX (invoice_id)
+      INDEX (sales_invoices_id)
     );
   `;
 

@@ -42,6 +42,7 @@ const getCartById = async (id) => {
 
   return {
     id: cart.id,
+    discountAmount: cart.discount_amount,
     items: typeof cart.items === "string" ? JSON.parse(cart.items) : cart.items,
   };
 };
@@ -59,6 +60,15 @@ const saveCartItems = async (id, items) => {
   ]);
 };
 
+const saveCartDiscount = async (id, discountAmount) => {
+  await pool.query("UPDATE carts SET discount_amount = ? WHERE id = ?", [
+    discountAmount,
+    id,
+  ]);
+
+  return getCartById(id);
+};
+
 export default {
   countActiveCarts,
   createCart,
@@ -67,4 +77,5 @@ export default {
   getCartById,
   deleteCartById,
   saveCartItems,
+  saveCartDiscount,
 };

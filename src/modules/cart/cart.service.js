@@ -27,10 +27,17 @@ const _buildCartSummary = (items) => {
   };
 };
 
-const _toApiCart = (cart) => ({
-  id: cart.id,
-  ..._buildCartSummary(cart.items),
-});
+const _toApiCart = (cart) => {
+  const summary = _buildCartSummary(cart.items);
+  const discountAmount = cart.discountAmount ?? 0;
+
+  return {
+    id: cart.id,
+    ...summary,
+    discountAmount: cart.discount_amount,
+    finalTotal: summary.subtotal - discountAmount,
+  };
+};
 
 const _toSearchResult = (dbRow) => ({
   id: dbRow.id,
@@ -61,7 +68,7 @@ const createCart = async () => {
 
 const getCarts = async () => {
   const carts = await cartRepository.getCarts();
-  return {carts};
+  return carts;
 };
 
 const searchProducts = async (searchTerm) => {
@@ -106,6 +113,7 @@ const addItem = async (cartId, { productId, quantity }) => {
       id: randomUUID(),
       productId: product.id,
       productName: product.name,
+      originalPrice: product.sale_price,
       salePrice: product.sale_price,
       purchasePrice: product.purchase_price,
       quantity,
@@ -155,6 +163,34 @@ const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
   return _toApiCart(cart);
 };
 
+const applyDiscount = async (cartId, discountAmount) => {
+  const cart = await _getCartOrThrow(cartId);
+  const { subtotal } = _buildCartSummary(cart.items);
+
+  if (subtotal === 0) {
+    throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست", 400);
+  }
+
+  if (discountAmount > subtotal) {
+    throw new AppError("مبلغ تخفیف نمی‌تواند بیشتر از جمع کل سبد باشد", 400);
+  }
+
+  const newCart = await cartRepository.saveCartDiscount(cartId, discountAmount);
+
+  return _toApiCart(newCart);
+};
+
+const removeDiscount = async (cartId) => {
+  const cart = await _getCartOrThrow(cartId);
+
+  if (cart.items.length === 0) {
+    throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست", 400);
+  }
+  const newCart = await cartRepository.saveCartDiscount(cartId, 0);
+
+  return _toApiCart(newCart);
+};
+
 const clearCartItems = async (cartId) => {
   const cart = await _getCartOrThrow(cartId);
 
@@ -190,6 +226,8 @@ export default {
   addItem,
   updateQuantityItemById,
   updateSalePriceItemById,
+  applyDiscount,
+  removeDiscount,
   clearCartItems,
   deleteItemById,
 };

@@ -98,6 +98,18 @@ const deleteItem = {
   }),
 };
 
+const applyDiscount = {
+  params: joi.object({ cartId: cartIdParamSchema }),
+  
+  body: createBodyObjectSchema({
+    discountAmount: joi.number().integer().min(0).required().messages({
+      "number.base": "مبلغ تخفیف باید عدد باشد.",
+      "number.min": "مبلغ تخفیف نمی‌تواند منفی باشد.",
+      "any.required": "وارد کردن مبلغ تخفیف الزامی است.",
+    }),
+  }),
+};
+
 export default {
   addItem,
   getCart,
@@ -106,4 +118,5 @@ export default {
   quantityItem,
   priceItem,
   deleteItem,
+  applyDiscount,
 };

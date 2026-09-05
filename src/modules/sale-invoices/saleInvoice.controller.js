@@ -1,4 +1,4 @@
-import invoiceService from "./invoice.service.js";
+import invoiceService from "./saleInvoice.service.js";
 import logger from "../../shared/utils/logger.js";
 import { sendSuccess } from "../../shared/utils/apiResponse.js";
 

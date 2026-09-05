@@ -2,7 +2,7 @@ import AppError from "../../shared/errors/AppError.js";
 import cartRepository from "../cart/cart.repository.js";
 import customerRepository from "../customer/customer.repository.js";
 import productRepository from "../product/product.repository.js";
-import invoiceRepository from "./invoice.repository.js";
+import invoiceRepository from "./saleInvoice.repository.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({

@@ -10,7 +10,7 @@ import globalErrorHandler from "./shared/errors/globalErrorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
-import invoiceRoutes from "./modules/invoices/invoice.routes.js";
+import invoiceRoutes from "./modules/sale-invoices/saleInvoice.routes.js";
 import backupRoutes from "./modules/backup/backup.routes.js";
 import supplierRoutes from "./modules/supplier/supplier.routes.js";
 

@@ -5,13 +5,27 @@ const getConnection = async () => {
 };
 
 const createInvoice = async (invoiceData, executor = pool) => {
-  const { customerId, paymentMethod, totalAmount, totalQuantity } = invoiceData;
+  const {
+    customerId,
+    paymentMethod,
+    discountAmount,
+    creditAmount,
+    totalAmount,
+    totalQuantity,
+  } = invoiceData;
 
   const [result] = await executor.query(
     `INSERT INTO sales_invoices
-    (customer_id, payment_method, total_amount, total_quantity)
-    VALUES (?, ?, ?, ?)`,
-    [customerId, paymentMethod, totalAmount, totalQuantity],
+    (customer_id, payment_method, discount_amount, credit_amount, total_amount, total_quantity)
+    VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      customerId,
+      paymentMethod,
+      discountAmount,
+      creditAmount,
+      totalAmount,
+      totalQuantity,
+    ],
   );
 
   return result.insertId;
@@ -23,6 +37,7 @@ const createInvoiceItems = async (invoiceId, items, executor = pool) => {
     item.productId,
     item.productName,
     item.quantity,
+    item.originalPrice,
     item.salePrice,
     item.purchasePrice,
     item.lineTotal,
@@ -30,7 +45,7 @@ const createInvoiceItems = async (invoiceId, items, executor = pool) => {
 
   await executor.query(
     `INSERT INTO sales_invoices_items
-    (invoice_id, product_id, product_name, quantity, sale_price, purchase_price, line_total)
+    (invoice_id, product_id, product_name, quantity, original_price, sale_price, purchase_price, line_total)
     VALUES ?`,
     [values],
   );

@@ -1,43 +1,48 @@
-import joi from "joi";
+import joi from "../../shared/utils/customJoi.js";
 
 import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js";
 
-const ALLOWED_PAYMENT_METHOD_FIELDS = ["cash", "card", "pos"];
-
-const persianToEnglishDigits = (value) => {
-  const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
-  const englishDigits = "0123456789";
-
-  return value
-    .split("")
-    .map((char) => {
-      const persianIndex = persianDigits.indexOf(char);
-      if (persianIndex !== -1) {
-        return englishDigits[persianIndex];
-      }
-
-      return char;
-    })
-    .join("");
-};
-
 const checkout = {
   params: joi.object({
-    cartId: joi.number().integer().positive().required().messages({
-      "number.base": "شناسه محصول باید عدد باشد.",
-      "number.positive": "شناسه محصول نامعتبر است.",
-      "any.required": "شناسه محصول الزامی است.",
+    cartId: joi.persianNumber().integer().positive().required().messages({
+      "number.base": "شناسه سبد باید عدد باشد.",
+      "number.positive": "شناسه سبد نامعتبر است.",
+      "any.required": "شناسه سبد الزامی است.",
     }),
   }),
 
   body: createBodyObjectSchema({
-    paymentMethod: joi
-      .string()
-      .valid(...ALLOWED_PAYMENT_METHOD_FIELDS)
-      .default("pos")
+    cashAmount: joi
+      .persianNumber()
+      .integer()
+      .min(0)
+      .empty("")
+      .default(0)
       .messages({
-        "string.base": "روش پرداخت باید یک رشته متنی باشد.",
-        "any.only": "روش پرداخت نامعتبر است. مقادیر مجاز: {#valids}",
+        "number.base": "مبلغ نقدی باید عدد باشد.",
+        "number.min": "مبلغ نقدی نمی‌تواند منفی باشد.",
+      }),
+
+    electronicAmount: joi
+      .persianNumber()
+      .integer()
+      .min(0)
+      .empty("")
+      .default(0)
+      .messages({
+        "number.base": "مبلغ کارت/پز باید عدد باشد.",
+        "number.min": "مبلغ کارت/پز نمی‌تواند منفی باشد.",
+      }),
+
+    creditAmount: joi
+      .persianNumber()
+      .integer()
+      .min(0)
+      .empty("")
+      .default(0)
+      .messages({
+        "number.base": "مبلغ نسیه باید عدد باشد.",
+        "number.min": "مبلغ نسیه نمی‌تواند منفی باشد.",
       }),
 
     customerName: joi
@@ -56,14 +61,17 @@ const checkout = {
       .trim()
       .empty("")
       .default(null)
-      .custom((value, helpers) => {
-        if (value === null) {
-          return value;
-        }
-
-        return persianToEnglishDigits(value);
-      })
+      .custom((value) =>
+        value === null ? value : persianToEnglishDigits(value),
+      )
       .pattern(/^09\d{9}$/)
+      .when("creditAmount", {
+        is: joi.persianNumber().greater(0),
+        then: joi.required().messages({
+          "any.required":
+            "برای فروش نسیه، وارد کردن شماره تماس مشتری الزامی است.",
+        }),
+      })
       .messages({
         "string.base": "شماره تماس مشتری باید متن باشد.",
         "string.pattern.base": "فرمت شماره تماس نامعتبر است.",

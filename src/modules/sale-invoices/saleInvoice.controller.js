@@ -13,6 +13,7 @@ const checkout = async (req, res) => {
     cartId,
     totalAmount: invoice.totalAmount,
     paymentMethod: invoice.paymentMethod,
+    creditAmount: invoice.creditAmount,
   });
 
   return sendSuccess(res, "فاکتور با موفقیت ثبت شد", { invoice }, 201);

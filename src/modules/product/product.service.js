@@ -2,20 +2,6 @@ import productRepository from "./product.repository.js";
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 
-const FIELD_NAME_MAP = {
-  purchasePrice: "purchase_price",
-  salePrice: "sale_price",
-  stockHistory: "stock_history",
-};
-
-const _toDbFields = (data) => {
-  return Object.fromEntries(
-    Object.entries(data)
-      .filter(([, value]) => value !== undefined)
-      .map(([key, value]) => [FIELD_NAME_MAP[key] ?? key, value]),
-  );
-};
-
 const _toApiFields = (dbRow) => ({
   id: dbRow.id,
   name: dbRow.name,
@@ -67,7 +53,7 @@ const getProducts = async (filters) => {
 };
 
 const addProduct = async (productData) => {
-  const { name, barcode, stock, purchasePrice } = productData;
+  const { name, barcode } = productData;
 
   const [nameExist, barcodeExist] = await Promise.all([
     productRepository.isProductNameTaken(name),
@@ -82,12 +68,10 @@ const addProduct = async (productData) => {
   }
 
   const now = new Date();
-  const stockHistory = [_buildStockEntry(stock, purchasePrice)];
 
   const payload = {
-    ..._toDbFields(productData),
-    stock_history: stockHistory,
-    last_stock_in_at: now,
+    name,
+    barcode,
     created_at: now,
     updated_at: now,
     deleted_at: null,
@@ -109,8 +93,9 @@ const getProduct = async (productId) => {
 };
 
 const updateProduct = async (productId, productData) => {
-  const { name, barcode } = productData;
+  const { name, barcode, salePrice } = productData;
   const product = await productRepository.getProductById(productId);
+
   if (!product) {
     throw new AppError("محصول پیدا نشد", 404);
   }
@@ -131,18 +116,21 @@ const updateProduct = async (productId, productData) => {
     }
   }
 
-  const now = new Date();
-
-  const payload = {
-    ..._toDbFields(productData),
-    updated_at: now,
+  const rawPayload = {
+    name,
+    barcode,
+    sale_price: salePrice,
+    updated_at: new Date(),
   };
+
+  const payload = Object.fromEntries(
+    Object.entries(rawPayload).filter(([, value]) => value !== undefined),
+  );
 
   const updatedProduct = await productRepository.updateProduct(
     productId,
     payload,
   );
-  console.log(_toApiFields(updatedProduct));
 
   return _toApiFields(updatedProduct);
 };
@@ -158,27 +146,10 @@ const deleteProduct = async (productId) => {
   return { name: product.name };
 };
 
-const addStockEntry = async (productId, stockEntryData) => {
-  const product = await productRepository.getProductById(productId);
-  if (!product) {
-    throw new AppError("محصول پیدا نشد", 404);
-  }
-
-  const stockUpdate = _calculateStockUpdate(product, stockEntryData);
-
-  const updatedProduct = await productRepository.setStockInfo(
-    productId,
-    stockUpdate,
-  );
-
-  return _toApiFields(updatedProduct);
-};
-
 export default {
   getProducts,
   addProduct,
   getProduct,
   updateProduct,
   deleteProduct,
-  addStockEntry,
 };

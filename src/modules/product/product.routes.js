@@ -26,10 +26,4 @@ router
     productController.deleteProduct,
   );
 
-router.post(
-  "/:productId/stock-entries",
-  validate(productValidation.addStockEntry),
-  productController.addStockEntry,
-);
-
 export default router;

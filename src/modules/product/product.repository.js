@@ -73,10 +73,6 @@ const isBarcodeTaken = async (barcode) => {
 const createProduct = async (productData) => {
   const payload = { ...productData };
 
-  if (payload.stock_history) {
-    payload.stock_history = JSON.stringify(payload.stock_history);
-  }
-
   const columns = Object.keys(payload);
   const values = Object.values(payload);
   const placeholders = columns.map(() => "?").join(", ");

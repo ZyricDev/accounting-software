@@ -68,25 +68,10 @@ const deleteProduct = async (req, res) => {
   });
 };
 
-const addStockEntry = async (req, res) => {
-  const { productId } = req.params;
-  const productData = req.body;
-
-  const product = await productService.addStockEntry(productId, productData);
-
-  logger.info("added stock", {
-    id: product.id,
-    name: product.name,
-  });
-
-  return sendSuccess(res, "ورود کالا با موفقیت ثبت شد", { product });
-};
-
 export default {
   getProducts,
   addProduct,
   getProduct,
   updateProduct,
   deleteProduct,
-  addStockEntry,
 };

@@ -135,6 +135,23 @@ const deleteItem = async (itemId) => {
   return _toApiCart(cart);
 };
 
+const updateQuantityItemById = async ( itemId, quantity ) => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  const existingItem = cart.items.find((item) => item.id === itemId);
+  if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
+
+  existingItem.quantity = quantity;
+
+  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
+
+  return _toApiCart(cart);
+};
+
 export default {
   createCart,
   getCart,
@@ -142,4 +159,5 @@ export default {
   addItem,
   deleteItems,
   deleteItem,
+  updateQuantityItemById,
 };

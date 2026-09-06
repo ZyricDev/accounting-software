@@ -26,4 +26,10 @@ router.delete(
   purchaseCartController.deleteItem,
 );
 
+router.patch(
+  "/items/:itemId/quantity",
+  validate(purchaseCartValidation.quantityItem),
+  purchaseCartController.updateQuantityItem,
+);
+
 export default router;

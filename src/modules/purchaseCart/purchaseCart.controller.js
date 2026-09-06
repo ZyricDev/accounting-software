@@ -42,6 +42,18 @@ const deleteItem = async (req, res) => {
   return sendSuccess(res, "محصول فاکتور خرید با موفقیت حذف شد", { cart });
 };
 
+const updateQuantityItem = async (req, res) => {
+  const { itemId } = req.params;
+  const { quantity } = req.body;
+
+  const cart = await purchaseCartService.updateQuantityItemById(
+    itemId,
+    quantity,
+  );
+
+  return sendSuccess(res, "تعداد محصول با موفقیت آپدیت شد", { cart });
+};
+
 export default {
   createCart,
   getCart,
@@ -49,4 +61,5 @@ export default {
   addItem,
   deleteItems,
   deleteItem,
+  updateQuantityItem,
 };

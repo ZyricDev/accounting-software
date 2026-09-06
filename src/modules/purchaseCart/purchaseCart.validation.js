@@ -23,4 +23,18 @@ const deleteItem = {
   }),
 };
 
-export default { addItem, deleteItem };
+const quantityItem = {
+  params: joi.object({
+    itemId: itemIdParamSchema,
+  }),
+
+  body: createBodyObjectSchema({
+    quantity: joi.persianNumber().integer().min(1).required().messages({
+      "number.base": "تعداد باید عدد باشد.",
+      "number.min": "تعداد نمی‌تواند کمتر از ۱ باشد.",
+      "any.required": "وارد کردن تعداد الزامی است.",
+    }),
+  }),
+};
+
+export default { addItem, deleteItem, quantityItem };

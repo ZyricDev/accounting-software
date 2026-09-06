@@ -9,6 +9,9 @@ const router = Router();
 
 router.use(requireAuth);
 
-router.route("/").post(purchaseCartController.createCart);
+router
+  .route("/")
+  .post(purchaseCartController.createCart)
+  .get( purchaseCartController.getCart);
 
 export default router;

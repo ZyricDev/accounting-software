@@ -12,4 +12,10 @@ const createCart = async (req, res) => {
   return sendSuccess(res, "فاکتور خرید با موفقیت ایجاد شد", { cart }, 201);
 };
 
-export default { createCart };
+const getCart = async (req, res) => {
+  const cart = await purchaseCartService.getCart();
+
+  return sendSuccess(res, "فاکتور خرید با موفقیت دریافت شد", { cart });
+};
+
+export default { createCart, getCart };

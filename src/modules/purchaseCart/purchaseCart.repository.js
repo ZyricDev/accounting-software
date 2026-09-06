@@ -16,7 +16,21 @@ const createCart = async () => {
   return { id: result.insertId, items: [], discountAmount: 0 };
 };
 
+const getActiveCart = async () => {
+  const [rows] = await pool.query("SELECT * FROM purchase_carts LIMIT 1");
+
+  const cart = rows[0];
+  if (!cart) return null;
+
+  return {
+    id: cart.id,
+    discountAmount: cart.discount_amount,
+    items: typeof cart.items === "string" ? JSON.parse(cart.items) : cart.items,
+  };
+};
+
 export default {
   countActiveCarts,
   createCart,
+  getActiveCart,
 };

@@ -5,7 +5,7 @@ const _buildCartSummary = (items) => {
   let subtotal = 0;
   let totalQuantity = 0;
 
-  const mappedItems = items.map(({ purchasePrice, ...item }) => {
+  const mappedItems = items.map((item) => {
     const lineTotal = item.purchasePrice * item.quantity;
     subtotal += lineTotal;
     totalQuantity += item.quantity;
@@ -46,4 +46,14 @@ const createCart = async () => {
   return _toApiCart(cart);
 };
 
-export default { createCart };
+const getCart = async () => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  return _toApiCart(cart);
+};
+
+export default { createCart, getCart };

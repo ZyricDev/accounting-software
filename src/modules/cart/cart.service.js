@@ -34,7 +34,7 @@ const _toApiCart = (cart) => {
   return {
     id: cart.id,
     ...summary,
-    discountAmount: cart.discount_amount,
+    discountAmount,
     finalTotal: summary.subtotal - discountAmount,
   };
 };

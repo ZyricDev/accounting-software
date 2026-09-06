@@ -1,4 +1,5 @@
 import { pool } from "../../database/connection.js";
+import logger from "../../shared/utils/logger.js";
 
 const SORT_COLUMN_MAP = {
   name: "name",
@@ -16,7 +17,7 @@ const getProducts = async ({ search, page, limit, sortBy, order }) => {
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
   const [rows] = await pool.query(
-    `SELECT id, name, stock, purchase_price, sale_price, last_stock_in_at FROM products 
+    `SELECT id, name, barcode, stock, purchase_price, sale_price, last_stock_in_at FROM products 
      WHERE deleted_at IS NULL ${whereClause} 
      ORDER BY ${sortColumn} ${order.toUpperCase()}
      LIMIT ? OFFSET ?`,
@@ -128,6 +129,20 @@ const decrementStock = async (id, quantity, executor = pool) => {
     "UPDATE products SET stock = stock - ?, updated_at = NOW() WHERE id = ?",
     [quantity, id],
   );
+
+  const [rows] = await executor.query(
+    "SELECT stock, name FROM products WHERE id = ?",
+    [id],
+  );
+  const product = rows[0];
+
+  if (product && product.stock < 0) {
+    logger.warn("موجودی محصول منفی شد", {
+      productId: id,
+      productName: product.name,
+      currentStock: product.stock,
+    });
+  }
 };
 
 export default {

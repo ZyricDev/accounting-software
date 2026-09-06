@@ -1,4 +1,4 @@
-import joi from "joi";
+import joi from "../../shared/utils/customJoi.js";
 
 import {
   createBodyObjectSchema,
@@ -14,7 +14,7 @@ const ALLOWED_SORT_FIELDS = [
 ];
 
 const productIdParamSchema = joi
-  .number()
+  .persianNumber()
   .integer()
   .positive()
   .required()
@@ -79,21 +79,26 @@ const addProduct = {
       "any.required": "بارکد محصول الزامی است.",
     }),
 
-    purchasePrice: joi.number().integer().positive().required().messages({
-      "number.base": "قیمت خرید باید عدد باشد.",
-      "number.integer": "قیمت خرید نباید اعشاری باشد.",
-      "number.positive": "قیمت خرید باید بیشتر از صفر باشد.",
-      "any.required": "قیمت خرید الزامی است.",
-    }),
+    purchasePrice: joi
+      .persianNumber()
+      .integer()
+      .positive()
+      .required()
+      .messages({
+        "number.base": "قیمت خرید باید عدد باشد.",
+        "number.integer": "قیمت خرید نباید اعشاری باشد.",
+        "number.positive": "قیمت خرید باید بیشتر از صفر باشد.",
+        "any.required": "قیمت خرید الزامی است.",
+      }),
 
-    salePrice: joi.number().integer().positive().required().messages({
+    salePrice: joi.persianNumber().integer().positive().required().messages({
       "number.base": "قیمت فروش باید عدد باشد.",
       "number.integer": "قیمت فروش نباید اعشاری باشد.",
       "number.positive": "قیمت فروش باید بیشتر از صفر باشد.",
       "any.required": "قیمت فروش الزامی است.",
     }),
 
-    stock: joi.number().integer().positive().required().messages({
+    stock: joi.persianNumber().integer().positive().required().messages({
       "number.base": "تعداد موجودی باید عدد باشد.",
       "number.integer": "تعداد موجودی نباید اعشاری باشد.",
       "number.positive": "تعداد موجودی باید بیشتر از صفر باشد.",
@@ -118,7 +123,7 @@ const updateProduct = {
       "string.max": "بارکد وارد شده معتبر نیست.",
     }),
 
-    salePrice: joi.number().integer().positive().messages({
+    salePrice: joi.persianNumber().integer().positive().messages({
       "number.base": "قیمت فروش باید عدد باشد.",
       "number.integer": "قیمت فروش نباید اعشاری باشد.",
       "number.positive": "قیمت فروش باید بیشتر از صفر باشد.",
@@ -137,19 +142,19 @@ const addStockEntry = {
   params: joi.object({ productId: productIdParamSchema }),
 
   body: createBodyObjectSchema({
-    stock: joi.number().integer().positive().required().messages({
+    stock: joi.persianNumber().integer().positive().required().messages({
       "number.base": "تعداد باید عدد باشد.",
       "number.positive": "تعداد باید بیشتر از صفر باشد.",
       "any.required": "تعداد الزامی است.",
     }),
 
-    purchasePrice: joi.number().integer().min(0).required().messages({
+    purchasePrice: joi.persianNumber().integer().min(0).required().messages({
       "number.base": "قیمت خرید باید عدد باشد.",
       "number.min": "قیمت خرید نمی‌تواند منفی باشد.",
       "any.required": "قیمت خرید الزامی است.",
     }),
 
-    salePrice: joi.number().integer().positive().messages({
+    salePrice: joi.persianNumber().integer().positive().required().messages({
       "number.base": "قیمت فروش باید عدد باشد.",
       "number.integer": "قیمت فروش نباید اعشاری باشد.",
       "number.positive": "قیمت فروش باید بیشتر از صفر باشد.",

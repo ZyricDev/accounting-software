@@ -2,7 +2,7 @@ import AppError from "../errors/AppError.js";
 
 const validate = (schema) => {
   return (req, res, next) => {
-    const partsToValidate = ["body", "params", "query"];
+    const partsToValidate = ["params", "query", "body"];
     const errors = [];
 
     partsToValidate.forEach((part) => {

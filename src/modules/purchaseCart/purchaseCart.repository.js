@@ -29,8 +29,17 @@ const getActiveCart = async () => {
   };
 };
 
+const deleteCartById = async (id, executor = pool) => {
+  const [result] = await executor.query(
+    "DELETE FROM purchase_carts WHERE id = ?",
+    [id],
+  );
+  return result.affectedRows;
+};
+
 export default {
   countActiveCarts,
   createCart,
   getActiveCart,
+  deleteCartById,
 };

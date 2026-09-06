@@ -18,4 +18,10 @@ const getCart = async (req, res) => {
   return sendSuccess(res, "فاکتور خرید با موفقیت دریافت شد", { cart });
 };
 
-export default { createCart, getCart };
+const deleteCart = async (req, res) => {
+  await purchaseCartService.deleteCart();
+
+  return sendSuccess(res, "فاکتور خرید با موفقیت حذف شد");
+};
+
+export default { createCart, getCart, deleteCart };

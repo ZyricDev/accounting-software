@@ -12,6 +12,7 @@ router.use(requireAuth);
 router
   .route("/")
   .post(purchaseCartController.createCart)
-  .get( purchaseCartController.getCart);
+  .get(purchaseCartController.getCart)
+  .delete( purchaseCartController.deleteCart);
 
 export default router;

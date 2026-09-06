@@ -56,4 +56,14 @@ const getCart = async () => {
   return _toApiCart(cart);
 };
 
-export default { createCart, getCart };
+const deleteCart = async () => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  await purchaseCartRepository.deleteCartById(cart.id);
+};
+
+export default { createCart, getCart, deleteCart };

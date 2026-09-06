@@ -37,9 +37,17 @@ const deleteCartById = async (id, executor = pool) => {
   return result.affectedRows;
 };
 
+const saveCartItems = async (id, items) => {
+  await pool.query("UPDATE purchase_carts SET items = ? WHERE id = ?", [
+    JSON.stringify(items),
+    id,
+  ]);
+};
+
 export default {
   countActiveCarts,
   createCart,
   getActiveCart,
   deleteCartById,
+  saveCartItems,
 };

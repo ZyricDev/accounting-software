@@ -1,4 +1,7 @@
+import { randomUUID } from "crypto";
+
 import purchaseCartRepository from "./purchaseCart.repository.js";
+import productRepository from "../product/product.repository.js";
 import AppError from "../../shared/errors/AppError.js";
 
 const _buildCartSummary = (items) => {
@@ -66,4 +69,36 @@ const deleteCart = async () => {
   await purchaseCartRepository.deleteCartById(cart.id);
 };
 
-export default { createCart, getCart, deleteCart };
+const addItem = async (productId) => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  const product = await productRepository.getProductById(productId);
+  if (!product) throw new AppError("محصول پیدا نشد", 404);
+
+  const existingItem = cart.items.find((item) => item.productId === product.id);
+  if (existingItem) {
+    throw new AppError(
+      `محصول «${product.name}» از قبل در این فاکتور خرید ثبت شده است.`,
+      409,
+    );
+  }
+
+  cart.items.push({
+    id: randomUUID(),
+    productId: product.id,
+    productName: product.name,
+    quantity: 1,
+    purchasePrice: product.purchase_price ?? null,
+    salePrice: product.sale_price ?? null,
+  });
+
+  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
+
+  return _toApiCart(cart);
+};
+
+export default { createCart, getCart, deleteCart, addItem };

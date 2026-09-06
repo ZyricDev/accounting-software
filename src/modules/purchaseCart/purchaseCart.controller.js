@@ -36,4 +36,17 @@ const deleteItems = async (req, res) => {
   return sendSuccess(res, "محصولات فاکتور خرید با موفقیت حذف شد", { cart });
 };
 
-export default { createCart, getCart, deleteCart, addItem, deleteItems };
+const deleteItem = async (req, res) => {
+  const cart = await purchaseCartService.deleteItem(req.params.itemId);
+
+  return sendSuccess(res, "محصول فاکتور خرید با موفقیت حذف شد", { cart });
+};
+
+export default {
+  createCart,
+  getCart,
+  deleteCart,
+  addItem,
+  deleteItems,
+  deleteItem,
+};

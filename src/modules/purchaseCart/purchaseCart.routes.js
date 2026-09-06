@@ -20,4 +20,10 @@ router
   .post(validate(purchaseCartValidation.addItem), purchaseCartController.addItem)
   .delete(purchaseCartController.deleteItems);
 
+router.delete(
+  "/items/:itemId",
+  validate(purchaseCartValidation.deleteItem),
+  purchaseCartController.deleteItem,
+);
+
 export default router;

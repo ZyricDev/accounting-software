@@ -108,11 +108,38 @@ const deleteItems = async () => {
     throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
   }
 
-  cart.items = []
+  cart.items = [];
 
   await purchaseCartRepository.saveCartItems(cart.id, cart.items);
 
   return _toApiCart(cart);
 };
 
-export default { createCart, getCart, deleteCart, addItem, deleteItems };
+const deleteItem = async (itemId) => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  const remainingItems = cart.items.filter((item) => item.id !== itemId);
+
+  if (remainingItems.length === cart.items.length) {
+    throw new AppError("آیتم مورد نظر پیدا نشد", 404);
+  }
+
+  cart.items = remainingItems;
+
+  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
+
+  return _toApiCart(cart);
+};
+
+export default {
+  createCart,
+  getCart,
+  deleteCart,
+  addItem,
+  deleteItems,
+  deleteItem,
+};

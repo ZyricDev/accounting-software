@@ -17,7 +17,7 @@ router
 
 router
   .route("/items")
-  .post(validate(purchaseCartValidation.addItem), purchaseCartController.addItem);
-//   .delete(validate(cartValidation.cartId), cartController.deleteItems);
+  .post(validate(purchaseCartValidation.addItem), purchaseCartController.addItem)
+  .delete(purchaseCartController.deleteItems);
 
 export default router;

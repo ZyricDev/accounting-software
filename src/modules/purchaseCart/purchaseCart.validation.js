@@ -2,6 +2,11 @@ import joi from "../../shared/utils/customJoi.js";
 
 import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js";
 
+const itemIdParamSchema = joi.string().guid().required().messages({
+  "string.guid": "شناسه آیتم نامعتبر است.",
+  "any.required": "شناسه آیتم الزامی است.",
+});
+
 const addItem = {
   body: createBodyObjectSchema({
     productId: joi.persianNumber().integer().positive().required().messages({
@@ -12,4 +17,10 @@ const addItem = {
   }),
 };
 
-export default { addItem };
+const deleteItem = {
+  params: joi.object({
+    itemId: itemIdParamSchema,
+  }),
+};
+
+export default { addItem, deleteItem };

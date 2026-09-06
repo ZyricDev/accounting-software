@@ -37,4 +37,40 @@ const quantityItem = {
   }),
 };
 
-export default { addItem, deleteItem, quantityItem };
+const purchasePriceItem = {
+  params: joi.object({
+    itemId: itemIdParamSchema,
+  }),
+
+  body: createBodyObjectSchema({
+    purchasePrice: joi.persianNumber().integer().min(0).required().messages({
+      "number.base": "قیمت خرید باید عدد باشد.",
+      "number.integer": "قیمت خرید باید یک عدد صحیح (بدون اعشار) باشد.",
+      "number.min": "قیمت خرید نمی‌تواند منفی باشد.",
+      "any.required": "وارد کردن قیمت خرید الزامی است.",
+    }),
+  }),
+};
+
+const salePriceItem = {
+  params: joi.object({
+    itemId: itemIdParamSchema,
+  }),
+
+  body: createBodyObjectSchema({
+    salePrice: joi.persianNumber().integer().min(0).required().messages({
+      "number.base": "قیمت فروش باید عدد باشد.",
+      "number.integer": "قیمت فروش باید یک عدد صحیح (بدون اعشار) باشد.",
+      "number.min": "قیمت فروش نمی‌تواند منفی باشد.",
+      "any.required": "وارد کردن قیمت فروش الزامی است.",
+    }),
+  }),
+};
+
+export default {
+  addItem,
+  deleteItem,
+  quantityItem,
+  purchasePriceItem,
+  salePriceItem,
+};

@@ -54,6 +54,30 @@ const updateQuantityItem = async (req, res) => {
   return sendSuccess(res, "تعداد محصول با موفقیت آپدیت شد", { cart });
 };
 
+const updatePurchasePriceItem = async (req, res) => {
+  const { itemId } = req.params;
+  const { purchasePrice } = req.body;
+
+  const cart = await purchaseCartService.updatePurchasePriceItemById(
+    itemId,
+    purchasePrice,
+  );
+
+  return sendSuccess(res, "قیمت خرید محصول با موفقیت تغییر کرد", { cart });
+};
+
+const updateSalePriceItem = async (req, res) => {
+  const { itemId } = req.params;
+  const { salePrice } = req.body;
+
+  const cart = await purchaseCartService.updateSalePriceItemById(
+    itemId,
+    salePrice,
+  );
+
+  return sendSuccess(res, "قیمت فروش محصول با موفقیت تغییر کرد", { cart });
+};
+
 export default {
   createCart,
   getCart,
@@ -62,4 +86,6 @@ export default {
   deleteItems,
   deleteItem,
   updateQuantityItem,
+  updatePurchasePriceItem,
+  updateSalePriceItem,
 };

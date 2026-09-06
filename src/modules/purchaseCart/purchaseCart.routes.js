@@ -32,4 +32,16 @@ router.patch(
   purchaseCartController.updateQuantityItem,
 );
 
+router.patch(
+  "/items/:itemId/purchase-price",
+  validate(purchaseCartValidation.purchasePriceItem),
+  purchaseCartController.updatePurchasePriceItem,
+);
+
+router.patch(
+  "/items/:itemId/sale-price",
+  validate(purchaseCartValidation.salePriceItem),
+  purchaseCartController.updateSalePriceItem,
+);
+
 export default router;

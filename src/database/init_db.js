@@ -34,16 +34,16 @@ const createTables = async () => {
       id INT AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
       barcode VARCHAR(100) NOT NULL,
-      stock INT UNSIGNED NOT NULL DEFAULT 0,
-      purchase_price INT UNSIGNED NOT NULL,
-      sale_price INT UNSIGNED NOT NULL,
+      stock INT  NULL DEFAULT 0,
+      purchase_price INT UNSIGNED NULL,
+      sale_price INT UNSIGNED NULL,
       last_stock_in_at TIMESTAMP NULL DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       deleted_at TIMESTAMP NULL DEFAULT NULL,
-      stock_history LONGTEXT NOT NULL DEFAULT '[]',
-      INDEX (deleted_at),
-      INDEX (barcode)
+      stock_history JSON NULL DEFAULT (JSON_ARRAY()),
+      
+      INDEX idx_active_barcode (deleted_at, barcode)
     );
   `;
 
@@ -118,6 +118,49 @@ const createTables = async () => {
   );
 `;
 
+  const purchasesCartTable = `
+CREATE TABLE IF NOT EXISTS purchase_carts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  items JSON NOT NULL DEFAULT (JSON_ARRAY()),
+  discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+`;
+
+  const purchaseInvoicesTable = `
+CREATE TABLE IF NOT EXISTS purchase_invoices (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  supplier_id INT NOT NULL,
+  payment_method ENUM('CASH', 'ELECTRONIC', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
+  discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
+  credit_amount INT UNSIGNED NOT NULL DEFAULT 0,
+  total_quantity INT UNSIGNED NOT NULL,
+  total_amount INT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+);
+`;
+
+  const purchaseInvoiceItemsTable = `
+CREATE TABLE IF NOT EXISTS purchase_invoice_items (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  invoice_id INT UNSIGNED NOT NULL,
+  product_id INT NOT NULL,
+  product_name VARCHAR(255) NOT NULL,
+  quantity INT UNSIGNED NOT NULL,
+  unit_purchase_price INT UNSIGNED NOT NULL,
+  unit_sale_price INT UNSIGNED NOT NULL,
+  line_total INT UNSIGNED NOT NULL,
+
+  FOREIGN KEY (invoice_id) REFERENCES purchase_invoices(id),
+  FOREIGN KEY (product_id) REFERENCES products(id),
+
+  INDEX (invoice_id)
+);
+`;
+
   try {
     // Order matters: referenced tables must exist before FK-dependent tables
     await pool.query(adminTable);
@@ -128,6 +171,9 @@ const createTables = async () => {
     await pool.query(salesInvoicesTable);
     await pool.query(salesInvoicesItemsTable);
     await pool.query(paymentsTable);
+    await pool.query(purchasesCartTable);
+    await pool.query(purchaseInvoicesTable);
+    await pool.query(purchaseInvoiceItemsTable);
 
     const [checkAdmin] = await pool.query(
       `SELECT COUNT(*) as count FROM admin`,

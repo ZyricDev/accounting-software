@@ -78,6 +78,22 @@ const updateSalePriceItem = async (req, res) => {
   return sendSuccess(res, "قیمت فروش محصول با موفقیت تغییر کرد", { cart });
 };
 
+const applyDiscount = async (req, res) => {
+  const { discountAmount } = req.body;
+
+  const cart = await purchaseCartService.applyDiscountToCart(
+    discountAmount,
+  );
+
+  return sendSuccess(res, "تخفیف با موفقیت اعمال شد", { cart });
+};
+
+const removeDiscount = async (req, res) => {
+  const cart = await purchaseCartService.removeDiscountFromCart();
+
+  return sendSuccess(res, "تخفیف با موفقیت حذف شد", { cart });
+};
+
 export default {
   createCart,
   getCart,
@@ -88,4 +104,6 @@ export default {
   updateQuantityItem,
   updatePurchasePriceItem,
   updateSalePriceItem,
+  applyDiscount,
+  removeDiscount,
 };

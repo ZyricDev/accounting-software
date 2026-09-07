@@ -186,6 +186,37 @@ const updateSalePriceItemById = async (itemId, salePrice) => {
   return _toApiCart(cart);
 };
 
+const applyDiscountToCart = async ( discountAmount ) => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  if (discountAmount > _toApiCart(cart).subtotal) {
+    throw new AppError(
+      "مبلغ تخفیف نمی‌تواند از مبلغ کل فاکتور بیشتر باشد",
+      400,
+    );
+  }
+
+  await purchaseCartRepository.updateCartDiscount(cart.id, discountAmount);
+
+  return _toApiCart({ ...cart, discountAmount });
+};
+
+const removeDiscountFromCart = async () => {
+  const cart = await purchaseCartRepository.getActiveCart();
+
+  if (!cart) {
+    throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
+  }
+
+  await purchaseCartRepository.updateCartDiscount(cart.id, 0);
+
+  return _toApiCart({ ...cart, discountAmount: 0 });
+};
+
 export default {
   createCart,
   getCart,
@@ -196,4 +227,6 @@ export default {
   updateQuantityItemById,
   updatePurchasePriceItemById,
   updateSalePriceItemById,
+  applyDiscountToCart,
+  removeDiscountFromCart,
 };

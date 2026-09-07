@@ -44,10 +44,20 @@ const saveCartItems = async (id, items) => {
   ]);
 };
 
+const updateCartDiscount = async (id, discountAmount) => {
+  await pool.query(
+    "UPDATE purchase_carts SET discount_amount = ? WHERE id = ?",
+    [discountAmount, id],
+  );
+
+  return getActiveCart();
+};
+
 export default {
   countActiveCarts,
   createCart,
   getActiveCart,
   deleteCartById,
   saveCartItems,
+  updateCartDiscount,
 };

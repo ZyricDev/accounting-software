@@ -17,7 +17,10 @@ router
 
 router
   .route("/items")
-  .post(validate(purchaseCartValidation.addItem), purchaseCartController.addItem)
+  .post(
+    validate(purchaseCartValidation.addItem),
+    purchaseCartController.addItem,
+  )
   .delete(purchaseCartController.deleteItems);
 
 router.delete(
@@ -43,5 +46,13 @@ router.patch(
   validate(purchaseCartValidation.salePriceItem),
   purchaseCartController.updateSalePriceItem,
 );
+
+router
+  .route("/discount")
+  .post(
+    validate(purchaseCartValidation.applyDiscount),
+    purchaseCartController.applyDiscount,
+  )
+  .delete(purchaseCartController.removeDiscount);
 
 export default router;

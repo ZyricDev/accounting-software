@@ -67,10 +67,22 @@ const salePriceItem = {
   }),
 };
 
+const applyDiscount = {
+  body: createBodyObjectSchema({
+    discountAmount: joi.number().integer().min(0).required().messages({
+      "number.base": "مبلغ تخفیف باید عدد باشد.",
+      "number.integer": "مبلغ تخفیف باید یک عدد صحیح (بدون اعشار) باشد.",
+      "number.min": "مبلغ تخفیف نمی‌تواند منفی باشد.",
+      "any.required": "وارد کردن مبلغ تخفیف الزامی است.",
+    }),
+  }),
+};
+
 export default {
   addItem,
   deleteItem,
   quantityItem,
   purchasePriceItem,
   salePriceItem,
+  applyDiscount,
 };

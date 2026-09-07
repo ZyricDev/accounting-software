@@ -141,6 +141,43 @@ const decrementStock = async (id, quantity, executor = pool) => {
   }
 };
 
+const applyPurchaseUpdate = async (
+  productId,
+  { quantity, purchasePrice, salePrice, invoiceId, supplierId },
+  executor = pool,
+) => {
+  const [result] = await executor.query(
+    `UPDATE products
+     SET
+       stock = IFNULL(stock, 0) + ?,
+       purchase_price = ?,
+       sale_price = ?,
+       last_stock_in_at = NOW(),
+       stock_history = JSON_ARRAY_APPEND(
+         COALESCE(stock_history, JSON_ARRAY()),
+         '$',
+         JSON_OBJECT(
+           'invoiceId', ?,
+           'supplierId', ?,
+           'quantity', ?,
+           'purchasePrice', ?,
+           'date', NOW()
+         )
+       )
+     WHERE id = ?`,
+    [
+      quantity,
+      purchasePrice,
+      salePrice,
+      invoiceId,
+      supplierId,
+      quantity,
+      purchasePrice,
+      productId,
+    ],
+  );
+};
+
 export default {
   getProducts,
   getProductById,
@@ -151,4 +188,5 @@ export default {
   softDeleteProduct,
   setStockInfo,
   decrementStock,
+  applyPurchaseUpdate,
 };

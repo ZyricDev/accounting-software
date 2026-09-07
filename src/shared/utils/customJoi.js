@@ -29,4 +29,6 @@ const PersianNumberExtension = (joi) => ({
 
 const joi = BaseJoi.extend(PersianNumberExtension);
 
+joi.persianToEnglishDigits = toEnglishDigits;
+
 export default joi;

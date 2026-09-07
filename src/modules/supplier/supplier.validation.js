@@ -1,31 +1,9 @@
-import joi from "joi";
+import joi from "../../shared/utils/customJoi.js";
 
 import {
   createBodyObjectSchema,
   createQuerySchema,
 } from "../../shared/utils/validationHelpers.js";
-
-const persianToEnglishDigits = (value) => {
-  if (typeof value !== "string") {
-    return value;
-  }
-
-  const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
-  const englishDigits = "0123456789";
-
-  return value
-    .split("")
-    .map((char) => {
-      const persianIndex = persianDigits.indexOf(char);
-
-      if (persianIndex !== -1) {
-        return englishDigits[persianIndex];
-      }
-
-      return char;
-    })
-    .join("");
-};
 
 const supplierIdParamSchema = joi
   .number()
@@ -84,7 +62,7 @@ const addSupplier = {
       .string()
       .trim()
       .required()
-      .custom((value) => persianToEnglishDigits(value))
+      .custom((value) => joi.persianToEnglishDigits(value))
       .pattern(/^09\d{9}$/)
       .messages({
         "string.base": "شماره تماس تأمین‌کننده باید متن باشد.",
@@ -132,7 +110,7 @@ const updateSupplier = {
       .default(null)
       .custom((value) => {
         if (value === null) return value;
-        return persianToEnglishDigits(value);
+        return joi.persianToEnglishDigits(value);
       })
       .pattern(/^09\d{9}$/)
       .when(joi.valid(null), {

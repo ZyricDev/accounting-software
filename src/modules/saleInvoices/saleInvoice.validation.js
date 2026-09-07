@@ -62,7 +62,7 @@ const checkout = {
       .empty("")
       .default(null)
       .custom((value) =>
-        value === null ? value : persianToEnglishDigits(value),
+        value === null ? value : joi.persianToEnglishDigits(value),
       )
       .pattern(/^09\d{9}$/)
       .when("creditAmount", {

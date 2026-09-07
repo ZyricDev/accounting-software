@@ -150,8 +150,8 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
   product_id INT NOT NULL,
   product_name VARCHAR(255) NOT NULL,
   quantity INT UNSIGNED NOT NULL,
-  unit_purchase_price INT UNSIGNED NOT NULL,
-  unit_sale_price INT UNSIGNED NOT NULL,
+  purchase_price INT UNSIGNED NOT NULL,
+  sale_price INT UNSIGNED NOT NULL,
   line_total INT UNSIGNED NOT NULL,
 
   FOREIGN KEY (invoice_id) REFERENCES purchase_invoices(id),

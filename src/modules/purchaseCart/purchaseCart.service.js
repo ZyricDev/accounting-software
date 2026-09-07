@@ -186,14 +186,14 @@ const updateSalePriceItemById = async (itemId, salePrice) => {
   return _toApiCart(cart);
 };
 
-const applyDiscountToCart = async ( discountAmount ) => {
+const applyDiscountToCart = async (discountAmount) => {
   const cart = await purchaseCartRepository.getActiveCart();
 
   if (!cart) {
     throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
   }
 
-  if (discountAmount > _toApiCart(cart).subtotal) {
+  if (discountAmount > _buildCartSummary(cart.items).subtotal) {
     throw new AppError(
       "مبلغ تخفیف نمی‌تواند از مبلغ کل فاکتور بیشتر باشد",
       400,

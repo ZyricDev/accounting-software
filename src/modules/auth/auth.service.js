@@ -9,8 +9,7 @@ import config from "../../config/env.js";
 const _generateAuthTokens = (userObj) => {
   const tokenPayload = {
     id: userObj.id,
-    role: userObj.role,
-    tokenVersion: userObj.tokenVersion,
+    tokenVersion: userObj.token_version,
   };
 
   const token = jwt.generateToken(tokenPayload);
@@ -68,7 +67,7 @@ const logoutAdmin = async () => {
 
 const validateSession = async (payload, lastActivity) => {
   const admin = await authRepository.getAdmin();
-  if (!admin || admin.tokenVersion !== payload.tokenVersion) {
+  if (!admin || admin.token_version !== payload.tokenVersion) {
     logger.warn(
       `Revoked token used: token has version ${payload.tokenVersion}, current version is ${admin?.tokenVersion}`,
     );
@@ -84,7 +83,7 @@ const validateSession = async (payload, lastActivity) => {
     );
   }
 
-  return { id: admin.id, role: admin.role };
+  return { id: admin.id};
 };
 
 export default { login, logoutAdmin, changePassword, validateSession };

@@ -106,20 +106,6 @@ const softDeleteProduct = async (id, deletedAt) => {
   ]);
 };
 
-const setStockInfo = async (
-  id,
-  { stock, purchase_price, stock_history, sale_price },
-) => {
-  await pool.query(
-    `UPDATE products
-     SET stock = ?, purchase_price = ?, stock_history = ?, sale_price = ?, last_stock_in_at = NOW()
-     WHERE id = ? AND deleted_at IS NULL`,
-    [stock, purchase_price, JSON.stringify(stock_history), sale_price, id],
-  );
-
-  return getProductById(id);
-};
-
 const decrementStock = async (id, quantity, executor = pool) => {
   await executor.query(
     "UPDATE products SET stock = stock - ?, updated_at = NOW() WHERE id = ?",
@@ -141,12 +127,24 @@ const decrementStock = async (id, quantity, executor = pool) => {
   }
 };
 
+const getProductForUpdate = async (productId, executor = pool) => {
+  const [rows] = await executor.query(
+    `SELECT id, stock, purchase_price
+     FROM products
+     WHERE id = ? AND deleted_at IS NULL
+     FOR UPDATE`,
+    [productId],
+  );
+
+  return rows[0] ?? null;
+};
+
 const applyPurchaseUpdate = async (
   productId,
   { quantity, purchasePrice, salePrice, invoiceId, supplierId },
   executor = pool,
 ) => {
-  const [result] = await executor.query(
+  await executor.query(
     `UPDATE products
      SET
        stock = IFNULL(stock, 0) + ?,
@@ -186,7 +184,7 @@ export default {
   createProduct,
   updateProduct,
   softDeleteProduct,
-  setStockInfo,
   decrementStock,
+  getProductForUpdate,
   applyPurchaseUpdate,
 };

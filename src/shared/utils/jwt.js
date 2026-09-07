@@ -6,7 +6,6 @@ const generateToken = (user) => {
   const token = jwt.sign(
     {
       id: user.id,
-      role: user.role,
       tokenVersion: user.tokenVersion,
     },
     config.auth.tokenSecretKey,

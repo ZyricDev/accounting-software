@@ -141,9 +141,17 @@ const deleteProduct = async (productId) => {
     throw new AppError("محصول پیدا نشد", 404);
   }
 
-  await productRepository.softDeleteProduct(productId, new Date());
+  const hasUsage = await productRepository.checkProductUsage(productId);
+  if (hasUsage) {
+    throw new AppError(
+      "این کالا در فاکتورها استفاده شده و قابل حذف نیست.",
+      409,
+    );
+  }
 
-  return { name: product.name };
+  await productRepository.hardDeleteProduct(productId);
+
+  return { id: product.id, name: product.name };
 };
 
 export default {

@@ -34,10 +34,7 @@ const getProducts = async ({ search, page, limit, sortBy, order }) => {
 };
 
 const getProductById = async (id) => {
-  const [rows] = await pool.query(
-    "SELECT * FROM products WHERE id= ? AND deleted_at IS NULL",
-    [id],
-  );
+  const [rows] = await pool.query("SELECT * FROM products WHERE id= ? ", [id]);
 
   const product = rows[0];
   if (!product) {
@@ -54,7 +51,7 @@ const getProductById = async (id) => {
 
 const isProductNameTaken = async (name) => {
   const [rows] = await pool.query(
-    "SELECT id FROM products WHERE name = ? AND deleted_at IS NULL LIMIT 1",
+    "SELECT id FROM products WHERE name = ?  LIMIT 1",
     [name],
   );
 
@@ -63,7 +60,7 @@ const isProductNameTaken = async (name) => {
 
 const isBarcodeTaken = async (barcode) => {
   const [rows] = await pool.query(
-    "SELECT id FROM products WHERE barcode = ? AND deleted_at IS NULL LIMIT 1",
+    "SELECT id FROM products WHERE barcode = ?  LIMIT 1",
     [barcode],
   );
 
@@ -91,19 +88,29 @@ const updateProduct = async (id, productData) => {
 
   const setClause = columns.map((col) => `${col} = ?`).join(", ");
 
-  await pool.query(
-    `UPDATE products SET ${setClause} WHERE id = ? AND deleted_at IS NULL`,
-    [...values, id],
-  );
+  await pool.query(`UPDATE products SET ${setClause} WHERE id = ? `, [
+    ...values,
+    id,
+  ]);
 
   return getProductById(id);
 };
 
-const softDeleteProduct = async (id, deletedAt) => {
-  await pool.query("UPDATE products SET deleted_at = ? WHERE id = ?", [
-    deletedAt,
-    id,
-  ]);
+const checkProductUsage = async (productId) => {
+  const [sales] = await pool.query(
+    "SELECT id FROM sales_invoices_items WHERE product_id = ? LIMIT 1",
+    [productId],
+  );
+  const [purchases] = await pool.query(
+    "SELECT id FROM purchase_invoice_items WHERE product_id = ? LIMIT 1",
+    [productId],
+  );
+
+  return sales.length > 0 || purchases.length > 0;
+};
+
+const hardDeleteProduct = async (id) => {
+  await pool.query("DELETE FROM products WHERE id = ?", [id]);
 };
 
 const decrementStock = async (id, quantity, executor = pool) => {
@@ -131,7 +138,7 @@ const getProductForUpdate = async (productId, executor = pool) => {
   const [rows] = await executor.query(
     `SELECT id, stock, purchase_price
      FROM products
-     WHERE id = ? AND deleted_at IS NULL
+     WHERE id = ? 
      FOR UPDATE`,
     [productId],
   );
@@ -183,7 +190,8 @@ export default {
   isBarcodeTaken,
   createProduct,
   updateProduct,
-  softDeleteProduct,
+  checkProductUsage,
+  hardDeleteProduct,
   decrementStock,
   getProductForUpdate,
   applyPurchaseUpdate,

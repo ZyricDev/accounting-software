@@ -78,10 +78,20 @@ const updateSupplierById = async (id, supplierData) => {
   return getSupplierById(id);
 };
 
+const incrementDebt = async (supplierId, amount, connection) => {
+  await connection.query(
+    `UPDATE suppliers
+     SET current_balance = current_balance + ?
+     WHERE id = ?`,
+    [amount, supplierId],
+  );
+};
+
 export default {
   isSupplierPhoneTaken,
   getSupplierById,
   createSupplier,
   getSuppliers,
   updateSupplierById,
+  incrementDebt,
 };

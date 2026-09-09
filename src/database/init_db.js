@@ -29,23 +29,20 @@ const createTables = async () => {
   );
 `;
 
-  const productsTable = `
-    CREATE TABLE IF NOT EXISTS products (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL UNIQUE,
-      barcode VARCHAR(100) NOT NULL,
-      stock INT  NULL DEFAULT 0,
-      purchase_price INT UNSIGNED NULL,
-      sale_price INT UNSIGNED NULL,
-      last_stock_in_at TIMESTAMP NULL DEFAULT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      deleted_at TIMESTAMP NULL DEFAULT NULL,
-      stock_history JSON NULL DEFAULT (JSON_ARRAY()),
-      
-      INDEX idx_active_barcode (deleted_at, barcode)
-    );
-  `;
+const productsTable = `
+  CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    barcode VARCHAR(100) NOT NULL UNIQUE,
+    stock INT NULL DEFAULT 0,
+    purchase_price INT UNSIGNED NULL,
+    sale_price INT UNSIGNED NULL,
+    last_stock_in_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    stock_history JSON NULL DEFAULT (JSON_ARRAY())
+  );
+`;
 
   // Customers table — required for invoices.customer_id FK
   const customersTable = `

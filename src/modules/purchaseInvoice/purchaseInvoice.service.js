@@ -31,6 +31,25 @@ const _resolvePaymentMethodLabel = ({
   return "CASH";
 };
 
+const _validateInvoiceItems = (items) => {
+  const invalidItem = items.find(
+    (item) =>
+      !item.quantity ||
+      item.quantity <= 0 ||
+      item.purchasePrice === null ||
+      item.purchasePrice === undefined ||
+      item.salePrice === null ||
+      item.salePrice === undefined,
+  );
+
+  if (invalidItem) {
+    throw new AppError(
+      `لطفاً قبل از نهایی کردن فاکتور، تعداد و قیمت خرید/فروش محصول «${invalidItem.productName}» را تکمیل کنید`,
+      400,
+    );
+  }
+};
+
 const checkout = async ({
   cashAmount = 0,
   electronicAmount = 0,
@@ -46,6 +65,8 @@ const checkout = async ({
   if (!supplier) throw new AppError("تامین‌کننده پیدا نشد", 404);
 
   const invoiceItems = _buildInvoiceItems(cart.items);
+  _validateInvoiceItems(invoiceItems);
+
   const subtotal = invoiceItems.reduce((sum, item) => sum + item.lineTotal, 0);
   const discountAmount = cart.discountAmount ?? 0;
   const totalAmount = subtotal - discountAmount;
@@ -102,11 +123,29 @@ const checkout = async ({
     );
 
     for (const item of invoiceItems) {
+      const product = await productRepository.getProductForUpdate(
+        item.productId,
+        connection,
+      );
+
+      const currentStock = product.stock ?? 0;
+      const currentPurchasePrice = product.purchase_price ?? 0;
+      const stockAfterPurchase = currentStock + item.quantity;
+
+      const weightedAveragePurchasePrice =
+        currentStock > 0
+          ? Math.round(
+              (currentStock * currentPurchasePrice +
+                item.quantity * item.purchasePrice) /
+                stockAfterPurchase,
+            )
+          : item.purchasePrice;
+
       await productRepository.applyPurchaseUpdate(
         item.productId,
         {
           quantity: item.quantity,
-          purchasePrice: item.purchasePrice,
+          purchasePrice: weightedAveragePurchasePrice,
           salePrice: item.salePrice,
           invoiceId,
           supplierId,

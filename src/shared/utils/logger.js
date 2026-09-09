@@ -4,6 +4,20 @@ import config from "../../config/env.js";
 const { combine, timestamp, printf, errors, colorize } = format;
 const isProduction = config.app.nodeEnv === "production";
 
+// تابع کمکی برای فرمت زمان ایران
+const iranTime = () => {
+  return new Date().toLocaleString("fa-IR", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+};
+
 const customFormat = printf(
   ({ level, message, timestamp, stack, ...metadata }) => {
     let logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
@@ -23,7 +37,7 @@ const customFormat = printf(
 const logger = createLogger({
   level: "info",
   format: combine(
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    timestamp({ format: iranTime }), // ← اینجا تغییر کرد
     errors({ stack: true }),
   ),
   transports: [

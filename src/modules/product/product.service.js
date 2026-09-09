@@ -74,7 +74,6 @@ const addProduct = async (productData) => {
     barcode,
     created_at: now,
     updated_at: now,
-    deleted_at: null,
   };
 
   const newProduct = await productRepository.createProduct(payload);

@@ -13,12 +13,12 @@ const getProducts = async ({ search, page, limit, sortBy, order }) => {
   const offset = (page - 1) * limit;
   const sortColumn = SORT_COLUMN_MAP[sortBy];
 
-  const whereClause = search ? "AND (name LIKE ? OR barcode LIKE ?)" : "";
+  const whereClause = search ? "WHERE (name LIKE ? OR barcode LIKE ?)" : "";
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
   const [rows] = await pool.query(
     `SELECT id, name, barcode, stock, purchase_price, sale_price, last_stock_in_at FROM products 
-     WHERE deleted_at IS NULL ${whereClause} 
+     ${whereClause} 
      ORDER BY ${sortColumn} ${order.toUpperCase()}
      LIMIT ? OFFSET ?`,
     [...searchParams, Number(limit), Number(offset)],
@@ -26,7 +26,7 @@ const getProducts = async ({ search, page, limit, sortBy, order }) => {
 
   const [[{ total }]] = await pool.query(
     `SELECT COUNT(*) AS total FROM products
-     WHERE deleted_at IS NULL ${whereClause}`,
+     ${whereClause}`,
     searchParams,
   );
 

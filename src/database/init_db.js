@@ -29,14 +29,14 @@ const createTables = async () => {
   );
 `;
 
-const productsTable = `
+  const productsTable = `
   CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     barcode VARCHAR(100) NOT NULL UNIQUE,
     stock INT NULL DEFAULT 0,
-    purchase_price INT UNSIGNED NULL,
-    sale_price INT UNSIGNED NULL,
+    purchase_price BIGINT UNSIGNED NULL,
+    sale_price BIGINT UNSIGNED NULL,
     last_stock_in_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -73,10 +73,10 @@ const productsTable = `
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT DEFAULT NULL,
     payment_method ENUM('CASH', 'ELECTRONIC', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
-    discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
-    credit_amount INT UNSIGNED NOT NULL DEFAULT 0,
+    discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     total_quantity INT UNSIGNED NOT NULL,
-    total_amount INT UNSIGNED NOT NULL,
+    total_amount BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (customer_id) REFERENCES customers(id)
@@ -90,10 +90,10 @@ const productsTable = `
     product_id INT NOT NULL,
     product_name VARCHAR(255) NOT NULL,
     quantity INT UNSIGNED NOT NULL,
-    original_price INT UNSIGNED NOT NULL,
-    sale_price INT UNSIGNED NOT NULL,
-    purchase_price INT UNSIGNED NOT NULL,
-    line_total INT UNSIGNED NOT NULL,
+    original_price BIGINT UNSIGNED NOT NULL,
+    sale_price BIGINT UNSIGNED NOT NULL,
+    purchase_price BIGINT UNSIGNED NOT NULL,
+    line_total BIGINT UNSIGNED NOT NULL,
 
     FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
@@ -108,7 +108,7 @@ const productsTable = `
     invoice_type ENUM('SALE', 'PURCHASE') NOT NULL,
     invoice_id INT UNSIGNED NOT NULL,
     method ENUM('CASH', 'ELECTRONIC') NOT NULL,
-    amount INT UNSIGNED NOT NULL,
+    amount BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     INDEX (invoice_type, invoice_id)
@@ -130,10 +130,10 @@ CREATE TABLE IF NOT EXISTS purchase_invoices (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   supplier_id INT NOT NULL,
   payment_method ENUM('CASH', 'ELECTRONIC', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
-  discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
-  credit_amount INT UNSIGNED NOT NULL DEFAULT 0,
+  discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
   total_quantity INT UNSIGNED NOT NULL,
-  total_amount INT UNSIGNED NOT NULL,
+  total_amount BIGINT UNSIGNED NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
@@ -147,9 +147,9 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
   product_id INT NOT NULL,
   product_name VARCHAR(255) NOT NULL,
   quantity INT UNSIGNED NOT NULL,
-  purchase_price INT UNSIGNED NOT NULL,
-  sale_price INT UNSIGNED NOT NULL,
-  line_total INT UNSIGNED NOT NULL,
+  purchase_price BIGINT UNSIGNED NOT NULL,
+  sale_price BIGINT UNSIGNED NOT NULL,
+  line_total BIGINT UNSIGNED NOT NULL,
 
   FOREIGN KEY (invoice_id) REFERENCES purchase_invoices(id),
   FOREIGN KEY (product_id) REFERENCES products(id),

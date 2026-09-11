@@ -37,20 +37,11 @@ const deleteCartById = async (id, executor = pool) => {
   return result.affectedRows;
 };
 
-const saveCartItems = async (id, items) => {
-  await pool.query("UPDATE purchase_carts SET items = ? WHERE id = ?", [
-    JSON.stringify(items),
-    id,
-  ]);
-};
-
-const updateCartDiscount = async (id, discountAmount) => {
+const updateCartState = async (id, items, discountAmount) => {
   await pool.query(
-    "UPDATE purchase_carts SET discount_amount = ? WHERE id = ?",
-    [discountAmount, id],
+    "UPDATE purchase_carts SET items = ?, discount_amount = ? WHERE id = ?",
+    [JSON.stringify(items), discountAmount, id],
   );
-
-  return getActiveCart();
 };
 
 export default {
@@ -58,6 +49,5 @@ export default {
   createCart,
   getActiveCart,
   deleteCartById,
-  saveCartItems,
-  updateCartDiscount,
+  updateCartState,
 };

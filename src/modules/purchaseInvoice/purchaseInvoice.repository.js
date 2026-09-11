@@ -39,13 +39,12 @@ const createInvoiceItems = async (invoiceId, items, connection) => {
     item.productName,
     item.quantity,
     item.purchasePrice,
-    item.salePrice,
     item.lineTotal,
   ]);
 
   await connection.query(
     `INSERT INTO purchase_invoice_items
-       (invoice_id, product_id, product_name, quantity, purchase_price, sale_price, line_total)
+       (invoice_id, product_id, product_name, quantity, purchase_price, line_total)
      VALUES ?`,
     [values],
   );

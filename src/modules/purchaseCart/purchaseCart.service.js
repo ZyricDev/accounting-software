@@ -3,36 +3,42 @@ import { randomUUID } from "crypto";
 import purchaseCartRepository from "./purchaseCart.repository.js";
 import productRepository from "../product/product.repository.js";
 import AppError from "../../shared/errors/AppError.js";
+import { buildCartSummary, toApiCart } from "../../shared/utils/cart.js";
 
-const _buildCartSummary = (items) => {
-  let subtotal = 0;
-  let totalQuantity = 0;
+const _toPurchaseApiCart = (cart) => {
+  const baseCart = toApiCart(cart, "purchasePrice");
 
-  const mappedItems = items.map((item) => {
-    const lineTotal = item.purchasePrice * item.quantity;
-    subtotal += lineTotal;
-    totalQuantity += item.quantity;
+  const totalSalePrice = baseCart.items.reduce((sum, item) => {
+    const salePrice = item.salePrice || 0;
+    return sum + salePrice * item.quantity;
+  }, 0);
 
-    return { ...item, lineTotal };
-  });
+  const expectedTotalProfit =
+    totalSalePrice - baseCart.subtotal + baseCart.discountAmount;
 
   return {
-    items: mappedItems,
-    totalQuantity,
-    subtotal,
+    ...baseCart,
+    expectedTotalProfit,
   };
 };
 
-const _toApiCart = (cart) => {
-  const summary = _buildCartSummary(cart.items);
-  const discountAmount = cart.discountAmount ?? 0;
+const _saveAndFormatCart = async (cart) => {
+  if (cart.items.length === 0) {
+    cart.discountAmount = 0;
+  } else {
+    const { subtotal } = buildCartSummary(cart.items, "purchasePrice");
+    if (cart.discountAmount > subtotal) {
+      cart.discountAmount = 0;
+    }
+  }
 
-  return {
-    id: cart.id,
-    ...summary,
-    discountAmount,
-    finalTotal: summary.subtotal - discountAmount,
-  };
+  await purchaseCartRepository.updateCartState(
+    cart.id,
+    cart.items,
+    cart.discountAmount,
+  );
+
+  return _toPurchaseApiCart(cart);
 };
 
 const createCart = async () => {
@@ -46,7 +52,7 @@ const createCart = async () => {
   }
 
   const cart = await purchaseCartRepository.createCart();
-  return _toApiCart(cart);
+  return _toPurchaseApiCart(cart);
 };
 
 const getCart = async () => {
@@ -56,7 +62,7 @@ const getCart = async () => {
     throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
   }
 
-  return _toApiCart(cart);
+  return _toPurchaseApiCart(cart);
 };
 
 const deleteCart = async () => {
@@ -96,9 +102,7 @@ const addItem = async (productId) => {
     salePrice: product.sale_price ?? null,
   });
 
-  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const deleteItems = async () => {
@@ -109,10 +113,7 @@ const deleteItems = async () => {
   }
 
   cart.items = [];
-
-  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const deleteItem = async (itemId) => {
@@ -129,10 +130,7 @@ const deleteItem = async (itemId) => {
   }
 
   cart.items = remainingItems;
-
-  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const updateQuantityItemById = async (itemId, quantity) => {
@@ -146,10 +144,7 @@ const updateQuantityItemById = async (itemId, quantity) => {
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
 
   existingItem.quantity = quantity;
-
-  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const updatePurchasePriceItemById = async (itemId, purchasePrice) => {
@@ -163,10 +158,7 @@ const updatePurchasePriceItemById = async (itemId, purchasePrice) => {
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
 
   existingItem.purchasePrice = purchasePrice;
-
-  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const updateSalePriceItemById = async (itemId, salePrice) => {
@@ -180,10 +172,7 @@ const updateSalePriceItemById = async (itemId, salePrice) => {
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
 
   existingItem.salePrice = salePrice;
-
-  await purchaseCartRepository.saveCartItems(cart.id, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const applyDiscountToCart = async (discountAmount) => {
@@ -193,16 +182,15 @@ const applyDiscountToCart = async (discountAmount) => {
     throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
   }
 
-  if (discountAmount > _buildCartSummary(cart.items).subtotal) {
+  if (discountAmount > buildCartSummary(cart.items, "purchasePrice").subtotal) {
     throw new AppError(
       "مبلغ تخفیف نمی‌تواند از مبلغ کل فاکتور بیشتر باشد",
       400,
     );
   }
 
-  await purchaseCartRepository.updateCartDiscount(cart.id, discountAmount);
-
-  return _toApiCart({ ...cart, discountAmount });
+  cart.discountAmount = discountAmount;
+  return _saveAndFormatCart(cart);
 };
 
 const removeDiscountFromCart = async () => {
@@ -212,9 +200,8 @@ const removeDiscountFromCart = async () => {
     throw new AppError("در حال حاضر هیچ فاکتور خرید بازی وجود ندارد", 404);
   }
 
-  await purchaseCartRepository.updateCartDiscount(cart.id, 0);
-
-  return _toApiCart({ ...cart, discountAmount: 0 });
+  cart.discountAmount = 0;
+  return _saveAndFormatCart(cart);
 };
 
 export default {

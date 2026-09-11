@@ -23,12 +23,18 @@ const PersianNumberExtension = (joi) => ({
       return { value };
     }
 
-    return { value: toEnglishDigits(value) };
+    const englishString = toEnglishDigits(value);
+    const parsedNumber = Number(englishString);
+
+    if (!isNaN(parsedNumber)) {
+      return { value: parsedNumber };
+    }
+
+    return { value };
   },
 });
 
 const joi = BaseJoi.extend(PersianNumberExtension);
-
 joi.persianToEnglishDigits = toEnglishDigits;
 
 export default joi;

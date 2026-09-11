@@ -1,43 +1,10 @@
 import { randomUUID } from "crypto";
-
-const MAX_ACTIVE_CARTS = 5;
-
 import AppError from "../../shared/errors/AppError.js";
 import cartRepository from "./cart.repository.js";
 import productRepository from "../product/product.repository.js";
+import { buildCartSummary, toApiCart } from "../../shared/utils/cart.js";
 
-// --- Internal helpers ---
-
-const _buildCartSummary = (items) => {
-  let subtotal = 0;
-  let totalQuantity = 0;
-
-  const mappedItems = items.map(({ purchasePrice, ...item }) => {
-    const lineTotal = item.salePrice * item.quantity;
-    subtotal += lineTotal;
-    totalQuantity += item.quantity;
-
-    return { ...item, lineTotal };
-  });
-
-  return {
-    items: mappedItems,
-    totalQuantity,
-    subtotal,
-  };
-};
-
-const _toApiCart = (cart) => {
-  const summary = _buildCartSummary(cart.items);
-  const discountAmount = cart.discountAmount ?? 0;
-
-  return {
-    id: cart.id,
-    ...summary,
-    discountAmount,
-    finalTotal: summary.subtotal - discountAmount,
-  };
-};
+const MAX_ACTIVE_CARTS = 5;
 
 const _toSearchResult = (dbRow) => ({
   id: dbRow.id,
@@ -49,11 +16,32 @@ const _toSearchResult = (dbRow) => ({
 const _getCartOrThrow = async (cartId) => {
   const cart = await cartRepository.getCartById(cartId);
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
-
   return cart;
 };
 
-// --- Service functions ---
+const salesItemTransformer = (item) => {
+  const { purchasePrice, originalPrice, ...restOfItem } = item;
+  return restOfItem;
+};
+
+const _saveAndFormatCart = async (cart) => {
+  if (cart.items.length === 0) {
+    cart.discountAmount = 0;
+  } else {
+    const { subtotal } = buildCartSummary(cart.items, "salePrice");
+    if (cart.discountAmount > subtotal) {
+      cart.discountAmount = 0;
+    }
+  }
+
+  await cartRepository.updateCartState(
+    cart.id,
+    cart.items,
+    cart.discountAmount,
+  );
+
+  return toApiCart(cart, "salePrice", salesItemTransformer);
+};
 
 const createCart = async () => {
   const cartCount = await cartRepository.countActiveCarts();
@@ -63,12 +51,11 @@ const createCart = async () => {
   }
 
   const cart = await cartRepository.createCart();
-  return _toApiCart(cart);
+  return toApiCart(cart, "salePrice", salesItemTransformer);
 };
 
 const getCarts = async () => {
-  const carts = await cartRepository.getCarts();
-  return carts;
+  return await cartRepository.getCarts();
 };
 
 const searchProducts = async (searchTerm) => {
@@ -78,7 +65,7 @@ const searchProducts = async (searchTerm) => {
 
 const getCartByIdForView = async (cartId) => {
   const cart = await _getCartOrThrow(cartId);
-  return _toApiCart(cart);
+  return toApiCart(cart, "salePrice", salesItemTransformer);
 };
 
 const deleteCart = async (cartId) => {
@@ -88,10 +75,9 @@ const deleteCart = async (cartId) => {
 
 const addItem = async (cartId, { productId, quantity }) => {
   const cart = await _getCartOrThrow(cartId);
-
   const product = await productRepository.getProductById(productId);
-  if (!product) throw new AppError("محصول پیدا نشد", 404);
 
+  if (!product) throw new AppError("محصول پیدا نشد", 404);
   if (product.stock === 0) {
     throw new AppError(`محصول «${product.name}» ناموجود است`, 400);
   }
@@ -120,15 +106,13 @@ const addItem = async (cartId, { productId, quantity }) => {
     });
   }
 
-  await cartRepository.saveCartItems(cartId, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
   const cart = await _getCartOrThrow(cartId);
-
   const existingItem = cart.items.find((item) => item.id === itemId);
+
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
 
   const product = await productRepository.getProductById(
@@ -144,28 +128,22 @@ const updateQuantityItemById = async ({ cartId, itemId, quantity }) => {
   }
 
   existingItem.quantity = quantity;
-
-  await cartRepository.saveCartItems(cartId, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
   const cart = await _getCartOrThrow(cartId);
-
   const existingItem = cart.items.find((item) => item.id === itemId);
+
   if (!existingItem) throw new AppError("آیتم مورد نظر پیدا نشد", 404);
 
   existingItem.salePrice = salePrice;
-
-  await cartRepository.saveCartItems(cartId, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const applyDiscount = async (cartId, discountAmount) => {
   const cart = await _getCartOrThrow(cartId);
-  const { subtotal } = _buildCartSummary(cart.items);
+  const { subtotal } = buildCartSummary(cart.items, "salePrice");
 
   if (subtotal === 0) {
     throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست", 400);
@@ -175,9 +153,8 @@ const applyDiscount = async (cartId, discountAmount) => {
     throw new AppError("مبلغ تخفیف نمی‌تواند بیشتر از جمع کل سبد باشد", 400);
   }
 
-  const newCart = await cartRepository.saveCartDiscount(cartId, discountAmount);
-
-  return _toApiCart(newCart);
+  cart.discountAmount = discountAmount;
+  return _saveAndFormatCart(cart);
 };
 
 const removeDiscount = async (cartId) => {
@@ -186,24 +163,19 @@ const removeDiscount = async (cartId) => {
   if (cart.items.length === 0) {
     throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست", 400);
   }
-  const newCart = await cartRepository.saveCartDiscount(cartId, 0);
 
-  return _toApiCart(newCart);
+  cart.discountAmount = 0;
+  return _saveAndFormatCart(cart);
 };
 
 const clearCartItems = async (cartId) => {
   const cart = await _getCartOrThrow(cartId);
-
   cart.items = [];
-
-  await cartRepository.saveCartItems(cartId, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 const deleteItemById = async ({ cartId, itemId }) => {
   const cart = await _getCartOrThrow(cartId);
-
   const remainingItems = cart.items.filter((item) => item.id !== itemId);
 
   if (remainingItems.length === cart.items.length) {
@@ -211,10 +183,7 @@ const deleteItemById = async ({ cartId, itemId }) => {
   }
 
   cart.items = remainingItems;
-
-  await cartRepository.saveCartItems(cartId, cart.items);
-
-  return _toApiCart(cart);
+  return _saveAndFormatCart(cart);
 };
 
 export default {

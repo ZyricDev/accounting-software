@@ -2,15 +2,13 @@ import { pool } from "../../database/connection.js";
 
 const countActiveCarts = async () => {
   const [[{ count }]] = await pool.query("SELECT COUNT(*) AS count FROM carts");
-
   return count;
 };
 
 const createCart = async () => {
-  const [result] = await pool.query("INSERT INTO carts  (items) VALUES (?)", [
+  const [result] = await pool.query("INSERT INTO carts (items) VALUES (?)", [
     JSON.stringify([]),
   ]);
-
   return { id: result.insertId, items: [] };
 };
 
@@ -29,13 +27,11 @@ const searchProducts = async (searchTerm) => {
      LIMIT 10`,
     [searchTerm, `%${searchTerm}%`, searchTerm],
   );
-
   return rows;
 };
 
 const getCartById = async (id) => {
   const [rows] = await pool.query("SELECT * FROM carts WHERE id = ?", [id]);
-
   const cart = rows[0];
   if (!cart) return null;
 
@@ -48,24 +44,14 @@ const getCartById = async (id) => {
 
 const deleteCartById = async (id, executor = pool) => {
   const [result] = await executor.query("DELETE FROM carts WHERE id = ?", [id]);
-
   return result.affectedRows;
 };
 
-const saveCartItems = async (id, items) => {
-  await pool.query("UPDATE carts SET items = ? WHERE id = ?", [
-    JSON.stringify(items),
-    id,
-  ]);
-};
-
-const saveCartDiscount = async (id, discountAmount) => {
-  await pool.query("UPDATE carts SET discount_amount = ? WHERE id = ?", [
-    discountAmount,
-    id,
-  ]);
-
-  return getCartById(id);
+const updateCartState = async (id, items, discountAmount) => {
+  await pool.query(
+    "UPDATE carts SET items = ?, discount_amount = ? WHERE id = ?",
+    [JSON.stringify(items), discountAmount, id],
+  );
 };
 
 export default {
@@ -75,6 +61,5 @@ export default {
   searchProducts,
   getCartById,
   deleteCartById,
-  saveCartItems,
-  saveCartDiscount,
+  updateCartState,
 };

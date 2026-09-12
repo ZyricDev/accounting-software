@@ -1,10 +1,14 @@
+import path from "path";
+
 import { createLogger, format, transports } from "winston";
+import DailyRotateFile from "winston-daily-rotate-file";
 import config from "../../config/env.js";
 
 const { combine, timestamp, printf, errors, colorize } = format;
-const isProduction = config.app.nodeEnv === "production";
 
-// تابع کمکی برای فرمت زمان ایران
+const isProduction = config.app.nodeEnv === "production";
+const logDirectory = config.logRootDir || path.join(process.cwd(), "logs");
+
 const iranTime = () => {
   return new Date().toLocaleString("fa-IR", {
     timeZone: "Asia/Tehran",
@@ -34,23 +38,27 @@ const customFormat = printf(
   },
 );
 
+const dailyRotateErrorTransport = new DailyRotateFile({
+  dirname: path.join(logDirectory),
+  filename: "%DATE%-error.log",
+  datePattern: "YYYY-MM-DD",
+  level: "error",
+  maxFiles: "20d",
+  format: customFormat,
+});
+
+const dailyRotateCombinedTransport = new DailyRotateFile({
+  dirname: path.join(logDirectory),
+  filename: "%DATE%-combined.log",
+  datePattern: "YYYY-MM-DD",
+  maxFiles: "20d",
+  format: customFormat,
+});
+
 const logger = createLogger({
   level: "info",
-  format: combine(
-    timestamp({ format: iranTime }), // ← اینجا تغییر کرد
-    errors({ stack: true }),
-  ),
-  transports: [
-    new transports.File({
-      filename: "logs/error.log",
-      level: "error",
-      format: customFormat,
-    }),
-    new transports.File({
-      filename: "logs/combined.log",
-      format: customFormat,
-    }),
-  ],
+  format: combine(timestamp({ format: iranTime }), errors({ stack: true })),
+  transports: [dailyRotateErrorTransport, dailyRotateCombinedTransport],
 });
 
 logger.on("error", (err) => {

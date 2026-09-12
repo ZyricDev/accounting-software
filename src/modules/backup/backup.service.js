@@ -8,26 +8,18 @@ import config from "../../config/env.js";
 
 const _pad = (num) => String(num).padStart(2, "0");
 
-// e.g. "1405-06-09" — one folder per day (Jalali/Shamsi), reused across multiple backups
 const _getTodayFolderName = () => {
   const now = new Date();
-
   const formatter = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: "numeric", month: "2-digit", day: "2-digit",
   });
-
   const parts = formatter.formatToParts(now);
   const year = parts.find((p) => p.type === "year").value;
   const month = parts.find((p) => p.type === "month").value;
   const day = parts.find((p) => p.type === "day").value;
-
   return `${year}-${_pad(month)}-${_pad(day)}`;
 };
 
-// e.g. "backup-14-32-05-a1b2.json" — random suffix avoids collisions
-// if the button is clicked twice within the same second
 const _getBackupFileName = () => {
   const now = new Date();
   const time = `${_pad(now.getHours())}-${_pad(now.getMinutes())}-${_pad(now.getSeconds())}`;
@@ -37,16 +29,14 @@ const _getBackupFileName = () => {
 
 const createBackup = async () => {
   try {
-    const dayFolderPath = path.join(
-      config.backupRootDir || "/app/backups",
-      _getTodayFolderName(),
-    );
-    await fs.mkdir(dayFolderPath, { recursive: true });
-
+    const   folderName = _getTodayFolderName();
     const fileName = _getBackupFileName();
-    const filePath = path.join(dayFolderPath, fileName);
+    
+    const localDayFolderPath = path.join(config.backupRootDir || "/app/backups", folderName);
+    await fs.mkdir(localDayFolderPath, { recursive: true });
+    const localFilePath = path.join(localDayFolderPath, fileName);
 
-    const dumpCommand = `mysqldump -h ${config.DB.host} -u ${config.DB.user} -p${config.DB.password} ${config.DB.name} > ${filePath}`;
+    const dumpCommand = `mysqldump -h ${config.DB.host} -u ${config.DB.user} -p${config.DB.password} ${config.DB.name} > ${localFilePath}`;
 
     await new Promise((resolve, reject) => {
       exec(dumpCommand, (err, stdout, stderr) => {
@@ -54,17 +44,33 @@ const createBackup = async () => {
           logger.error("❌ mysqldump failed", { error: err.message, stderr });
           return reject(err);
         }
-
         resolve();
       });
     });
 
-    logger.info("✅ Backup created successfully", { filePath });
+    logger.info("✅ Local Backup created successfully", { localFilePath });
+
+    let usbStatus = "NOT_CONFIGURED";
+    if (config.usbBackupRootDir) {
+      try {
+        const usbDayFolderPath = path.join(config.usbBackupRootDir, folderName);
+        await fs.mkdir(usbDayFolderPath, { recursive: true });
+        const usbFilePath = path.join(usbDayFolderPath, fileName);
+        
+        await fs.copyFile(localFilePath, usbFilePath);
+        logger.info("✅ Backup copied to USB successfully", { usbFilePath });
+        usbStatus = "SUCCESS";
+      } catch (usbError) {
+        logger.warn("⚠️ Failed to copy backup to USB (Is it plugged in?)", { error: usbError.message });
+        usbStatus = "FAILED";
+      }
+    }
 
     return {
-      folder: _getTodayFolderName(),
+      folder: folderName,
       fileName,
       status: "SUCCESS_DB_DUMP",
+      usbStatus
     };
   } catch (error) {
     logger.error("❌ Failed to write backup file", { error: error.message });

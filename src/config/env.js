@@ -18,7 +18,9 @@ const config = {
     name: process.env.DB_NAME,
   },
 
-  backupRootDir: process.env.BACKUP_DIR
+  backupRootDir: process.env.BACKUP_DIR,
+  usbBackupRootDir: process.env.USB_BACKUP_DIR,
+  usbBackupRootDir: process.env.LOG_DIR,
 };
 
 export default config;

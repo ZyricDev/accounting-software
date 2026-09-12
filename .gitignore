@@ -2,6 +2,7 @@
 package-lock.json
 
 public/
+*.sql
 # Logs
 logs
 *.log

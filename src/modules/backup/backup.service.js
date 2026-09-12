@@ -10,14 +10,20 @@ const _pad = (num) => String(num).padStart(2, "0");
 
 const _getTodayFolderName = () => {
   const now = new Date();
-  const formatter = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-    year: "numeric", month: "2-digit", day: "2-digit",
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   });
+
   const parts = formatter.formatToParts(now);
   const year = parts.find((p) => p.type === "year").value;
   const month = parts.find((p) => p.type === "month").value;
   const day = parts.find((p) => p.type === "day").value;
-  return `${year}-${_pad(month)}-${_pad(day)}`;
+
+  return `${year}-${month}-${day}`;
 };
 
 const _getBackupFileName = () => {
@@ -29,10 +35,13 @@ const _getBackupFileName = () => {
 
 const createBackup = async () => {
   try {
-    const   folderName = _getTodayFolderName();
+    const folderName = _getTodayFolderName();
     const fileName = _getBackupFileName();
-    
-    const localDayFolderPath = path.join(config.backupRootDir || "/app/backups", folderName);
+
+    const localDayFolderPath = path.join(
+      config.backupRootDir || path.join(process.cwd(), "backups"),
+      folderName,
+    );
     await fs.mkdir(localDayFolderPath, { recursive: true });
     const localFilePath = path.join(localDayFolderPath, fileName);
 
@@ -56,12 +65,14 @@ const createBackup = async () => {
         const usbDayFolderPath = path.join(config.usbBackupRootDir, folderName);
         await fs.mkdir(usbDayFolderPath, { recursive: true });
         const usbFilePath = path.join(usbDayFolderPath, fileName);
-        
+
         await fs.copyFile(localFilePath, usbFilePath);
         logger.info("✅ Backup copied to USB successfully", { usbFilePath });
         usbStatus = "SUCCESS";
       } catch (usbError) {
-        logger.warn("⚠️ Failed to copy backup to USB (Is it plugged in?)", { error: usbError.message });
+        logger.warn("⚠️ Failed to copy backup to USB (Is it plugged in?)", {
+          error: usbError.message,
+        });
         usbStatus = "FAILED";
       }
     }
@@ -70,7 +81,7 @@ const createBackup = async () => {
       folder: folderName,
       fileName,
       status: "SUCCESS_DB_DUMP",
-      usbStatus
+      usbStatus,
     };
   } catch (error) {
     logger.error("❌ Failed to write backup file", { error: error.message });

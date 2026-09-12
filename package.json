@@ -4,9 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles",
     "dev": "nodemon -r dotenv/config src/server.js dotenv_config_path=.env.local",
     "start": "node -r dotenv/config src/server.js"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
@@ -29,9 +33,12 @@
     "joi": "^18.2.3",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.2",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.5.1",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }

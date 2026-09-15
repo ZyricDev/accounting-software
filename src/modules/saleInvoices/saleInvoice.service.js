@@ -4,6 +4,7 @@ import customerRepository from "../customer/customer.repository.js";
 import productRepository from "../product/product.repository.js";
 import saleInvoiceRepository from "./saleInvoice.repository.js";
 import paymentRepository from "../payment/payment.repository.js";
+import bankAccountRepository from "../bankAccount/bankAccount.repository.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -19,16 +20,21 @@ const _buildInvoiceItems = (cartItems) => {
 
 const _resolvePaymentMethodLabel = ({
   cashAmount,
-  electronicAmount,
+  posAmount,
+  transferAmount,
   creditAmount,
 }) => {
-  const methodsUsed = [cashAmount, electronicAmount, creditAmount].filter(
-    (amount) => amount > 0,
-  ).length;
+  const methodsUsed = [
+    cashAmount,
+    posAmount,
+    transferAmount,
+    creditAmount,
+  ].filter((amount) => amount > 0).length;
 
   if (methodsUsed > 1) return "MIXED";
   if (creditAmount > 0) return "CREDIT";
-  if (electronicAmount > 0) return "ELECTRONIC";
+  if (posAmount > 0) return "CARD";
+  if (transferAmount > 0) return "TRANSFER";
   return "CASH";
 };
 
@@ -36,7 +42,8 @@ const checkout = async (
   cartId,
   {
     cashAmount = 0,
-    electronicAmount = 0,
+    pos = { amount: 0, accountId: null },
+    transfer = { amount: 0, accountId: null },
     creditAmount = 0,
     customerName = null,
     customerPhone = null,
@@ -46,12 +53,34 @@ const checkout = async (
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
   if (cart.items.length === 0) throw new AppError("سبد خرید خالی است", 400);
 
+  const accountIdsToValidate = [];
+  if (pos.amount > 0 && pos.accountId) accountIdsToValidate.push(pos.accountId);
+  if (transfer.amount > 0 && transfer.accountId)
+    accountIdsToValidate.push(transfer.accountId);
+
+  for (const accId of new Set(accountIdsToValidate)) {
+    const account = await bankAccountRepository.getBankAccountById(accId);
+    if (!account) {
+      throw new AppError(
+        `حساب بانکی (شناسه: ${accId}) در سیستم پیدا نشد.`,
+        404,
+      );
+    }
+    if (!account.is_active) {
+      throw new AppError(
+        `حساب بانکی «${account.title}» غیرفعال است و امکان ثبت تراکنش با آن وجود ندارد.`,
+        400,
+      );
+    }
+  }
+  // -------------------------------------------------------------
+
   const invoiceItems = _buildInvoiceItems(cart.items);
   const subtotal = invoiceItems.reduce((sum, item) => sum + item.lineTotal, 0);
   const discountAmount = cart.discountAmount ?? 0;
   const totalAmount = subtotal - discountAmount;
 
-  const totalPaid = cashAmount + electronicAmount + creditAmount;
+  const totalPaid = cashAmount + pos.amount + transfer.amount + creditAmount;
   if (totalPaid !== totalAmount) {
     throw new AppError(
       `مجموع مبالغ پرداختی (${totalPaid}) با مبلغ نهایی فاکتور (${totalAmount}) برابر نیست`,
@@ -61,7 +90,8 @@ const checkout = async (
 
   const paymentMethod = _resolvePaymentMethodLabel({
     cashAmount,
-    electronicAmount,
+    posAmount: pos.amount,
+    transferAmount: transfer.amount,
     creditAmount,
   });
 
@@ -119,21 +149,43 @@ const checkout = async (
     }
 
     const paymentsToCreate = [];
-    if (cashAmount > 0)
-      paymentsToCreate.push({ method: "CASH", amount: cashAmount });
-    if (electronicAmount > 0)
-      paymentsToCreate.push({ method: "ELECTRONIC", amount: electronicAmount });
+
+    if (cashAmount > 0) {
+      paymentsToCreate.push({
+        method: "CASH",
+        amount: cashAmount,
+        accountId: null,
+      });
+    }
+    if (pos.amount > 0) {
+      paymentsToCreate.push({
+        method: "CARD",
+        amount: pos.amount,
+        accountId: pos.accountId,
+      });
+    }
+    if (transfer.amount > 0) {
+      paymentsToCreate.push({
+        method: "TRANSFER",
+        amount: transfer.amount,
+        accountId: transfer.accountId,
+      });
+    }
 
     if (paymentsToCreate.length > 0) {
       await paymentRepository.createPayments(
-        "SALE",
-        invoiceId,
-        paymentsToCreate,
+        {
+          invoiceType: "SALE",
+          invoiceId: invoiceId,
+          personType: "CUSTOMER",
+          personId: customerId,
+          payments: paymentsToCreate,
+        },
         connection,
       );
     }
 
-    if (creditAmount > 0) {
+    if (creditAmount > 0 && customerId) {
       await customerRepository.incrementDebt(
         customerId,
         creditAmount,

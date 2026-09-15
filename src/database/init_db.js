@@ -2,7 +2,6 @@ import { pool } from "./connection.js";
 import logger from "../shared/utils/logger.js";
 
 const createTables = async () => {
-  // Admin table (single-row table — only ONE admin ever exists)
   const adminTable = `
     CREATE TABLE IF NOT EXISTS admin (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,6 +12,19 @@ const createTables = async () => {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
   `;
+
+  const bankAccountsTable = `
+  CREATE TABLE IF NOT EXISTS bank_accounts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    owner_name VARCHAR(120) DEFAULT NULL,
+    card_number VARCHAR(20) DEFAULT NULL,
+    account_number VARCHAR(50) DEFAULT NULL,
+    initial_balance BIGINT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`;
 
   const suppliersTable = `
   CREATE TABLE IF NOT EXISTS suppliers (
@@ -44,7 +56,6 @@ const createTables = async () => {
   );
 `;
 
-  // Customers table — required for invoices.customer_id FK
   const customersTable = `
   CREATE TABLE IF NOT EXISTS customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -57,7 +68,6 @@ const createTables = async () => {
   );
 `;
 
-  // Carts table (ephemeral — deleted once checked out / "claimed")
   const cartsTable = `
     CREATE TABLE IF NOT EXISTS carts (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,13 +82,12 @@ const createTables = async () => {
   CREATE TABLE IF NOT EXISTS sales_invoices (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT DEFAULT NULL,
-    payment_method ENUM('CASH', 'ELECTRONIC', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
+    payment_method ENUM('CASH', 'CARD', 'TRANSFER', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
     discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     total_quantity INT UNSIGNED NOT NULL,
     total_amount BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (customer_id) REFERENCES customers(id)
   );
 `;
@@ -94,10 +103,8 @@ const createTables = async () => {
     sale_price BIGINT UNSIGNED NOT NULL,
     purchase_price BIGINT UNSIGNED NOT NULL,
     line_total BIGINT UNSIGNED NOT NULL,
-
     FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
-
     INDEX (invoice_id)
   );
 `;
@@ -134,13 +141,12 @@ CREATE TABLE IF NOT EXISTS purchase_carts (
 CREATE TABLE IF NOT EXISTS purchase_invoices (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   supplier_id INT NOT NULL,
-  payment_method ENUM('CASH', 'ELECTRONIC', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
+  payment_method ENUM('CASH', 'CARD', 'TRANSFER', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
   discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
   credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
   total_quantity INT UNSIGNED NOT NULL,
   total_amount BIGINT UNSIGNED NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
   FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
 `;
@@ -154,17 +160,15 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
   quantity INT UNSIGNED NOT NULL,
   purchase_price BIGINT UNSIGNED NOT NULL,
   line_total BIGINT UNSIGNED NOT NULL,
-
   FOREIGN KEY (invoice_id) REFERENCES purchase_invoices(id),
   FOREIGN KEY (product_id) REFERENCES products(id),
-
   INDEX (invoice_id)
 );
 `;
 
   try {
-    // Order matters: referenced tables must exist before FK-dependent tables
     await pool.query(adminTable);
+    await pool.query(bankAccountsTable);
     await pool.query(suppliersTable);
     await pool.query(productsTable);
     await pool.query(customersTable);
@@ -179,19 +183,13 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     const [checkAdmin] = await pool.query(
       `SELECT COUNT(*) as count FROM admin`,
     );
-    const adminCount = Number(checkAdmin[0].count);
-
-    if (adminCount === 0) {
-      const defaultAdminQuery = `
-        INSERT INTO admin (username, password)
-        VALUES ('admin', '$2b$10$KsELeWS4ZLKf8RWjPKfNduDo/m4TuU4gksJYVIQ6Eu/FsTZABkqFG');
-      `;
+    if (Number(checkAdmin[0].count) === 0) {
+      const defaultAdminQuery = `INSERT INTO admin (username, password) VALUES ('admin', '$2b$10$KsELeWS4ZLKf8RWjPKfNduDo/m4TuU4gksJYVIQ6Eu/FsTZABkqFG');`;
       await pool.query(defaultAdminQuery);
       logger.info(
         "👨‍💻 Default admin user created (Username: admin, Password: admin)",
       );
     }
-
     logger.info("✅ All database tables checked/created successfully!");
   } catch (error) {
     logger.error("❌ Error creating database tables:", {

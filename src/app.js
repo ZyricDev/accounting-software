@@ -10,11 +10,12 @@ import globalErrorHandler from "./shared/errors/globalErrorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
-import invoiceRoutes from "./modules/saleInvoices/saleInvoice.routes.js";
+import saleInvoiceRoutes from "./modules/saleInvoices/saleInvoice.routes.js";
 import backupRoutes from "./modules/backup/backup.routes.js";
 import supplierRoutes from "./modules/supplier/supplier.routes.js";
 import purchaseCartRoutes from "./modules/purchaseCart/purchaseCart.routes.js";
 import purchaseInvoiceRoutes from "./modules/purchaseInvoice/purchaseInvoice.routes.js";
+import bankAccountRoutes from "./modules/bankAccount/bankAccount.routes.js";
 
 const app = express();
 
@@ -30,11 +31,12 @@ app.use(express.static(path.join(__dirname, "../public")));
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/carts", cartRoutes);
-app.use("/api/v1/carts", invoiceRoutes);
+app.use("/api/v1/carts", saleInvoiceRoutes);
 app.use("/api/v1/backup", backupRoutes);
 app.use("/api/v1/suppliers", supplierRoutes);
 app.use("/api/v1/purchasesCart", purchaseCartRoutes);
 app.use("/api/v1/purchasesCart", purchaseInvoiceRoutes);
+app.use("/api/v1/bank-accounts", bankAccountRoutes);
 
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

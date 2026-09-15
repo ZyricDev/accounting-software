@@ -1,20 +1,21 @@
 import { pool } from "../../database/connection.js";
 
 const createPayments = async (
-  invoiceType,
-  invoiceId,
-  payments,
+  { invoiceType, invoiceId, personType, personId, payments },
   executor = pool,
 ) => {
-  const values = payments.map((payment) => [
+  const values = payments.map((p) => [
+    p.accountId,
+    personType,
+    personId,
     invoiceType,
     invoiceId,
-    payment.method,
-    payment.amount,
+    p.method,
+    p.amount,
   ]);
 
   await executor.query(
-    `INSERT INTO payments (invoice_type, invoice_id, method, amount) VALUES ?`,
+    `INSERT INTO payments (account_id, person_type, person_id, invoice_type, invoice_id, method, amount) VALUES ?`,
     [values],
   );
 };

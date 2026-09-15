@@ -105,13 +105,18 @@ const createTables = async () => {
   const paymentsTable = `
   CREATE TABLE IF NOT EXISTS payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    invoice_type ENUM('SALE', 'PURCHASE') NOT NULL,
-    invoice_id INT UNSIGNED NOT NULL,
-    method ENUM('CASH', 'ELECTRONIC') NOT NULL,
+    account_id INT DEFAULT NULL,
+    person_type ENUM('CUSTOMER', 'SUPPLIER') DEFAULT NULL,
+    person_id INT DEFAULT NULL,
+    invoice_type ENUM('SALE', 'PURCHASE', 'SETTLEMENT_IN', 'SETTLEMENT_OUT') NOT NULL,
+    invoice_id INT UNSIGNED DEFAULT NULL,
+    method ENUM('CASH', 'CARD', 'TRANSFER') NOT NULL,
     amount BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    INDEX (invoice_type, invoice_id)
+    INDEX (invoice_type, invoice_id),
+    INDEX (person_type, person_id),
+    INDEX (account_id),
+    FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT
   );
 `;
 

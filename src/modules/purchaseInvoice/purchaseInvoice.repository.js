@@ -17,8 +17,8 @@ const createInvoice = async (
 ) => {
   const [result] = await connection.query(
     `INSERT INTO purchase_invoices
-       (supplier_id, payment_method, discount_amount, credit_amount, total_amount, total_quantity, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+       (supplier_id, payment_method, discount_amount, credit_amount, total_amount, total_quantity)
+     VALUES (?, ?, ?, ?, ?, ?)`,
     [
       supplierId,
       paymentMethod,

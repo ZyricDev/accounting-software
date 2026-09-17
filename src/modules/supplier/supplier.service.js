@@ -26,8 +26,6 @@ const addSupplier = async ({ name, phone, address }) => {
     address,
     current_balance: 0,
     is_blocked: false,
-    created_at: now,
-    updated_at: now,
   };
   const supplier = await supplierRepository.createSupplier(payload);
 

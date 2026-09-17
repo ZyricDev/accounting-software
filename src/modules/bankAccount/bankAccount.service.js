@@ -45,7 +45,6 @@ const createBankAccount = async (accountData) => {
     account_number: accountNumber || null,
     initial_balance: initialBalance || 0,
     is_active: 1,
-    created_at: now,
   };
 
   const newBankAccount = await bankAccountRepository.addBankAccount(payload);

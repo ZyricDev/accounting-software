@@ -1,0 +1,19 @@
+import { Router } from "express";
+
+import validate from "../../shared/middleware/validate.js";
+import requireAuth from "../../shared/middleware/index.js";
+import customerController from "./customer.controller.js";
+import customerValidation from "./customer.validation.js";
+
+const router = Router();
+
+router.use(requireAuth);
+
+router
+  .route("/")
+  .post(
+    validate(customerValidation.addCustomer),
+    customerController.addCustomer,
+  );
+
+export default router;

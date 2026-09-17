@@ -16,6 +16,7 @@ import supplierRoutes from "./modules/supplier/supplier.routes.js";
 import purchaseCartRoutes from "./modules/purchaseCart/purchaseCart.routes.js";
 import purchaseInvoiceRoutes from "./modules/purchaseInvoice/purchaseInvoice.routes.js";
 import bankAccountRoutes from "./modules/bankAccount/bankAccount.routes.js";
+import customerRoutes from "./modules/customer/customer.routes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/v1/suppliers", supplierRoutes);
 app.use("/api/v1/purchasesCart", purchaseCartRoutes);
 app.use("/api/v1/purchasesCart", purchaseInvoiceRoutes);
 app.use("/api/v1/bank-accounts", bankAccountRoutes);
+app.use("/api/v1/customers", customerRoutes);
 
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

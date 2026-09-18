@@ -5,6 +5,11 @@ import {
   createQuerySchema,
 } from "../../shared/utils/validationHelpers.js";
 
+const ALLOWED_SORT_FIELDS = [
+  "name",
+  "currentBalance",
+];
+
 const addCustomer = {
   body: createBodyObjectSchema({
     name: joi.string().trim().max(120).empty("").default(null).messages({
@@ -23,8 +28,7 @@ const addCustomer = {
       .messages({
         "string.base": "شماره تماس مشتری باید متن باشد.",
         "string.pattern.base": "فرمت شماره تماس نامعتبر است.",
-        "any.required":
-          " وارد کردن شماره تماس مشتری الزامی است.",
+        "any.required": " وارد کردن شماره تماس مشتری الزامی است.",
       }),
 
     birthMonth: joi
@@ -55,4 +59,39 @@ const addCustomer = {
   }),
 };
 
-export default { addCustomer };
+const getCustomers = {
+  query: createQuerySchema({
+    sortBy: joi
+      .string()
+      .valid(...ALLOWED_SORT_FIELDS)
+      .default("name")
+      .messages({
+        "string.base": "فیلد مرتب‌سازی (sortBy) باید یک رشته متنی باشد.",
+        "any.only": "فیلد مرتب‌سازی نامعتبر است. مقادیر مجاز: {#valids}",
+      }),
+
+    order: joi.string().valid("asc", "desc").default("desc").messages({
+      "string.base": "جهت مرتب‌سازی (order) باید یک رشته متنی باشد.",
+      "any.only":
+        "جهت مرتب‌سازی نامعتبر است و فقط می‌تواند 'asc' یا 'desc' باشد.",
+    }),
+
+    page: joi.number().integer().min(1).default(1).messages({
+      "number.base": "شماره صفحه باید عدد باشد.",
+      "number.min": "شماره صفحه باید حداقل ۱ باشد.",
+    }),
+
+    limit: joi.number().integer().min(1).max(100).default(20).messages({
+      "number.base": "تعداد آیتم در هر صفحه باید عدد باشد.",
+      "number.min": "تعداد آیتم باید حداقل ۱ باشد.",
+      "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
+    }),
+
+    search: joi.string().trim().max(100).empty("").default(null).messages({
+      "string.base": "عبارت جستجو باید متن باشد.",
+      "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+    }),
+  }),
+};
+
+export default { addCustomer, getCustomers };

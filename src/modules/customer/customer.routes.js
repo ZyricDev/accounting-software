@@ -14,6 +14,10 @@ router
   .post(
     validate(customerValidation.addCustomer),
     customerController.addCustomer,
+  )
+  .get(
+    validate(customerValidation.getCustomers),
+    customerController.getCustomers,
   );
 
 export default router;

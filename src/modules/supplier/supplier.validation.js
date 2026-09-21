@@ -11,9 +11,9 @@ const supplierIdParamSchema = joi
   .positive()
   .required()
   .messages({
-    "number.base": "شناسه محصول باید عدد باشد.",
-    "number.positive": "شناسه محصول نامعتبر است.",
-    "any.required": "شناسه محصول الزامی است.",
+    "number.base": "شناسه تامین کننده باید عدد باشد.",
+    "number.positive": "شناسه تامین کننده نامعتبر است.",
+    "any.required": "شناسه تامین کننده الزامی است.",
   });
 
 const getSuppliers = {
@@ -82,11 +82,11 @@ const addSupplier = {
 };
 
 const getSupplier = {
-  params: joi.object({ id: supplierIdParamSchema }),
+  params: joi.object({ supplierId: supplierIdParamSchema }),
 };
 
 const updateSupplier = {
-  params: joi.object({ id: supplierIdParamSchema }),
+  params: joi.object({ supplierId: supplierIdParamSchema }),
 
   body: createBodyObjectSchema({
     name: joi

@@ -21,7 +21,7 @@ router
   );
 
 router
-  .route("/:id")
+  .route("/:supplierId")
   .get(validate(supplierValidation.getSupplier), supplierController.getSupplier)
   .patch(
     validate(supplierValidation.updateSupplier),

@@ -20,4 +20,11 @@ router
     customerController.getCustomers,
   );
 
+router
+  .route("/:customerId")
+  .get(
+    validate(customerValidation.getCustomer),
+    customerController.getCustomer,
+  );
+
 export default router;

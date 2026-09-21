@@ -44,4 +44,13 @@ const getCustomers = async (filters) => {
   };
 };
 
-export default { addCustomer, getCustomers };
+const getCustomerById = async (customerId) => {
+  const customer = await customerRepository.getCustomerById(customerId);
+  if (!customer) {
+    throw new AppError("مشتری یافت نشد", 404);
+  }
+
+  return _toApiFields(customer);
+};
+
+export default { addCustomer, getCustomers, getCustomerById };

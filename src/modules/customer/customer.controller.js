@@ -15,4 +15,12 @@ const getCustomers = async (req, res) => {
   return sendSuccess(res, "مشتری ها با موفقیت دریافت شد", result);
 };
 
-export default { addCustomer, getCustomers };
+const getCustomer = async (req, res) => {
+  const { customerId } = req.params;
+
+  const customer = await customerService.getCustomerById(customerId);
+
+  return sendSuccess(res, "مشتری با موفقیت دریافت شد", { customer });
+};
+
+export default { addCustomer, getCustomers, getCustomer };

@@ -5,10 +5,18 @@ import {
   createQuerySchema,
 } from "../../shared/utils/validationHelpers.js";
 
-const ALLOWED_SORT_FIELDS = [
-  "name",
-  "currentBalance",
-];
+const ALLOWED_SORT_FIELDS = ["name", "currentBalance"];
+
+const customerIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه مشتری باید عدد باشد.",
+    "number.positive": "شناسه مشتری نامعتبر است.",
+    "any.required": "شناسه مشتری الزامی است.",
+  });
 
 const addCustomer = {
   body: createBodyObjectSchema({
@@ -94,4 +102,8 @@ const getCustomers = {
   }),
 };
 
-export default { addCustomer, getCustomers };
+const getCustomer = {
+  params: joi.object({ customerId: customerIdParamSchema }),
+};
+
+export default { addCustomer, getCustomers, getCustomer };

@@ -81,7 +81,6 @@ const getCustomers = async ({ search, page, limit, sortBy, order }) => {
        ${whereClause}`,
     searchParams,
   );
-console.log(rows);
 
   return { customers: rows, total };
 };

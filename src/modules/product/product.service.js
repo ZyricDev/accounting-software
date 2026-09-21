@@ -19,26 +19,6 @@ const _buildStockEntry = (stock, purchasePrice) => ({
   date: new Date(),
 });
 
-const _calculateStockUpdate = (
-  existingProduct,
-  { stock, purchasePrice, salePrice },
-) => {
-  const newEntry = _buildStockEntry(stock, purchasePrice);
-  const newStock = existingProduct.stock + stock;
-  const weightedAveragePrice = Math.round(
-    (existingProduct.purchase_price * existingProduct.stock +
-      stock * purchasePrice) /
-      newStock,
-  );
-
-  return {
-    stock: newStock,
-    purchase_price: weightedAveragePrice,
-    sale_price: salePrice,
-    stock_history: [...existingProduct.stock_history, newEntry],
-  };
-};
-
 const getProducts = async (filters) => {
   const { products, total } = await productRepository.getProducts(filters);
 

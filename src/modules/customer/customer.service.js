@@ -1,10 +1,12 @@
 import AppError from "../../shared/errors/AppError.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import customerRepository from "./customer.repository.js";
 
 const _toApiFields = (dbRow) => ({
   id: dbRow.id,
   name: dbRow.name,
   phone: dbRow.phone,
+  currentBalance: dbRow.current_balance,
   birthMonth: dbRow.birth_month,
   birthDay: dbRow.birth_day,
 });
@@ -29,4 +31,17 @@ const addCustomer = async (customerData) => {
   return _toApiFields(newCustomer);
 };
 
-export default { addCustomer };
+const getCustomers = async (filters) => {
+  const { customers, total } = await customerRepository.getCustomers(filters);
+
+  return {
+    customers: customers.map(_toApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
+
+export default { addCustomer, getCustomers };

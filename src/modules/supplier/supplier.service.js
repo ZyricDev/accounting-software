@@ -19,7 +19,6 @@ const addSupplier = async ({ name, phone, address }) => {
     throw new AppError("تامین‌کننده با این شماره تلفن موجود است", 409);
   }
 
-  const now = new Date();
   const payload = {
     name,
     phone,

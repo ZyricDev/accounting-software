@@ -1,6 +1,7 @@
 import productRepository from "./product.repository.js";
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+import { cleanPayload } from "../../shared/utils/object.js";
 
 const _toApiFields = (dbRow) => ({
   id: dbRow.id,
@@ -11,12 +12,6 @@ const _toApiFields = (dbRow) => ({
   salePrice: dbRow.sale_price,
   lastStockInAt: dbRow.last_stock_in_at,
   stockHistory: dbRow?.stock_history,
-});
-
-const _buildStockEntry = (stock, purchasePrice) => ({
-  stock,
-  purchasePrice,
-  date: new Date(),
 });
 
 const getProducts = async (filters) => {
@@ -46,8 +41,6 @@ const addProduct = async (productData) => {
   if (barcodeExist) {
     throw new AppError("محصول با این بارکد در انبار موجود است", 409);
   }
-
-  const now = new Date();
 
   const payload = {
     name,
@@ -100,9 +93,7 @@ const updateProduct = async (productId, productData) => {
     updated_at: new Date(),
   };
 
-  const payload = Object.fromEntries(
-    Object.entries(rawPayload).filter(([, value]) => value !== undefined),
-  );
+  const payload = cleanPayload(rawPayload);
 
   const updatedProduct = await productRepository.updateProduct(
     productId,

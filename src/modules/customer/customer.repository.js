@@ -85,6 +85,20 @@ const getCustomers = async ({ search, page, limit, sortBy, order }) => {
   return { customers: rows, total };
 };
 
+const updateCustomerById = async (id, customerData) => {
+  const columns = Object.keys(customerData);
+  const values = Object.values(customerData);
+
+  const setClause = columns.map((col) => `${col} = ?`).join(", ");
+
+  await pool.query(`UPDATE customers SET ${setClause} WHERE id = ? `, [
+    ...values,
+    id,
+  ]);
+
+  return getCustomerById(id);
+};
+
 export default {
   findOrCreateCustomer,
   incrementDebt,
@@ -92,4 +106,5 @@ export default {
   getCustomerById,
   createCustomer,
   getCustomers,
+  updateCustomerById,
 };

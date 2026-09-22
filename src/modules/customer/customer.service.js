@@ -1,5 +1,6 @@
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+import { cleanPayload } from "../../shared/utils/object.js";
 import customerRepository from "./customer.repository.js";
 
 const _toApiFields = (dbRow) => ({
@@ -53,4 +54,41 @@ const getCustomerById = async (customerId) => {
   return _toApiFields(customer);
 };
 
-export default { addCustomer, getCustomers, getCustomerById };
+const updateCustomerById = async (customerId, customerData) => {
+  const { phone } = customerData;
+
+  const customer = await customerRepository.getCustomerById(customerId);
+  if (!customer) {
+    throw new AppError("مشتری یافت نشد", 404);
+  }
+
+  if (phone && customer.phone !== phone) {
+    const existingPhone = await customerRepository.isPhoneTaken(phone);
+    if (existingPhone) {
+      throw new AppError(" مشتری با این شماره تلفن از قبل ثبت شده است", 409);
+    }
+  }
+
+  const rawPayload = {
+    phone: customerData.phone,
+    name: customerData.name,
+    birth_month: customerData.birthMonth,
+    birth_day: customerData.birthDay,
+  };
+
+  const payload = cleanPayload(rawPayload);
+
+  const updatedCustomer = await customerRepository.updateCustomerById(
+    customerId,
+    payload,
+  );
+
+  return _toApiFields(updatedCustomer);
+};
+
+export default {
+  addCustomer,
+  getCustomers,
+  getCustomerById,
+  updateCustomerById,
+};

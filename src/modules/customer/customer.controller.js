@@ -23,4 +23,16 @@ const getCustomer = async (req, res) => {
   return sendSuccess(res, "مشتری با موفقیت دریافت شد", { customer });
 };
 
-export default { addCustomer, getCustomers, getCustomer };
+const updateCustomer = async (req, res) => {
+  const { customerId } = req.params;
+  const customerData = req.body;
+
+  const customer = await customerService.updateCustomerById(
+    customerId,
+    customerData,
+  );
+
+  return sendSuccess(res, "مشتری با موفقیت آپدیت شد", { customer });
+};
+
+export default { addCustomer, getCustomers, getCustomer, updateCustomer };

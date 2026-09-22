@@ -106,4 +106,55 @@ const getCustomer = {
   params: joi.object({ customerId: customerIdParamSchema }),
 };
 
-export default { addCustomer, getCustomers, getCustomer };
+const updateCustomer = {
+  params: joi.object({ customerId: customerIdParamSchema }),
+
+  body: createBodyObjectSchema({
+    name: joi.string().trim().max(120).messages({
+      "string.base": "نام مشتری باید متن باشد.",
+      "string.max": "نام مشتری نمی‌تواند بیشتر از ۱۲۰ کاراکتر باشد.",
+    }),
+
+    phone: joi
+      .string()
+      .trim()
+      .custom((value, helpers) => {
+        return joi.persianToEnglishDigits(value);
+      })
+      .pattern(/^09\d{9}$/)
+      .messages({
+        "string.base": "شماره تماس مشتری باید متن باشد.",
+        "string.pattern.base": "فرمت شماره تماس نامعتبر است.",
+      }),
+
+    birthMonth: joi
+      .persianNumber()
+      .integer()
+      .min(1)
+      .max(12)
+      .messages({
+        "number.base": "ماه تولد باید به صورت عدد وارد شود.",
+        "number.integer": "ماه تولد باید یک عدد صحیح باشد.",
+        "number.min": "ماه تولد نمی‌تواند کمتر از ۱ باشد.",
+        "number.max": "ماه تولد نمی‌تواند بیشتر از ۱۲ باشد.",
+      }),
+
+    birthDay: joi
+      .persianNumber()
+      .integer()
+      .min(1)
+      .max(31)
+      .messages({
+        "number.base": "روز تولد باید به صورت عدد وارد شود.",
+        "number.integer": "روز تولد باید یک عدد صحیح باشد.",
+        "number.min": "روز تولد نمی‌تواند کمتر از ۱ باشد.",
+        "number.max": "روز تولد نمی‌تواند بیشتر از ۳۱ باشد.",
+      }),
+  })
+    .min(1)
+    .messages({
+      "object.min": "حداقل یک فیلد برای ویرایش باید ارسال شود.",
+    }),
+};
+
+export default { addCustomer, getCustomers, getCustomer, updateCustomer };

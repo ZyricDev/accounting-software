@@ -22,9 +22,10 @@ router
 
 router
   .route("/:customerId")
-  .get(
-    validate(customerValidation.getCustomer),
-    customerController.getCustomer,
+  .get(validate(customerValidation.getCustomer), customerController.getCustomer)
+  .patch(
+    validate(customerValidation.updateCustomer),
+    customerController.updateCustomer,
   );
 
 export default router;

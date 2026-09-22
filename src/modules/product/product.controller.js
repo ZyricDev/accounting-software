@@ -48,7 +48,7 @@ const updateProduct = async (req, res) => {
     name: updatedProduct.name,
   });
 
-  return sendSuccess(res, "محصول با موفقیت بروزرسانی شد", {
+  return sendSuccess(res, "محصول با موفقیت آپدیت شد", {
     product: updatedProduct,
   });
 };

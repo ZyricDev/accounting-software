@@ -106,6 +106,17 @@ const updateBankAccountStatusById = async (id, status) => {
   ]);
 };
 
+const getBankAccountsByIds = async (ids) => {
+  const placeholders = ids.map(() => "?").join(", ");
+
+  const [rows] = await pool.query(
+    `SELECT id, title, is_active FROM bank_accounts WHERE id IN (${placeholders})`,
+    ids,
+  );
+
+  return rows;
+};
+
 export default {
   isTitleTaken,
   isCardNumberTaken,
@@ -118,4 +129,5 @@ export default {
   checkBankAccountUsage,
   deleteBankAccountById,
   updateBankAccountStatusById,
+  getBankAccountsByIds,
 };

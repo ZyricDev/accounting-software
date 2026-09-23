@@ -4,7 +4,7 @@ import supplierRepository from "../supplier/supplier.repository.js";
 import productRepository from "../product/product.repository.js";
 import purchaseInvoiceRepository from "./purchaseInvoice.repository.js";
 import paymentRepository from "../payment/payment.repository.js";
-import bankAccountRepository from "../bankAccount/bankAccount.repository.js"; // اضافه شد
+import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -76,21 +76,7 @@ const checkout = async ({
   if (transfer.amount > 0 && transfer.accountId)
     accountIdsToValidate.push(transfer.accountId);
 
-  for (const accId of new Set(accountIdsToValidate)) {
-    const account = await bankAccountRepository.getBankAccountById(accId);
-    if (!account) {
-      throw new AppError(
-        `حساب بانکی (شناسه: ${accId}) در سیستم پیدا نشد.`,
-        404,
-      );
-    }
-    if (!account.is_active) {
-      throw new AppError(
-        `حساب بانکی «${account.title}» غیرفعال است و امکان ثبت تراکنش با آن وجود ندارد.`,
-        400,
-      );
-    }
-  }
+  await validateBankAccounts(accountIdsToValidate);
 
   const invoiceItems = _buildInvoiceItems(cart.items);
   _validateInvoiceItems(invoiceItems);

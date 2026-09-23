@@ -99,6 +99,21 @@ const updateCustomerById = async (id, customerData) => {
   return getCustomerById(id);
 };
 
+const checkCustomerUsage = async (id) => {
+  const [[paymentRows], [invoiceRows]] = await Promise.all([
+    pool.query("SELECT id FROM payments WHERE person_id = ? LIMIT 1", [id]),
+    pool.query("SELECT id FROM sales_invoices WHERE customer_id = ? LIMIT 1", [
+      id,
+    ]),
+  ]);
+
+  return paymentRows.length > 0 || invoiceRows.length > 0;
+};
+
+const deleteCustomerById = async (id) => {
+  await pool.query("DELETE FROM customers WHERE id = ?", [id]);
+};
+
 export default {
   findOrCreateCustomer,
   incrementDebt,
@@ -107,4 +122,6 @@ export default {
   createCustomer,
   getCustomers,
   updateCustomerById,
+  checkCustomerUsage,
+  deleteCustomerById,
 };

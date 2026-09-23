@@ -127,29 +127,19 @@ const updateCustomer = {
         "string.pattern.base": "فرمت شماره تماس نامعتبر است.",
       }),
 
-    birthMonth: joi
-      .persianNumber()
-      .integer()
-      .min(1)
-      .max(12)
-      .messages({
-        "number.base": "ماه تولد باید به صورت عدد وارد شود.",
-        "number.integer": "ماه تولد باید یک عدد صحیح باشد.",
-        "number.min": "ماه تولد نمی‌تواند کمتر از ۱ باشد.",
-        "number.max": "ماه تولد نمی‌تواند بیشتر از ۱۲ باشد.",
-      }),
+    birthMonth: joi.persianNumber().integer().min(1).max(12).messages({
+      "number.base": "ماه تولد باید به صورت عدد وارد شود.",
+      "number.integer": "ماه تولد باید یک عدد صحیح باشد.",
+      "number.min": "ماه تولد نمی‌تواند کمتر از ۱ باشد.",
+      "number.max": "ماه تولد نمی‌تواند بیشتر از ۱۲ باشد.",
+    }),
 
-    birthDay: joi
-      .persianNumber()
-      .integer()
-      .min(1)
-      .max(31)
-      .messages({
-        "number.base": "روز تولد باید به صورت عدد وارد شود.",
-        "number.integer": "روز تولد باید یک عدد صحیح باشد.",
-        "number.min": "روز تولد نمی‌تواند کمتر از ۱ باشد.",
-        "number.max": "روز تولد نمی‌تواند بیشتر از ۳۱ باشد.",
-      }),
+    birthDay: joi.persianNumber().integer().min(1).max(31).messages({
+      "number.base": "روز تولد باید به صورت عدد وارد شود.",
+      "number.integer": "روز تولد باید یک عدد صحیح باشد.",
+      "number.min": "روز تولد نمی‌تواند کمتر از ۱ باشد.",
+      "number.max": "روز تولد نمی‌تواند بیشتر از ۳۱ باشد.",
+    }),
   })
     .min(1)
     .messages({
@@ -157,4 +147,12 @@ const updateCustomer = {
     }),
 };
 
-export default { addCustomer, getCustomers, getCustomer, updateCustomer };
+const deleteCustomer = getCustomer;
+
+export default {
+  addCustomer,
+  getCustomers,
+  getCustomer,
+  updateCustomer,
+  deleteCustomer,
+};

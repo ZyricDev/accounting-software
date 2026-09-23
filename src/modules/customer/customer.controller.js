@@ -35,4 +35,18 @@ const updateCustomer = async (req, res) => {
   return sendSuccess(res, "مشتری با موفقیت آپدیت شد", { customer });
 };
 
-export default { addCustomer, getCustomers, getCustomer, updateCustomer };
+const deleteCustomer = async (req, res) => {
+  const { customerId } = req.params;
+
+  const customer = await customerService.deleteCustomerById(customerId);
+
+  return sendSuccess(res, "مشتری با موفقیت حذف شد", { customer });
+};
+
+export default {
+  addCustomer,
+  getCustomers,
+  getCustomer,
+  updateCustomer,
+  deleteCustomer,
+};

@@ -86,9 +86,29 @@ const updateCustomerById = async (customerId, customerData) => {
   return _toApiFields(updatedCustomer);
 };
 
+const deleteCustomerById = async (customerId) => {
+  const customer = await customerRepository.getCustomerById(customerId);
+  if (!customer) {
+    throw new AppError("مشتری یافت نشد", 404);
+  }
+
+  const hasUsage = await customerRepository.checkCustomerUsage(customerId);
+  if (hasUsage) {
+    throw new AppError(
+      "این مشتری دارای تراکنش مالی است و قابل حذف نیست. لطفاً آن را غیرفعال کنید.",
+      409,
+    );
+  }
+
+  await customerRepository.deleteCustomerById(customerId);
+
+  return _toApiFields(customer);
+};
+
 export default {
   addCustomer,
   getCustomers,
   getCustomerById,
   updateCustomerById,
+  deleteCustomerById,
 };

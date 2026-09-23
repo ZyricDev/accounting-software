@@ -26,6 +26,7 @@ router
   .patch(
     validate(customerValidation.updateCustomer),
     customerController.updateCustomer,
-  );
+  )
+  .delete(validate(customerValidation.deleteCustomer), customerController.deleteCustomer);
 
 export default router;

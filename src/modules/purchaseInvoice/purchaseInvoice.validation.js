@@ -74,7 +74,24 @@ const checkout = {
         "number.base": "مبلغ نسیه باید عدد باشد.",
         "number.min": "مبلغ نسیه نمی‌تواند منفی باشد.",
       }),
-  }),
+  })
+    .custom((value, helpers) => {
+      const totalPaid =
+        value.cashAmount +
+        value.pos.amount +
+        value.transfer.amount +
+        value.creditAmount;
+
+      if (totalPaid <= 0) {
+        return helpers.error("object.noPaymentProvided");
+      }
+
+      return value;
+    })
+    .messages({
+      "object.noPaymentProvided":
+        "حداقل باید یکی از روش‌های پرداخت (نقدی، کارت‌خوان، کارت به کارت یا نسیه) مبلغ داشته باشد.",
+    }),
 };
 
 export default { checkout };

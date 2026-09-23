@@ -149,10 +149,13 @@ const updateCustomer = {
 
 const deleteCustomer = getCustomer;
 
+const toggleCustomerStatus = getCustomer;
+
 export default {
   addCustomer,
   getCustomers,
   getCustomer,
   updateCustomer,
   deleteCustomer,
+  toggleCustomerStatus,
 };

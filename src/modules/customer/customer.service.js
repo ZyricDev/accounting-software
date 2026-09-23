@@ -8,6 +8,7 @@ const _toApiFields = (dbRow) => ({
   name: dbRow.name,
   phone: dbRow.phone,
   currentBalance: dbRow.current_balance,
+  isActive: Boolean(dbRow.is_active),
   birthMonth: dbRow.birth_month,
   birthDay: dbRow.birth_day,
 });
@@ -105,10 +106,24 @@ const deleteCustomerById = async (customerId) => {
   return _toApiFields(customer);
 };
 
+const toggleCustomerStatusById = async (customerId) => {
+  const customer = await customerRepository.getCustomerById(customerId);
+  if (!customer) {
+    throw new AppError("مشتری یافت نشد", 404);
+  }
+
+  const newStatus = customer.is_active ? 0 : 1;
+
+  await customerRepository.updateCustomerStatusById(customerId, newStatus);
+
+  return { id: customer.id, isActive: Boolean(newStatus) };
+};
+
 export default {
   addCustomer,
   getCustomers,
   getCustomerById,
   updateCustomerById,
   deleteCustomerById,
+  toggleCustomerStatusById,
 };

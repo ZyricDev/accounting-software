@@ -114,6 +114,13 @@ const deleteCustomerById = async (id) => {
   await pool.query("DELETE FROM customers WHERE id = ?", [id]);
 };
 
+const updateCustomerStatusById = async (id, status) => {
+  await pool.query("UPDATE customers SET is_active = ? WHERE id = ?", [
+    status,
+    id,
+  ]);
+};
+
 export default {
   findOrCreateCustomer,
   incrementDebt,
@@ -124,4 +131,5 @@ export default {
   updateCustomerById,
   checkCustomerUsage,
   deleteCustomerById,
+  updateCustomerStatusById,
 };

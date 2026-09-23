@@ -43,10 +43,19 @@ const deleteCustomer = async (req, res) => {
   return sendSuccess(res, "مشتری با موفقیت حذف شد", { customer });
 };
 
+const toggleCustomerStatus = async (req, res) => {
+  const { customerId } = req.params;
+
+  const customer = await customerService.toggleCustomerStatusById(customerId);
+
+  return sendSuccess(res, "وضعیت مشتری با موفقیت تغییر کرد", { customer });
+};
+
 export default {
   addCustomer,
   getCustomers,
   getCustomer,
   updateCustomer,
   deleteCustomer,
+  toggleCustomerStatus,
 };

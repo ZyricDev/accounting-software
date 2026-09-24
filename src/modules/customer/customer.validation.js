@@ -64,6 +64,35 @@ const addCustomer = {
         "number.min": "روز تولد نمی‌تواند کمتر از ۱ باشد.",
         "number.max": "روز تولد نمی‌تواند بیشتر از ۳۱ باشد.",
       }),
+
+    initialBalance: joi
+      .object({
+        amount: joi
+          .persianNumber()
+          .integer()
+          .min(0)
+          .empty("")
+          .default(0)
+          .messages({
+            "number.base": "مبلغ مانده اولیه باید عدد باشد.",
+            "number.integer": "مبلغ مانده اولیه باید عدد صحیح باشد.",
+            "number.min": "مبلغ مانده اولیه نمی‌تواند منفی باشد.",
+          }),
+        type: joi
+          .string()
+          .trim()
+          .valid("DEBT", "CREDIT")
+          .default("DEBT")
+          .messages({
+            "string.base": "نوع مانده اولیه باید متن باشد.",
+            "any.only":
+              "نوع مانده اولیه فقط می‌تواند 'DEBT' (بدهی) یا 'CREDIT' (طلب) باشد.",
+          }),
+      })
+      .default({ amount: 0, type: "DEBT" })
+      .messages({
+        "object.base": "اطلاعات مانده اولیه باید به صورت یک شیء ارسال شود.",
+      }),
   }),
 };
 

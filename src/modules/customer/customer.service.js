@@ -7,6 +7,7 @@ const _toApiFields = (dbRow) => ({
   id: dbRow.id,
   name: dbRow.name,
   phone: dbRow.phone,
+  initialBalance: dbRow.initial_balance,
   currentBalance: dbRow.current_balance,
   isActive: Boolean(dbRow.is_active),
   birthMonth: dbRow.birth_month,
@@ -14,18 +15,24 @@ const _toApiFields = (dbRow) => ({
 });
 
 const addCustomer = async (customerData) => {
-  const { phone } = customerData;
+  const { phone, initialBalance } = customerData;
   const existingPhone = await customerRepository.isPhoneTaken(phone);
   if (existingPhone) {
     throw new AppError(" مشتری با این شماره تلفن از قبل ثبت شده است", 409);
   }
+
+  const balanceValue =
+    initialBalance.type === "CREDIT"
+      ? -initialBalance.amount
+      : initialBalance.amount;
 
   const payload = {
     phone: customerData.phone,
     name: customerData.name || null,
     birth_month: customerData.birthMonth || null,
     birth_day: customerData.birthDay || null,
-    current_balance: 0,
+    initial_balance: balanceValue,
+    current_balance: balanceValue,
   };
 
   const newCustomer = await customerRepository.createCustomer(payload);

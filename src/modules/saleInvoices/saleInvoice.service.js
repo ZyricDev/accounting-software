@@ -38,20 +38,24 @@ const _resolvePaymentMethodLabel = ({
   return "CASH";
 };
 
-const checkout = async (
+const addSaleInvoice = async ({
   cartId,
-  {
-    cashAmount = 0,
-    pos = { amount: 0, accountId: null },
-    transfer = { amount: 0, accountId: null },
-    creditAmount = 0,
-    customerName = null,
-    customerPhone = null,
-  },
-) => {
+  cashAmount = 0,
+  pos = { amount: 0, accountId: null },
+  transfer = { amount: 0, accountId: null },
+  creditAmount = 0,
+  customerId = null,
+}) => {
   const cart = await cartRepository.getCartById(cartId);
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
   if (cart.items.length === 0) throw new AppError("سبد خرید خالی است", 400);
+
+  if (customerId) {
+    const customer = await customerRepository.getCustomerById(customerId);
+    if (!customer) {
+      throw new AppError("مشتری یافت نشد", 404);
+    }
+  }
 
   const accountIdsToValidate = [];
   if (pos.amount > 0 && pos.accountId) accountIdsToValidate.push(pos.accountId);
@@ -81,18 +85,10 @@ const checkout = async (
   });
 
   let connection;
-  let customerId = null;
 
   try {
     connection = await saleInvoiceRepository.getConnection();
     await connection.beginTransaction();
-
-    if (customerPhone) {
-      customerId = await customerRepository.findOrCreateCustomer(
-        { customerName, customerPhone },
-        connection,
-      );
-    }
 
     const affectedRows = await cartRepository.deleteCartById(
       cartId,
@@ -199,4 +195,4 @@ const checkout = async (
   }
 };
 
-export default { checkout };
+export default { addSaleInvoice };

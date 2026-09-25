@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, "../public")));
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/carts", cartRoutes);
-app.use("/api/v1/carts", saleInvoiceRoutes);
+app.use("/api/v1/sale-invoices", saleInvoiceRoutes);
 app.use("/api/v1/backup", backupRoutes);
 app.use("/api/v1/suppliers", supplierRoutes);
 app.use("/api/v1/purchasesCart", purchaseCartRoutes);

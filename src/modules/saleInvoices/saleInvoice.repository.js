@@ -51,4 +51,87 @@ const createInvoiceItems = async (invoiceId, items, executor = pool) => {
   );
 };
 
-export default { getConnection, createInvoice, createInvoiceItems };
+const getInvoices = async ({
+  page = 1,
+  limit = 20,
+  sortBy = "createdAt",
+  order = "desc",
+  search,
+  startDate,
+  endDate,
+  paymentMethod,
+}) => {
+  const offset = (page - 1) * limit;
+
+  const conditions = [];
+  const queryParams = [];
+
+  if (search) {
+    conditions.push(
+      "(c.name LIKE ? OR c.phone LIKE ?)"
+    );
+    const searchTerm = `%${search}%`;
+    queryParams.push(searchTerm, searchTerm);
+  }
+
+  if (startDate) {
+    conditions.push("si.created_at >= ?");
+    queryParams.push(startDate);
+  }
+
+  if (endDate) {
+    conditions.push("si.created_at <= ?");
+    queryParams.push(endDate);
+  }
+
+  if (paymentMethod) {
+    conditions.push("si.payment_method = ?");
+    queryParams.push(paymentMethod);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const sortColumnMap = {
+    createdAt: "si.created_at",
+    totalAmount: "si.total_amount",
+  };
+  const sortColumn = sortColumnMap[sortBy] || "si.created_at";
+  const sortDirection = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+  const dataQuery = `
+    SELECT 
+      si.*, 
+      c.name AS customer_name, 
+      c.phone AS customer_phone
+    FROM sales_invoices si
+    LEFT JOIN customers c ON si.customer_id = c.id
+    ${whereClause}
+    ORDER BY ${sortColumn} ${sortDirection}
+    LIMIT ? OFFSET ?
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*) AS total
+    FROM sales_invoices si
+    LEFT JOIN customers c ON si.customer_id = c.id
+    ${whereClause}
+  `;
+
+  const [rows] = await pool.query(dataQuery, [
+    ...queryParams,
+    Number(limit),
+    Number(offset),
+  ]);
+
+  const [[{ total }]] = await pool.query(countQuery, queryParams);
+
+  return { invoices: rows, total };
+};
+
+export default {
+  getConnection,
+  createInvoice,
+  createInvoiceItems,
+  getInvoices,
+};

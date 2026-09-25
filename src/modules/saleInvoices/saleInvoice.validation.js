@@ -1,5 +1,10 @@
 import joi from "../../shared/utils/customJoi.js";
-import { createBodyObjectSchema } from "../../shared/utils/validationHelpers.js";
+import {
+  createBodyObjectSchema,
+  createQuerySchema,
+} from "../../shared/utils/validationHelpers.js";
+
+const ALLOWED_INVOICE_SORT_FIELDS = ["createdAt", "totalAmount"];
 
 const buildPaymentMethodSchema = (label) =>
   joi
@@ -112,4 +117,87 @@ const addSaleInvoice = {
     }),
 };
 
-export default { addSaleInvoice };
+const getSaleInvoices = {
+  query: createQuerySchema({
+    sortBy: joi
+      .string()
+      .valid(...ALLOWED_INVOICE_SORT_FIELDS)
+      .default("createdAt")
+      .messages({
+        "string.base": "فیلد مرتب‌سازی (sortBy) باید یک رشته متنی باشد.",
+        "any.only": "فیلد مرتب‌سازی نامعتبر است. مقادیر مجاز: {#valids}",
+      }),
+
+    order: joi.string().valid("asc", "desc").default("desc").messages({
+      "string.base": "جهت مرتب‌سازی (order) باید یک رشته متنی باشد.",
+      "any.only":
+        "جهت مرتب‌سازی نامعتبر است و فقط می‌تواند 'asc' یا 'desc' باشد.",
+    }),
+
+    page: joi.number().integer().min(1).default(1).messages({
+      "number.base": "شماره صفحه باید عدد باشد.",
+      "number.min": "شماره صفحه باید حداقل ۱ باشد.",
+    }),
+
+    limit: joi.number().integer().min(1).max(100).default(20).messages({
+      "number.base": "تعداد آیتم در هر صفحه باید عدد باشد.",
+      "number.min": "تعداد آیتم باید حداقل ۱ باشد.",
+      "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
+    }),
+
+    search: joi.string().trim().max(100).empty("").default(null).messages({
+      "string.base": "عبارت جستجو باید متن باشد.",
+      "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+    }),
+
+    startDate: joi
+      .date()
+      .iso()
+      .empty("")
+      .default(null)
+      .custom((value, helpers) => {
+        const original = helpers.original;
+
+        if (original && original.length === 10) {
+          return new Date(`${original}T00:00:00.000Z`);
+        }
+        return value;
+      })
+      .messages({
+        "date.base": "تاریخ شروع نامعتبر است.",
+        "date.format": "تاریخ شروع باید در فرمت استاندارد (ISO) باشد.",
+      }),
+
+    endDate: joi
+      .date()
+      .iso()
+      .min(joi.ref("startDate"))
+      .empty("")
+      .default(null)
+      .custom((value, helpers) => {
+        const original = helpers.original;
+
+        if (original && original.length === 10) {
+          return new Date(`${original}T23:59:59.999Z`);
+        }
+        return value;
+      })
+      .messages({
+        "date.base": "تاریخ پایان نامعتبر است.",
+        "date.format": "تاریخ پایان باید در فرمت استاندارد (ISO) باشد.",
+        "date.min": "تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.",
+      }),
+
+    paymentMethod: joi
+      .string()
+      .valid("CASH", "CARD", "TRANSFER", "CREDIT", "MIXED")
+      .empty("")
+      .default(null)
+      .messages({
+        "string.base": "روش پرداخت باید یک رشته متنی باشد.",
+        "any.only": "روش پرداخت ارسال شده معتبر نیست.",
+      }),
+  }),
+};
+
+export default { addSaleInvoice, getSaleInvoices };

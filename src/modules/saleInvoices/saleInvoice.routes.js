@@ -1,15 +1,20 @@
 import { Router } from "express";
 
 import validate from "../../shared/middleware/validate.js";
-import invoiceController from "./saleInvoice.controller.js";
-import invoiceValidation from "./saleInvoice.validation.js";
+import saleInvoiceController from "./saleInvoice.controller.js";
+import saleInvoiceValidation from "./saleInvoice.validation.js";
 
 const router = Router();
 
-router.post(
-  "/",
-  validate(invoiceValidation.addSaleInvoice),
-  invoiceController.addSaleInvoice,
-);
+router
+  .route("/")
+  .post(
+    validate(saleInvoiceValidation.addSaleInvoice),
+    saleInvoiceController.addSaleInvoice,
+  )
+  .get(
+    validate(saleInvoiceValidation.getSaleInvoices),
+    saleInvoiceController.getSaleInvoices,
+  );
 
 export default router;

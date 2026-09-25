@@ -5,6 +5,7 @@ import productRepository from "../product/product.repository.js";
 import saleInvoiceRepository from "./saleInvoice.repository.js";
 import paymentRepository from "../payment/payment.repository.js";
 import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -37,6 +38,20 @@ const _resolvePaymentMethodLabel = ({
   if (transferAmount > 0) return "TRANSFER";
   return "CASH";
 };
+
+const _toInvoiceApiFields = (dbRow) => ({
+  id: dbRow.id,
+  customerId: dbRow.customer_id,
+  customerName: dbRow.customer_name || "مشتری عبوری",
+  customerPhone: dbRow.customer_phone || null,
+
+  paymentMethod: dbRow.payment_method,
+  discountAmount: Number(dbRow.discount_amount),
+  creditAmount: Number(dbRow.credit_amount),
+  totalAmount: Number(dbRow.total_amount),
+  totalQuantity: Number(dbRow.total_quantity),
+  createdAt: dbRow.created_at,
+});
 
 const addSaleInvoice = async ({
   cartId,
@@ -195,4 +210,17 @@ const addSaleInvoice = async ({
   }
 };
 
-export default { addSaleInvoice };
+const getSaleInvoices = async (filters) => {
+  const { invoices, total } = await saleInvoiceRepository.getInvoices(filters);
+
+  return {
+    invoices: invoices.map(_toInvoiceApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
+
+export default { addSaleInvoice, getSaleInvoices };

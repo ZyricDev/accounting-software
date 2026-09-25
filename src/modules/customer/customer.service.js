@@ -63,7 +63,7 @@ const getCustomerById = async (customerId) => {
 };
 
 const updateCustomerById = async (customerId, customerData) => {
-  const { phone } = customerData;
+  const { phone, initialBalance } = customerData;
 
   const customer = await customerRepository.getCustomerById(customerId);
   if (!customer) {
@@ -77,11 +77,30 @@ const updateCustomerById = async (customerId, customerData) => {
     }
   }
 
+  let newInitialBalance;
+  let newCurrentBalance;
+
+  if (initialBalance) {
+    const requestedInitial =
+      initialBalance.type === "CREDIT"
+        ? -Math.abs(initialBalance.amount)
+        : Math.abs(initialBalance.amount);
+
+    const balanceDifference = requestedInitial - customer.initial_balance;
+
+    if (balanceDifference !== 0) {
+      newInitialBalance = requestedInitial;
+      newCurrentBalance = customer.current_balance + balanceDifference;
+    }
+  }
+
   const rawPayload = {
     phone: customerData.phone,
     name: customerData.name,
     birth_month: customerData.birthMonth,
     birth_day: customerData.birthDay,
+    initial_balance: newInitialBalance,
+    current_balance: newCurrentBalance,
   };
 
   const payload = cleanPayload(rawPayload);

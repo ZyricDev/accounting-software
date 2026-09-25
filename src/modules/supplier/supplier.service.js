@@ -1,5 +1,7 @@
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
+import paymentRepository from "../payment/payment.repository.js";
 import supplierRepository from "./supplier.repository.js";
 
 const _toApiFields = (data) => ({
@@ -76,4 +78,96 @@ const updateSupplier = async (supplierId, supplierData) => {
   return _toApiFields(updatedSupplier);
 };
 
-export default { addSupplier, getSuppliers, getSupplierById, updateSupplier };
+const settlementSupplierById = async (
+  supplierId,
+  {
+    type,
+    cashAmount = 0,
+    pos = { amount: 0, accountId: null },
+    transfer = { amount: 0, accountId: null },
+  },
+) => {
+  const supplierData = await supplierRepository.getSupplierById(supplierId);
+  if (!supplierData) {
+    throw new AppError("تامین کننده یافت نشد", 404);
+  }
+
+  const accountIdsToValidate = [];
+  if (pos.amount > 0 && pos.accountId) accountIdsToValidate.push(pos.accountId);
+  if (transfer.amount > 0 && transfer.accountId)
+    accountIdsToValidate.push(transfer.accountId);
+
+  await validateBankAccounts(accountIdsToValidate);
+
+  const totalAmount = cashAmount + pos.amount + transfer.amount;
+
+  const paymentsToCreate = [];
+  if (cashAmount > 0) {
+    paymentsToCreate.push({
+      method: "CASH",
+      amount: cashAmount,
+      accountId: null,
+    });
+  }
+  if (pos.amount > 0) {
+    paymentsToCreate.push({
+      method: "CARD",
+      amount: pos.amount,
+      accountId: pos.accountId,
+    });
+  }
+  if (transfer.amount > 0) {
+    paymentsToCreate.push({
+      method: "TRANSFER",
+      amount: transfer.amount,
+      accountId: transfer.accountId,
+    });
+  }
+
+  const balanceChange = type === "SETTLEMENT_OUT" ? -totalAmount : totalAmount;
+
+  let connection;
+  try {
+    connection = await supplierRepository.getConnection();
+    await connection.beginTransaction();
+
+    await paymentRepository.createPayments(
+      {
+        invoiceType: type,
+        invoiceId: null,
+        personType: "SUPPLIER",
+        personId: supplierId,
+        payments: paymentsToCreate,
+      },
+      connection,
+    );
+
+    await supplierRepository.incrementDebt(
+      supplierId,
+      balanceChange,
+      connection,
+    );
+
+    await connection.commit();
+
+    return {
+      supplierId,
+      currentBalance: supplierData.current_balance + balanceChange,
+      totalAmount,
+      type,
+    };
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+export default {
+  addSupplier,
+  getSuppliers,
+  getSupplierById,
+  updateSupplier,
+  settlementSupplierById,
+};

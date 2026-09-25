@@ -1,5 +1,9 @@
 import { pool } from "../../database/connection.js";
 
+const getConnection = async () => {
+  return await pool.getConnection();
+};
+
 const isSupplierPhoneTaken = async (phone) => {
   const [rows] = await pool.query(
     "SELECT id FROM suppliers WHERE phone = ? LIMIT 1",
@@ -88,6 +92,7 @@ const incrementDebt = async (supplierId, amount, connection) => {
 };
 
 export default {
+  getConnection,
   isSupplierPhoneTaken,
   getSupplierById,
   createSupplier,

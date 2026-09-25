@@ -28,4 +28,10 @@ router
     supplierController.updateSupplier,
   );
 
+  router.post(
+  "/:supplierId/settlements",
+  validate(supplierValidation.settlementSupplier),
+  supplierController.settlementSupplier,
+);
+
 export default router;

@@ -22,23 +22,46 @@ const getSuppliers = async (req, res) => {
 };
 
 const getSupplier = async (req, res) => {
-  const supplier = await supplierService.getSupplierById(req.params.id);
+  const supplier = await supplierService.getSupplierById(req.params.supplierId);
 
   return sendSuccess(res, "تامین کننده با موفقیت دریافت شد", { supplier });
 };
 
 const updateSupplier = async (req, res) => {
   const supplier = await supplierService.updateSupplier(
-    req.params.id,
+    req.params.supplierId,
     req.body,
   );
 
   logger.info("Updated supplier successfully", {
-    id: supplier.id,
+    id: supplier.supplierId,
     phone: supplier.phone,
   });
 
   return sendSuccess(res, "تامین‌کننده با موفقیت آپدیت شد", { supplier });
 };
 
-export default { addSupplier, getSuppliers, getSupplier, updateSupplier };
+const settlementSupplier = async (req, res) => {
+  const { supplierId } = req.params;
+  const settlementData = req.body;
+
+  const result = await supplierService.settlementSupplierById(
+    supplierId,
+    settlementData,
+  );
+
+  const message =
+    settlementData.type === "SETTLEMENT_OUT"
+      ? "پرداخت به تامین کننده با موفقیت ثبت شد."
+      : "دریافت وجه از تامین کننده با موفقیت ثبت شد.";
+
+  return sendSuccess(res, message, result);
+};
+
+export default {
+  addSupplier,
+  getSuppliers,
+  getSupplier,
+  updateSupplier,
+  settlementSupplier,
+};

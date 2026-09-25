@@ -1,6 +1,14 @@
 import { sendSuccess } from "../../shared/utils/apiResponse.js";
 import customerService from "./customer.service.js";
 
+const findOrCreateCustomer = async (req, res) => {
+  const customerData = req.body;
+
+  const customer = await customerService.findOrCreateCustomer(customerData);
+
+  return sendSuccess(res, "اطلاعات مشتری با موفقیت دریافت شد.", { customer });
+};
+
 const addCustomer = async (req, res) => {
   const customerData = req.body;
 
@@ -69,6 +77,7 @@ const settlementCustomer = async (req, res) => {
 };
 
 export default {
+  findOrCreateCustomer,
   addCustomer,
   getCustomers,
   getCustomer,

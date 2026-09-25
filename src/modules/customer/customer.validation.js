@@ -136,6 +136,8 @@ const addCustomer = {
   }),
 };
 
+const findOrCreateCustomer = addCustomer;
+
 const getCustomers = {
   query: createQuerySchema({
     sortBy: joi
@@ -212,28 +214,18 @@ const updateCustomer = {
 
     initialBalance: joi
       .object({
-        amount: joi
-          .persianNumber()
-          .integer()
-          .min(0)
-          .required()
-          .messages({
-            "number.base": "مبلغ مانده اولیه باید عدد باشد.",
-            "number.integer": "مبلغ مانده اولیه باید عدد صحیح باشد.",
-            "number.min": "مبلغ مانده اولیه نمی‌تواند منفی باشد.",
-            "any.required": "ارسال مبلغ مانده اولیه الزامی است.",
-          }),
-        type: joi
-          .string()
-          .trim()
-          .valid("DEBT", "CREDIT")
-          .required()
-          .messages({
-            "string.base": "نوع مانده اولیه باید متن باشد.",
-            "any.only":
-              "نوع مانده اولیه فقط می‌تواند 'DEBT' (بدهی) یا 'CREDIT' (طلب) باشد.",
-            "any.required": "ارسال نوع مانده اولیه الزامی است.",
-          }),
+        amount: joi.persianNumber().integer().min(0).required().messages({
+          "number.base": "مبلغ مانده اولیه باید عدد باشد.",
+          "number.integer": "مبلغ مانده اولیه باید عدد صحیح باشد.",
+          "number.min": "مبلغ مانده اولیه نمی‌تواند منفی باشد.",
+          "any.required": "ارسال مبلغ مانده اولیه الزامی است.",
+        }),
+        type: joi.string().trim().valid("DEBT", "CREDIT").required().messages({
+          "string.base": "نوع مانده اولیه باید متن باشد.",
+          "any.only":
+            "نوع مانده اولیه فقط می‌تواند 'DEBT' (بدهی) یا 'CREDIT' (طلب) باشد.",
+          "any.required": "ارسال نوع مانده اولیه الزامی است.",
+        }),
       })
       .messages({
         "object.base": "اطلاعات مانده اولیه باید به صورت یک شیء ارسال شود.",
@@ -298,6 +290,7 @@ const settlementCustomer = {
 
 export default {
   addCustomer,
+  findOrCreateCustomer,
   getCustomers,
   getCustomer,
   updateCustomer,

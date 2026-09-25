@@ -7,6 +7,12 @@ import customerValidation from "./customer.validation.js";
 
 const router = Router();
 
+router.post(
+  "/find-or-create",
+  validate(customerValidation.findOrCreateCustomer),
+  customerController.findOrCreateCustomer,
+);
+
 router.use(requireAuth);
 
 router

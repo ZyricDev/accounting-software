@@ -9,20 +9,51 @@ const getConnection = async () => {
   return await pool.getConnection();
 };
 
-const findOrCreateCustomer = async (
-  { customerName, customerPhone },
-  executor = pool,
-) => {
-  const [result] = await executor.query(
-    `INSERT INTO customers (name, phone)
-     VALUES (?, ?)
-     ON DUPLICATE KEY UPDATE
-       name = COALESCE(?, name),
-       id = LAST_INSERT_ID(id)`,
-    [customerName, customerPhone, customerName],
+const findOrCreateCustomer = async (payload) => {
+  const { phone, name, birth_month, birth_day } = payload;
+
+  const [existingRows] = await pool.query(
+    "SELECT * FROM customers WHERE phone = ?",
+    [phone],
   );
 
-  return result.insertId;
+  const existingCustomer = existingRows[0];
+
+  if (existingCustomer) {
+    const updates = [];
+    const updateValues = [];
+
+    if (name && existingCustomer.name !== name) {
+      updates.push("name = ?");
+      updateValues.push(name);
+    }
+    if (birth_month && existingCustomer.birth_month !== birth_month) {
+      updates.push("birth_month = ?");
+      updateValues.push(birth_month);
+    }
+    if (birth_day && existingCustomer.birth_day !== birth_day) {
+      updates.push("birth_day = ?");
+      updateValues.push(birth_day);
+    }
+
+    if (updates.length > 0) {
+      updateValues.push(existingCustomer.id);
+      await pool.query(
+        `UPDATE customers SET ${updates.join(", ")} WHERE id = ?`,
+        updateValues,
+      );
+    }
+
+    return getCustomerById(existingCustomer.id);
+  }
+
+  const [result] = await pool.query(
+    `INSERT INTO customers (phone, name, birth_month, birth_day, initial_balance, current_balance) 
+     VALUES (?, ?, ?, ?, 0, 0)`,
+    [phone, name || null, birth_month || null, birth_day || null],
+  );
+
+  return getCustomerById(result.insertId);
 };
 
 const incrementDebt = async (customerId, amount, executor = pool) => {

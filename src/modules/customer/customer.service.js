@@ -16,6 +16,19 @@ const _toApiFields = (dbRow) => ({
   birthDay: dbRow.birth_day,
 });
 
+const findOrCreateCustomer = async (customerData) => {
+  const rawPayload = {
+    phone: customerData.phone,
+    name: customerData.name,
+    birth_month: customerData.birthMonth,
+    birth_day: customerData.birthDay,
+  };
+
+  const customer = await customerRepository.findOrCreateCustomer(rawPayload);
+
+  return _toApiFields(customer);
+};
+
 const addCustomer = async (customerData) => {
   const { phone, initialBalance } = customerData;
   const existingPhone = await customerRepository.isPhoneTaken(phone);
@@ -233,6 +246,7 @@ const settlementCustomerById = async (
 };
 
 export default {
+  findOrCreateCustomer,
   addCustomer,
   getCustomers,
   getCustomerById,

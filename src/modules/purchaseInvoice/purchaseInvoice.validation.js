@@ -41,7 +41,7 @@ const buildPaymentMethodSchema = (label) =>
     })
     .default({ amount: 0, accountId: null });
 
-const checkout = {
+const addPurchaseInvoice = {
   body: createBodyObjectSchema({
     supplierId: joi.persianNumber().integer().positive().required().messages({
       "number.base": "شناسه تامین‌کننده باید عدد باشد.",
@@ -94,4 +94,4 @@ const checkout = {
     }),
 };
 
-export default { checkout };
+export default { addPurchaseInvoice };

@@ -36,7 +36,7 @@ app.use("/api/v1/carts", saleInvoiceRoutes);
 app.use("/api/v1/backup", backupRoutes);
 app.use("/api/v1/suppliers", supplierRoutes);
 app.use("/api/v1/purchasesCart", purchaseCartRoutes);
-app.use("/api/v1/purchasesCart", purchaseInvoiceRoutes);
+app.use("/api/v1/purchase-invoices", purchaseInvoiceRoutes);
 app.use("/api/v1/bank-accounts", bankAccountRoutes);
 app.use("/api/v1/customers", customerRoutes);
 

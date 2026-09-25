@@ -56,7 +56,7 @@ const _validateInvoiceItems = (items) => {
   }
 };
 
-const checkout = async ({
+const addPurchaseInvoice = async ({
   supplierId = null,
   cashAmount = 0,
   pos = { amount: 0, accountId: null },
@@ -239,4 +239,4 @@ const checkout = async ({
   }
 };
 
-export default { checkout };
+export default { addPurchaseInvoice };

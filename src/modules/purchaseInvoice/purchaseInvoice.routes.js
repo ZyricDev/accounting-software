@@ -7,9 +7,9 @@ import purchaseInvoiceValidation from "./purchaseInvoice.validation.js";
 const router = Router();
 
 router.post(
-  "/checkout",
-  validate(purchaseInvoiceValidation.checkout),
-  purchaseInvoiceController.checkout,
+  "/",
+  validate(purchaseInvoiceValidation.addPurchaseInvoice),
+  purchaseInvoiceController.addPurchaseInvoice,
 );
 
 export default router;

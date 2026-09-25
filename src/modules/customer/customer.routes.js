@@ -38,4 +38,10 @@ router.patch(
   customerController.toggleCustomerStatus,
 );
 
+router.post(
+  "/:customerId/settlements",
+  validate(customerValidation.settlementCustomer),
+  customerController.settlementCustomer,
+);
+
 export default router;

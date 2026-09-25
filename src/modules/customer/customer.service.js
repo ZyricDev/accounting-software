@@ -1,6 +1,8 @@
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
 import { cleanPayload } from "../../shared/utils/object.js";
+import paymentRepository from "../payment/payment.repository.js";
 import customerRepository from "./customer.repository.js";
 
 const _toApiFields = (dbRow) => ({
@@ -145,6 +147,91 @@ const toggleCustomerStatusById = async (customerId) => {
   return { id: customer.id, isActive: Boolean(newStatus) };
 };
 
+const settlementCustomerById = async (
+  customerId,
+  {
+    type,
+    cashAmount = 0,
+    pos = { amount: 0, accountId: null },
+    transfer = { amount: 0, accountId: null },
+  },
+) => {
+  const customer = await customerRepository.getCustomerById(customerId);
+  if (!customer) {
+    throw new AppError("مشتری یافت نشد", 404);
+  }
+
+  const accountIdsToValidate = [];
+  if (pos.amount > 0) accountIdsToValidate.push(pos.accountId);
+  if (transfer.amount > 0) accountIdsToValidate.push(transfer.accountId);
+
+  await validateBankAccounts(accountIdsToValidate);
+
+  const totalAmount = cashAmount + pos.amount + transfer.amount;
+
+  const paymentsToCreate = [];
+  if (cashAmount > 0) {
+    paymentsToCreate.push({
+      method: "CASH",
+      amount: cashAmount,
+      accountId: null,
+    });
+  }
+  if (pos.amount > 0) {
+    paymentsToCreate.push({
+      method: "CARD",
+      amount: pos.amount,
+      accountId: pos.accountId,
+    });
+  }
+  if (transfer.amount > 0) {
+    paymentsToCreate.push({
+      method: "TRANSFER",
+      amount: transfer.amount,
+      accountId: transfer.accountId,
+    });
+  }
+
+  const balanceChange = type === "SETTLEMENT_IN" ? -totalAmount : totalAmount;
+
+  let connection;
+  try {
+    connection = await customerRepository.getConnection();
+    await connection.beginTransaction();
+
+    await paymentRepository.createPayments(
+      {
+        invoiceType: type,
+        invoiceId: null,
+        personType: "CUSTOMER",
+        personId: customerId,
+        payments: paymentsToCreate,
+      },
+      connection,
+    );
+
+    await customerRepository.incrementDebt(
+      customerId,
+      balanceChange,
+      connection,
+    );
+
+    await connection.commit();
+
+    return {
+      customerId,
+      currentBalance: customer.current_balance + balanceChange,
+      totalAmount,
+      type,
+    };
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 export default {
   addCustomer,
   getCustomers,
@@ -152,4 +239,5 @@ export default {
   updateCustomerById,
   deleteCustomerById,
   toggleCustomerStatusById,
+  settlementCustomerById,
 };

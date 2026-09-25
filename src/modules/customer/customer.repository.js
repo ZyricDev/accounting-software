@@ -5,6 +5,10 @@ const SORT_COLUMN_MAP = {
   currentBalance: "current_balance",
 };
 
+const getConnection = async () => {
+  return await pool.getConnection();
+};
+
 const findOrCreateCustomer = async (
   { customerName, customerPhone },
   executor = pool,
@@ -122,6 +126,7 @@ const updateCustomerStatusById = async (id, status) => {
 };
 
 export default {
+  getConnection,
   findOrCreateCustomer,
   incrementDebt,
   isPhoneTaken,

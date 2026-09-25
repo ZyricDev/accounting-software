@@ -51,6 +51,23 @@ const toggleCustomerStatus = async (req, res) => {
   return sendSuccess(res, "وضعیت مشتری با موفقیت تغییر کرد", { customer });
 };
 
+const settlementCustomer = async (req, res) => {
+  const { customerId } = req.params;
+  const settlementData = req.body;
+
+  const result = await customerService.settlementCustomerById(
+    customerId,
+    settlementData,
+  );
+
+  const message =
+    settlementData.type === "SETTLEMENT_OUT"
+      ? "پرداخت به مشتری با موفقیت ثبت شد."
+      : "دریافت وجه از مشتری با موفقیت ثبت شد.";
+
+  return sendSuccess(res, message, result);
+};
+
 export default {
   addCustomer,
   getCustomers,
@@ -58,4 +75,5 @@ export default {
   updateCustomer,
   deleteCustomer,
   toggleCustomerStatus,
+  settlementCustomer,
 };

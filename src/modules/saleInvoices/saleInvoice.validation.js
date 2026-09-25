@@ -46,6 +46,17 @@ const buildPaymentMethodSchema = (label) =>
     })
     .default({ amount: 0, accountId: null });
 
+const saleInvoiceIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه فاکتور فروش باید عدد باشد.",
+    "number.positive": "شناسه فاکتور فروش نامعتبر است.",
+    "any.required": "شناسه فاکتور فروش الزامی است.",
+  });
+
 const addSaleInvoice = {
   body: createBodyObjectSchema({
     cartId: joi.persianNumber().integer().positive().required().messages({
@@ -200,4 +211,8 @@ const getSaleInvoices = {
   }),
 };
 
-export default { addSaleInvoice, getSaleInvoices };
+const getSaleInvoice = {
+  params: joi.object({ saleInvoiceId: saleInvoiceIdParamSchema }),
+};
+
+export default { addSaleInvoice, getSaleInvoices, getSaleInvoice };

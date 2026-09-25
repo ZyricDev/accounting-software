@@ -17,4 +17,11 @@ router
     saleInvoiceController.getSaleInvoices,
   );
 
+router
+  .route("/:saleInvoiceId")
+  .get(
+    validate(saleInvoiceValidation.getSaleInvoice),
+    saleInvoiceController.getSaleInvoice,
+  );
+
 export default router;

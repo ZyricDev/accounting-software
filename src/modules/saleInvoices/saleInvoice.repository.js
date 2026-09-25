@@ -67,9 +67,7 @@ const getInvoices = async ({
   const queryParams = [];
 
   if (search) {
-    conditions.push(
-      "(c.name LIKE ? OR c.phone LIKE ?)"
-    );
+    conditions.push("(c.name LIKE ? OR c.phone LIKE ?)");
     const searchTerm = `%${search}%`;
     queryParams.push(searchTerm, searchTerm);
   }
@@ -129,9 +127,37 @@ const getInvoices = async ({
   return { invoices: rows, total };
 };
 
+const getSaleInvoiceById = async (id) => {
+  const query = `
+    SELECT 
+      si.*, 
+      c.name AS customer_name, 
+      c.phone AS customer_phone
+    FROM sales_invoices si
+    LEFT JOIN customers c ON si.customer_id = c.id
+    WHERE si.id = ?
+  `;
+
+  const [rows] = await pool.query(query, [id]);
+  return rows[0] || null;
+};
+
+const getInvoiceItems = async (invoiceId) => {
+  const query = `
+    SELECT * 
+    FROM sales_invoices_items 
+    WHERE invoice_id = ?
+  `;
+
+  const [rows] = await pool.query(query, [invoiceId]);
+  return rows;
+};
+
 export default {
   getConnection,
   createInvoice,
   createInvoiceItems,
   getInvoices,
+  getSaleInvoiceById,
+  getInvoiceItems,
 };

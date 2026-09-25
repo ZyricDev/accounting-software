@@ -9,7 +9,7 @@ const addSaleInvoice = async (req, res) => {
 
   logger.info("saleInvoice completed successfully", {
     invoiceId: saleInvoice.id,
-    cartId:saleInvoice.cartId,
+    cartId: saleInvoice.cartId,
     totalAmount: saleInvoice.totalAmount,
     paymentMethod: saleInvoice.paymentMethod,
     creditAmount: saleInvoice.creditAmount,
@@ -24,4 +24,13 @@ const getSaleInvoices = async (req, res) => {
   return sendSuccess(res, "فاکتورهای فروش با موفقیت دریافت شد", result);
 };
 
-export default { addSaleInvoice, getSaleInvoices };
+const getSaleInvoice = async (req, res) => {
+  const { saleInvoiceId } = req.params;
+
+  const saleInvoice =
+    await saleInvoiceService.getSaleInvoiceById(saleInvoiceId);
+
+  return sendSuccess(res, "فاکتور فروش با موفقیت دریافت شد", { saleInvoice });
+};
+
+export default { addSaleInvoice, getSaleInvoices, getSaleInvoice };

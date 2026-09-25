@@ -53,6 +53,16 @@ const _toInvoiceApiFields = (dbRow) => ({
   createdAt: dbRow.created_at,
 });
 
+const _toInvoiceItemApiFields = (dbRow) => ({
+  id: dbRow.id,
+  productId: dbRow.product_id,
+  productName: dbRow.product_name,
+  quantity: Number(dbRow.quantity),
+  salePrice: Number(dbRow.sale_price),
+  purchasePrice: Number(dbRow.purchase_price),
+  lineTotal: Number(dbRow.line_total),
+});
+
 const addSaleInvoice = async ({
   cartId,
   cashAmount = 0,
@@ -214,7 +224,7 @@ const getSaleInvoices = async (filters) => {
   const { invoices, total } = await saleInvoiceRepository.getInvoices(filters);
 
   return {
-    invoices: invoices.map(_toInvoiceApiFields),
+    saleInvoices: invoices.map(_toInvoiceApiFields),
     pagination: generatePaginationData({
       page: filters.page,
       limit: filters.limit,
@@ -223,4 +233,20 @@ const getSaleInvoices = async (filters) => {
   };
 };
 
-export default { addSaleInvoice, getSaleInvoices };
+const getSaleInvoiceById = async (saleInvoiceId) => {
+  const saleInvoice =
+    await saleInvoiceRepository.getSaleInvoiceById(saleInvoiceId);
+
+  if (!saleInvoice) {
+    throw new AppError("فاکتور فروش مدنظر یافت نشد", 404);
+  }
+
+  const items = await saleInvoiceRepository.getInvoiceItems(saleInvoiceId);
+
+  return {
+    ..._toInvoiceApiFields(saleInvoice),
+    items: items.map(_toInvoiceItemApiFields),
+  };
+};
+
+export default { addSaleInvoice, getSaleInvoices, getSaleInvoiceById };

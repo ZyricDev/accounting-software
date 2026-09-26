@@ -249,4 +249,137 @@ const getSaleInvoiceById = async (saleInvoiceId) => {
   };
 };
 
+const updateSaleInvoice = async (
+  invoiceId,
+  {
+    items,
+    discountAmount = 0,
+    cashAmount = 0,
+    pos = { amount: 0, accountId: null },
+    transfer = { amount: 0, accountId: null },
+    creditAmount = 0,
+    customerId = null,
+  },
+) => {
+  if (customerId) {
+    const customer = await customerRepository.getCustomerById(customerId);
+    if (!customer) throw new AppError("مشتری یافت نشد", 404);
+  }
+
+  const oldInvoice = await saleInvoiceRepository.getSaleInvoiceById(invoiceId);
+  if (!oldInvoice) throw new AppError("فاکتور مدنظر یافت نشد", 404);
+
+  const oldItems = await saleInvoiceRepository.getInvoiceItems(invoiceId);
+
+  const accountIdsToValidate = [];
+  if (pos.amount > 0 && pos.accountId) accountIdsToValidate.push(pos.accountId);
+  if (transfer.amount > 0 && transfer.accountId)
+    accountIdsToValidate.push(transfer.accountId);
+
+  await validateBankAccounts(accountIdsToValidate);
+
+  const validItems = items.filter((item) => item.quantity > 0);
+
+  if (validItems.length === 0) {
+    throw new AppError(
+      "فاکتور نمی‌تواند بدون آیتم باشد. در صورت نیاز کل فاکتور را حذف کنید.",
+      400,
+    );
+  }
+
+  const oldProductIds = oldItems.map((item) => item.product_id);
+
+  for (const item of validItems) {
+    if (!oldProductIds.includes(item.productId)) {
+      throw new AppError(
+        `امکان اضافه کردن محصول جدید به فاکتور صادر شده وجود ندارد. برای اقلام جدید، فاکتور مجزا ثبت کنید.`,
+        400,
+      );
+    }
+  }
+
+  const invoiceItems = _buildInvoiceItems(validItems);
+  const subtotal = invoiceItems.reduce((sum, item) => sum + item.lineTotal, 0);
+  const totalQuantity = invoiceItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+  const totalAmount = subtotal - discountAmount;
+
+  const totalPaid = cashAmount + pos.amount + transfer.amount + creditAmount;
+
+  if (totalPaid !== totalAmount) {
+    throw new AppError(
+      `مجموع مبالغ پرداختی (${totalPaid}) با مبلغ نهایی فاکتور (${totalAmount}) برابر نیست`,
+      400,
+    );
+  }
+
+  const paymentMethod = _resolvePaymentMethodLabel({
+    cashAmount,
+    posAmount: pos.amount,
+    transferAmount: transfer.amount,
+    creditAmount,
+  });
+
+  let connection;
+
+  try {
+    connection = await saleInvoiceRepository.getConnection();
+    await connection.beginTransaction();
+
+    const productDeltas = {};
+
+    for (const oldItem of oldItems) {
+      productDeltas[oldItem.product_id] = -oldItem.quantity;
+    }
+
+    for (const newItem of items) {
+      productDeltas[newItem.productId] += newItem.quantity;
+    }
+
+    for (const [productId, diff] of Object.entries(productDeltas)) {
+      if (diff > 0) {
+        const product = await productRepository.getProductById(
+          productId,
+          connection,
+        );
+
+        if (!product) throw new AppError("محصول یافت نشد", 404);
+        if (product.stock < diff) {
+          throw new AppError(
+            `موجودی محصول "${product.name}" کافی نیست. (موجودی فعلی: ${product.stock} | تعداد درخواستی اضافه: ${diff})`,
+            400,
+          );
+        }
+
+        await productRepository.decrementStock(productId, diff, connection);
+      } else if (diff < 0) {
+        await productRepository.decrementStock(productId, diff, connection);
+      }
+    }
+
+    if (oldInvoice.customer_id && oldInvoice.credit_amount > 0) {
+      await customerRepository.incrementDebt(
+        oldInvoice.customer_id,
+        -oldInvoice.credit_amount,
+        connection,
+      );
+    }
+
+    if (customerId && creditAmount > 0) {
+      await customerRepository.incrementDebt(
+        customerId,
+        creditAmount,
+        connection,
+      );
+    }
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 export default { addSaleInvoice, getSaleInvoices, getSaleInvoiceById };

@@ -153,6 +153,45 @@ const getInvoiceItems = async (invoiceId) => {
   return rows;
 };
 
+const updateInvoice = async (
+  invoiceId,
+  { paymentMethod, discountAmount, creditAmount, totalAmount, totalQuantity },
+  connection = pool,
+) => {
+  const query = `
+    UPDATE sales_invoices 
+    SET 
+      payment_method = ?, 
+      discount_amount = ?, 
+      credit_amount = ?, 
+      total_amount = ?, 
+      total_quantity = ?
+    WHERE id = ?
+  `;
+
+  const params = [
+    paymentMethod,
+    discountAmount,
+    creditAmount,
+    totalAmount,
+    totalQuantity,
+    invoiceId,
+  ];
+
+  const [result] = await connection.query(query, params);
+  return result;
+};
+
+const deleteInvoiceItems = async (invoiceId, connection = pool) => {
+  const query = `
+    DELETE FROM sales_invoices_items 
+    WHERE invoice_id = ?
+  `;
+
+  const [result] = await connection.query(query, [invoiceId]);
+  return result;
+};
+
 export default {
   getConnection,
   createInvoice,
@@ -160,4 +199,6 @@ export default {
   getInvoices,
   getSaleInvoiceById,
   getInvoiceItems,
+  updateInvoice,
+  deleteInvoiceItems,
 };

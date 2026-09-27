@@ -215,4 +215,117 @@ const getSaleInvoice = {
   params: joi.object({ saleInvoiceId: saleInvoiceIdParamSchema }),
 };
 
-export default { addSaleInvoice, getSaleInvoices, getSaleInvoice };
+const updateSaleInvoice = {
+  params: joi.object({ saleInvoiceId: saleInvoiceIdParamSchema }),
+
+  body: createBodyObjectSchema({
+    items: joi
+      .array()
+      .items(
+        joi.object({
+          id: joi.persianNumber().integer().positive().required().messages({
+            "number.base": "شناسه آیتم باید عدد باشد.",
+            "number.positive": "شناسه آیتم نامعتبر است.",
+            "any.required": "شناسه آیتم در اقلام فاکتور الزامی است.",
+          }),
+
+          productId: joi
+            .persianNumber()
+            .integer()
+            .positive()
+            .required()
+            .messages({
+              "number.base": "شناسه محصول باید عدد باشد.",
+              "number.positive": "شناسه محصول نامعتبر است.",
+              "any.required": "شناسه محصول در اقلام فاکتور الزامی است.",
+            }),
+
+          productName: joi.string().trim().required().messages({
+            "string.base": "نام محصول باید متن باشد.",
+            "string.empty": "نام محصول نمی‌تواند خالی باشد.",
+            "any.required": "نام محصول در اقلام فاکتور الزامی است.",
+          }),
+
+          quantity: joi.number().integer().min(0).required().messages({
+            "number.base": "تعداد محصول باید عدد باشد.",
+            "number.min": "تعداد محصول نمی‌تواند منفی باشد.",
+            "any.required": "تعداد محصول در اقلام فاکتور الزامی است.",
+          }),
+
+          salePrice: joi.persianNumber().integer().min(0).required().messages({
+            "number.base": "قیمت فروش باید عدد باشد.",
+            "number.min": "قیمت فروش نمی‌تواند منفی باشد.",
+            "any.required": "قیمت فروش در اقلام فاکتور الزامی است.",
+          }),
+        }),
+      )
+      .min(1)
+      .required()
+      .messages({
+        "array.base": "آیتم‌های فاکتور باید به صورت لیست باشند.",
+        "array.min": "لیست اقلام نمی‌تواند خالی باشد.",
+        "any.required": "ارسال آیتم‌های فاکتور الزامی است.",
+      }),
+
+    discountAmount: joi
+      .persianNumber()
+      .integer()
+      .min(0)
+      .empty("")
+      .default(0)
+      .messages({
+        "number.base": "مبلغ تخفیف باید عدد باشد.",
+        "number.min": "مبلغ تخفیف نمی‌تواند منفی باشد.",
+      }),
+
+    cashAmount: joi
+      .persianNumber()
+      .integer()
+      .min(0)
+      .empty("")
+      .default(0)
+      .messages({
+        "number.base": "مبلغ نقدی باید عدد باشد.",
+        "number.min": "مبلغ نقدی نمی‌تواند منفی باشد.",
+      }),
+
+    pos: buildPaymentMethodSchema("کارت‌خوان"),
+
+    transfer: buildPaymentMethodSchema("کارت به کارت"),
+
+    creditAmount: joi
+      .persianNumber()
+      .integer()
+      .min(0)
+      .empty("")
+      .default(0)
+      .messages({
+        "number.base": "مبلغ نسیه باید عدد باشد.",
+        "number.min": "مبلغ نسیه نمی‌تواند منفی باشد.",
+      }),
+  })
+    .custom((value, helpers) => {
+      const totalPaid =
+        value.cashAmount +
+        value.pos.amount +
+        value.transfer.amount +
+        value.creditAmount;
+
+      if (totalPaid <= 0) {
+        return helpers.error("object.noPaymentProvided");
+      }
+
+      return value;
+    })
+    .messages({
+      "object.noPaymentProvided":
+        "حداقل باید یکی از روش‌های پرداخت (نقدی، کارت‌خوان، کارت به کارت یا نسیه) مبلغ داشته باشد.",
+    }),
+};
+
+export default {
+  addSaleInvoice,
+  getSaleInvoices,
+  getSaleInvoice,
+  updateSaleInvoice,
+};

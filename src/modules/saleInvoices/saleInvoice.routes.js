@@ -22,6 +22,10 @@ router
   .get(
     validate(saleInvoiceValidation.getSaleInvoice),
     saleInvoiceController.getSaleInvoice,
+  )
+  .put(
+    validate(saleInvoiceValidation.updateSaleInvoice),
+    saleInvoiceController.updateSaleInvoice,
   );
 
 export default router;

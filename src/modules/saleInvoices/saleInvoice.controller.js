@@ -3,19 +3,19 @@ import logger from "../../shared/utils/logger.js";
 import { sendSuccess } from "../../shared/utils/apiResponse.js";
 
 const addSaleInvoice = async (req, res) => {
-  const checkoutData = req.body;
+  const invoiceData = req.body;
 
-  const saleInvoice = await saleInvoiceService.addSaleInvoice(checkoutData);
+  const invoice = await saleInvoiceService.addSaleInvoice(invoiceData);
 
-  logger.info("saleInvoice completed successfully", {
-    invoiceId: saleInvoice.id,
-    cartId: saleInvoice.cartId,
-    totalAmount: saleInvoice.totalAmount,
-    paymentMethod: saleInvoice.paymentMethod,
-    creditAmount: saleInvoice.creditAmount,
+  logger.info("invoice completed successfully", {
+    invoiceId: invoice.id,
+    cartId: invoice.cartId,
+    totalAmount: invoice.totalAmount,
+    paymentMethod: invoice.paymentMethod,
+    creditAmount: invoice.creditAmount,
   });
 
-  return sendSuccess(res, "فاکتور با موفقیت ثبت شد", { saleInvoice }, 201);
+  return sendSuccess(res, "فاکتور با موفقیت ثبت شد", { invoice }, 201);
 };
 
 const getSaleInvoices = async (req, res) => {
@@ -27,10 +27,26 @@ const getSaleInvoices = async (req, res) => {
 const getSaleInvoice = async (req, res) => {
   const { saleInvoiceId } = req.params;
 
-  const saleInvoice =
-    await saleInvoiceService.getSaleInvoiceById(saleInvoiceId);
+  const invoice = await saleInvoiceService.getSaleInvoiceById(saleInvoiceId);
 
-  return sendSuccess(res, "فاکتور فروش با موفقیت دریافت شد", { saleInvoice });
+  return sendSuccess(res, "فاکتور فروش با موفقیت دریافت شد", { invoice });
 };
 
-export default { addSaleInvoice, getSaleInvoices, getSaleInvoice };
+const updateSaleInvoice = async (req, res) => {
+  const { saleInvoiceId } = req.params;
+  const invoiceData = req.body;
+
+  const invoice = await saleInvoiceService.updateSaleInvoiceById(
+    saleInvoiceId,
+    invoiceData,
+  );
+
+  return sendSuccess(res, "فاکتور فروش با موفقیت آپدیت شد", { invoice });
+};
+
+export default {
+  addSaleInvoice,
+  getSaleInvoices,
+  getSaleInvoice,
+  updateSaleInvoice,
+};

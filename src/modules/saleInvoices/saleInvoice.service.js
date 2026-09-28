@@ -41,6 +41,7 @@ const _resolvePaymentMethodLabel = ({
 
 const _toInvoiceApiFields = (dbRow) => ({
   id: dbRow.id,
+  status: dbRow.status,
   customerId: dbRow.customer_id,
   customerName: dbRow.customer_name || "مشتری عبوری",
   customerPhone: dbRow.customer_phone || null,
@@ -246,6 +247,59 @@ const getSaleInvoiceById = async (saleInvoiceId) => {
     ..._toInvoiceApiFields(saleInvoice),
     items: items.map(_toInvoiceItemApiFields),
   };
+};
+
+const cancelSaleInvoiceById = async (invoiceId) => {
+  const invoice = await saleInvoiceRepository.getSaleInvoiceById(invoiceId);
+  if (!invoice) {
+    throw new AppError("فاکتور مدنظر یافت نشد", 404);
+  }
+
+  if (invoice.status === "CANCELLED") {
+    throw new AppError("این فاکتور قبلاً باطل شده است.", 400);
+  }
+
+  const items = await saleInvoiceRepository.getInvoiceItems(invoiceId);
+
+  let connection;
+
+  try {
+    connection = await saleInvoiceRepository.getConnection();
+    await connection.beginTransaction();
+
+    for (const item of items) {
+      await productRepository.decrementStock(
+        item.product_id,
+        -item.quantity,
+        connection,
+      );
+    }
+
+    if (invoice.customer_id && invoice.credit_amount > 0) {
+      await customerRepository.incrementDebt(
+        invoice.customer_id,
+        -invoice.credit_amount,
+        connection,
+      );
+    }
+
+    await saleInvoiceRepository.cancelInvoiceStatus(invoiceId, connection);
+
+    await paymentRepository.cancelPaymentsByInvoiceId(
+      "SALE",
+      invoiceId,
+      connection,
+    );
+
+    await connection.commit();
+
+    return { id: invoiceId };
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
 };
 
 const updateSaleInvoiceById = async (
@@ -461,5 +515,6 @@ export default {
   addSaleInvoice,
   getSaleInvoices,
   getSaleInvoiceById,
+  cancelSaleInvoiceById,
   updateSaleInvoiceById,
 };

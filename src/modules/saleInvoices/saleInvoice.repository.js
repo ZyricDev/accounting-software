@@ -192,6 +192,12 @@ const deleteInvoiceItems = async (invoiceId, connection = pool) => {
   return result;
 };
 
+const cancelInvoiceStatus = async (invoiceId, connection = pool) => {
+  const query = `UPDATE sales_invoices SET status = 'CANCELLED' WHERE id = ?`;
+  const [result] = await connection.query(query, [invoiceId]);
+  return result;
+};
+
 export default {
   getConnection,
   createInvoice,
@@ -201,4 +207,5 @@ export default {
   getInvoiceItems,
   updateInvoice,
   deleteInvoiceItems,
+  cancelInvoiceStatus,
 };

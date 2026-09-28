@@ -23,6 +23,10 @@ router
     validate(saleInvoiceValidation.getSaleInvoice),
     saleInvoiceController.getSaleInvoice,
   )
+  .delete(
+    validate(saleInvoiceValidation.cancelSaleInvoice),
+    saleInvoiceController.cancelSaleInvoice,
+  )
   .put(
     validate(saleInvoiceValidation.updateSaleInvoice),
     saleInvoiceController.updateSaleInvoice,

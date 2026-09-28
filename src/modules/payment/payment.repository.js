@@ -37,4 +37,18 @@ const deletePaymentsByInvoiceId = async (
   return result;
 };
 
-export default { createPayments, deletePaymentsByInvoiceId };
+const cancelPaymentsByInvoiceId = async (
+  invoiceType,
+  invoiceId,
+  connection = pool,
+) => {
+  const query = `UPDATE payments SET status = 'CANCELLED' WHERE invoice_type = ? AND invoice_id = ?`;
+  const [result] = await connection.query(query, [invoiceType, invoiceId]);
+  return result;
+};
+
+export default {
+  createPayments,
+  deletePaymentsByInvoiceId,
+  cancelPaymentsByInvoiceId,
+};

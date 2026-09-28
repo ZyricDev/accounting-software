@@ -215,6 +215,8 @@ const getSaleInvoice = {
   params: joi.object({ saleInvoiceId: saleInvoiceIdParamSchema }),
 };
 
+const cancelSaleInvoice = getSaleInvoice;
+
 const updateSaleInvoice = {
   params: joi.object({ saleInvoiceId: saleInvoiceIdParamSchema }),
 
@@ -327,5 +329,6 @@ export default {
   addSaleInvoice,
   getSaleInvoices,
   getSaleInvoice,
+  cancelSaleInvoice,
   updateSaleInvoice,
 };

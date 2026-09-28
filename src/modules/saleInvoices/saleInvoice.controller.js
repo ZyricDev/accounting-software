@@ -32,6 +32,14 @@ const getSaleInvoice = async (req, res) => {
   return sendSuccess(res, "فاکتور فروش با موفقیت دریافت شد", { invoice });
 };
 
+const cancelSaleInvoice = async (req, res) => {
+  const { saleInvoiceId } = req.params;
+
+  const invoice = await saleInvoiceService.cancelSaleInvoiceById(saleInvoiceId);
+
+  return sendSuccess(res, "فاکتور فروش با موفقیت باطل شد", { invoice });
+}
+
 const updateSaleInvoice = async (req, res) => {
   const { saleInvoiceId } = req.params;
   const invoiceData = req.body;
@@ -48,5 +56,6 @@ export default {
   addSaleInvoice,
   getSaleInvoices,
   getSaleInvoice,
+  cancelSaleInvoice,
   updateSaleInvoice,
 };

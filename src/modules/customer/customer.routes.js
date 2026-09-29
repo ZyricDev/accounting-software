@@ -13,8 +13,6 @@ router.post(
   customerController.findOrCreateCustomer,
 );
 
-router.use(requireAuth);
-
 router
   .route("/")
   .post(
@@ -30,6 +28,7 @@ router
   .route("/:customerId")
   .get(validate(customerValidation.getCustomer), customerController.getCustomer)
   .patch(
+    requireAuth,
     validate(customerValidation.updateCustomer),
     customerController.updateCustomer,
   )

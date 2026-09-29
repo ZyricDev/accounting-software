@@ -101,7 +101,14 @@ const getInvoices = async ({
     SELECT 
       si.*, 
       c.name AS customer_name, 
-      c.phone AS customer_phone
+      c.phone AS customer_phone,
+      EXISTS (
+        SELECT 1 
+        FROM return_invoices ri 
+        WHERE ri.reference_invoice_id = si.id 
+          AND ri.return_type = 'SALE_RETURN' 
+          AND ri.status = 'ACTIVE'
+      ) AS has_return
     FROM sales_invoices si
     LEFT JOIN customers c ON si.customer_id = c.id
     ${whereClause}
@@ -132,7 +139,14 @@ const getSaleInvoiceById = async (id) => {
     SELECT 
       si.*, 
       c.name AS customer_name, 
-      c.phone AS customer_phone
+      c.phone AS customer_phone,
+      EXISTS (
+        SELECT 1 
+        FROM return_invoices ri 
+        WHERE ri.reference_invoice_id = si.id 
+          AND ri.return_type = 'SALE_RETURN' 
+          AND ri.status = 'ACTIVE'
+      ) AS has_return
     FROM sales_invoices si
     LEFT JOIN customers c ON si.customer_id = c.id
     WHERE si.id = ?

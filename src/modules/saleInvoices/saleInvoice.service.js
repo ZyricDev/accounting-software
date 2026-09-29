@@ -42,8 +42,9 @@ const _resolvePaymentMethodLabel = ({
 const _toInvoiceApiFields = (dbRow) => ({
   id: dbRow.id,
   status: dbRow.status,
+  hasReturn: Boolean(dbRow.has_return),
   customerId: dbRow.customer_id,
-  customerName: dbRow.customer_name || "مشتری عبوری",
+  customerName: dbRow.customer_name || "بدون نام",
   customerPhone: dbRow.customer_phone || null,
 
   paymentMethod: dbRow.payment_method,
@@ -259,6 +260,13 @@ const cancelSaleInvoiceById = async (invoiceId) => {
     throw new AppError("این فاکتور قبلاً باطل شده است.", 400);
   }
 
+  if (invoice.has_return) {
+    throw new AppError(
+      "این فاکتور دارای سند مرجوعی فعال است و امکان ابطال آن وجود ندارد. لطفاً ابتدا مرجوعی را باطل کنید.",
+      400,
+    );
+  }
+
   const items = await saleInvoiceRepository.getInvoiceItems(invoiceId);
 
   let connection;
@@ -320,6 +328,13 @@ const updateSaleInvoiceById = async (
     throw new AppError(
       "این فاکتور باطل شده است و امکان ویرایش آن وجود ندارد.",
       403,
+    );
+  }
+
+  if (oldInvoice.has_return) {
+    throw new AppError(
+      "این فاکتور دارای سند مرجوعی فعال است و امکان ویرایش آن وجود ندارد. لطفاً ابتدا مرجوعی را باطل کنید.",
+      400,
     );
   }
 

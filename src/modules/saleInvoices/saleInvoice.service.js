@@ -53,6 +53,7 @@ const _toInvoiceApiFields = (dbRow) => ({
   totalAmount: Number(dbRow.total_amount),
   totalQuantity: Number(dbRow.total_quantity),
   createdAt: dbRow.created_at,
+  updatedAt: dbRow.updated_at,
 });
 
 const _toInvoiceItemApiFields = (dbRow) => ({

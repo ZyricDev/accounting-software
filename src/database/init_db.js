@@ -85,10 +85,12 @@ const createTables = async () => {
     customer_id INT DEFAULT NULL,
     payment_method ENUM('CASH', 'CARD', 'TRANSFER', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
     discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     total_quantity INT UNSIGNED NOT NULL,
     total_amount BIGINT UNSIGNED NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (customer_id) REFERENCES customers(id)
   );
 `;
@@ -104,8 +106,10 @@ const createTables = async () => {
     sale_price BIGINT UNSIGNED NOT NULL,
     purchase_price BIGINT UNSIGNED NOT NULL,
     line_total BIGINT UNSIGNED NOT NULL,
+
     FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
+
     INDEX (invoice_id)
   );
 `;
@@ -120,11 +124,14 @@ const createTables = async () => {
     invoice_id INT UNSIGNED DEFAULT NULL,
     method ENUM('CASH', 'CARD', 'TRANSFER') NOT NULL,
     amount BIGINT UNSIGNED NOT NULL,
+    status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT,
+
     INDEX (invoice_type, invoice_id),
     INDEX (person_type, person_id),
-    INDEX (account_id),
-    FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT
+    INDEX (account_id)
   );
 `;
 
@@ -147,7 +154,9 @@ CREATE TABLE IF NOT EXISTS purchase_invoices (
   credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
   total_quantity INT UNSIGNED NOT NULL,
   total_amount BIGINT UNSIGNED NOT NULL,
+  status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
   FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
 `;

@@ -166,10 +166,17 @@ const getCustomers = {
       "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
     }),
 
-    search: joi.string().trim().max(100).empty("").default(null).messages({
-      "string.base": "عبارت جستجو باید متن باشد.",
-      "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
-    }),
+    search: joi
+      .string()
+      .trim()
+      .custom((value) => joi.persianToEnglishDigits(value))
+      .max(100)
+      .empty("")
+      .default(null)
+      .messages({
+        "string.base": "عبارت جستجو باید متن باشد.",
+        "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+      }),
   }),
 };
 

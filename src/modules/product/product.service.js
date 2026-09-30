@@ -1,4 +1,5 @@
 import productRepository from "./product.repository.js";
+import supplierRepository from "../supplier/supplier.repository.js";
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import { cleanPayload } from "../../shared/utils/object.js";
@@ -57,6 +58,32 @@ const getProduct = async (productId) => {
 
   if (!product) {
     throw new AppError("محصول پیدا نشد", 404);
+  }
+
+  if (product.stock_history.length > 0) {
+    const supplierIds = [
+      ...new Set(product.stock_history.map((item) => item.supplierId)),
+    ].filter(Boolean);
+
+    const suppliers = await supplierRepository.getSuppliersByIds(supplierIds);
+
+    const supplierMap = {};
+    for (const supplier of suppliers) {
+      supplierMap[supplier.id] = {
+        name: supplier.name,
+        phone: supplier.phone,
+      };
+    }
+
+    product.stock_history = product.stock_history.map((item) => {
+      const supplierInfo = supplierMap[item.supplierId];
+
+      return {
+        ...item,
+        supplierName: supplierInfo?.name || null,
+        supplierPhone: supplierInfo?.phone || null,
+      };
+    });
   }
 
   return _toApiFields(product);

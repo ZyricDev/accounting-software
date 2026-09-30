@@ -91,6 +91,12 @@ const incrementDebt = async (supplierId, amount, connection) => {
   );
 };
 
+const getSuppliersByIds = async (ids) => {
+  const query = `SELECT id, name, phone FROM suppliers WHERE id IN (?)`;
+  const [rows] = await pool.query(query, [ids]);
+  return rows;
+};
+
 export default {
   getConnection,
   isSupplierPhoneTaken,
@@ -99,4 +105,5 @@ export default {
   getSuppliers,
   updateSupplierById,
   incrementDebt,
+  getSuppliersByIds,
 };

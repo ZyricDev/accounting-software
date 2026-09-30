@@ -50,4 +50,127 @@ const createInvoiceItems = async (invoiceId, items, connection) => {
   );
 };
 
-export default { getConnection, createInvoice, createInvoiceItems };
+const getPurchaseInvoices = async ({
+  page = 1,
+  limit = 20,
+  sortBy = "createdAt",
+  order = "desc",
+  search,
+  startDate,
+  endDate,
+  paymentMethod,
+}) => {
+  const offset = (page - 1) * limit;
+
+  const conditions = [];
+  const queryParams = [];
+
+  if (search) {
+    conditions.push("(s.name LIKE ? OR s.phone LIKE ?)");
+    const searchTerm = `%${search}%`;
+    queryParams.push(searchTerm, searchTerm);
+  }
+
+  if (startDate) {
+    conditions.push("pi.created_at >= ?");
+    queryParams.push(startDate);
+  }
+
+  if (endDate) {
+    conditions.push("pi.created_at <= ?");
+    queryParams.push(endDate);
+  }
+
+  if (paymentMethod) {
+    conditions.push("pi.payment_method = ?");
+    queryParams.push(paymentMethod);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const sortColumnMap = {
+    createdAt: "pi.created_at",
+    totalAmount: "pi.total_amount",
+  };
+  const sortColumn = sortColumnMap[sortBy] || "pi.created_at";
+  const sortDirection = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+  const dataQuery = `
+    SELECT 
+      pi.*, 
+      s.name AS supplier_name, 
+      s.phone AS supplier_phone,
+      EXISTS (
+        SELECT 1 
+        FROM return_invoices ri 
+        WHERE ri.reference_invoice_id = pi.id 
+          AND ri.return_type = 'PURCHASE_RETURN' 
+          AND ri.status = 'ACTIVE'
+      ) AS has_return
+    FROM purchase_invoices pi
+    LEFT JOIN suppliers s ON pi.supplier_id = s.id
+    ${whereClause}
+    ORDER BY ${sortColumn} ${sortDirection}
+    LIMIT ? OFFSET ?
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*) AS total
+    FROM purchase_invoices pi
+    LEFT JOIN suppliers s ON pi.supplier_id = s.id
+    ${whereClause}
+  `;
+
+  const [rows] = await pool.query(dataQuery, [
+    ...queryParams,
+    Number(limit),
+    Number(offset),
+  ]);
+
+  const [[{ total }]] = await pool.query(countQuery, queryParams);
+
+  return { invoices: rows, total };
+};
+
+const getPurchaseInvoiceById = async (id) => {
+  const query = `
+    SELECT 
+      pi.*, 
+      s.name AS supplier_name, 
+      s.phone AS supplier_phone,
+      EXISTS (
+        SELECT 1 
+        FROM return_invoices ri 
+        WHERE ri.reference_invoice_id = pi.id 
+          AND ri.return_type = 'PURCHASE_RETURN' 
+          AND ri.status = 'ACTIVE'
+      ) AS has_return
+    FROM purchase_invoices pi
+    LEFT JOIN suppliers s ON pi.supplier_id = s.id
+    WHERE pi.id = ?
+  `;
+
+  const [rows] = await pool.query(query, [id]);
+  return rows[0] || null;
+};
+
+const getInvoiceItems = async (invoiceId) => {
+  const query = `
+    SELECT * 
+    FROM purchase_invoice_items 
+    WHERE invoice_id = ?
+  `;
+
+  const [rows] = await pool.query(query, [invoiceId]);
+  return rows;
+};
+
+export default {
+  getConnection,
+  createInvoice,
+  createInvoiceItems,
+  getPurchaseInvoices,
+  getPurchaseInvoiceById,
+  getInvoiceItems,
+};

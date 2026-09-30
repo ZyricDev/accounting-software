@@ -1,6 +1,7 @@
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
+import { cleanPayload } from "../../shared/utils/object.js";
 import paymentRepository from "../payment/payment.repository.js";
 import supplierRepository from "./supplier.repository.js";
 
@@ -9,25 +10,32 @@ const _toApiFields = (data) => ({
   name: data.name,
   phone: data.phone,
   address: data.address,
+  initialBalance: data.initial_balance,
   currentBalance: data.current_balance,
-  isBlocked: Boolean(data.is_blocked),
+  isActive: Boolean(data.is_active),
   createdAt: data.created_at,
   updatedAt: data.updated_at,
 });
 
-const addSupplier = async ({ name, phone, address }) => {
+const addSupplier = async ({ name, phone, address, initialBalance }) => {
   const phoneExist = await supplierRepository.isSupplierPhoneTaken(phone);
   if (phoneExist) {
     throw new AppError("تامین‌کننده با این شماره تلفن موجود است", 409);
   }
 
+  const balanceValue =
+    initialBalance.type === "CREDIT"
+      ? -initialBalance.amount
+      : initialBalance.amount;
+
   const payload = {
     name,
     phone,
     address,
-    current_balance: 0,
-    is_blocked: false,
+    initial_balance: balanceValue,
+    current_balance: balanceValue,
   };
+
   const supplier = await supplierRepository.createSupplier(payload);
 
   return _toApiFields(supplier);
@@ -56,23 +64,54 @@ const getSupplierById = async (supplierId) => {
 };
 
 const updateSupplier = async (supplierId, supplierData) => {
+  const { phone, name, address, initialBalance } = supplierData;
+
   const supplier = await supplierRepository.getSupplierById(supplierId);
   if (!supplier) {
     throw new AppError("تامین کننده یافت نشد", 404);
   }
 
-  if (supplierData.phone && supplierData.phone !== supplier.phone) {
-    const phoneExist = await supplierRepository.isSupplierPhoneTaken(
-      supplierData.phone,
-    );
+  if (phone && phone !== supplier.phone) {
+    const phoneExist = await supplierRepository.isSupplierPhoneTaken(phone);
     if (phoneExist) {
       throw new AppError("تامین‌کننده با این شماره تلفن موجود است", 409);
     }
   }
 
+  let newInitialBalance;
+  let newCurrentBalance;
+
+  if (initialBalance) {
+    const requestedInitial =
+      initialBalance.type === "DEBT"
+        ? -Math.abs(initialBalance.amount)
+        : Math.abs(initialBalance.amount);
+
+    const balanceDifference = requestedInitial - supplier.initial_balance;
+
+    if (balanceDifference !== 0) {
+      newInitialBalance = requestedInitial;
+      newCurrentBalance = supplier.current_balance + balanceDifference;
+    }
+  }
+
+  const rawPayload = {
+    name: name,
+    phone: phone,
+    address: address,
+    initial_balance: newInitialBalance,
+    current_balance: newCurrentBalance,
+  };
+
+  const payload = cleanPayload(rawPayload);
+
+  if (Object.keys(payload).length === 0) {
+    return _toApiFields(supplier);
+  }
+
   const updatedSupplier = await supplierRepository.updateSupplierById(
     supplierId,
-    supplierData,
+    payload,
   );
 
   return _toApiFields(updatedSupplier);

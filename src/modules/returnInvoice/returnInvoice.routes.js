@@ -7,6 +7,12 @@ import returnInvoiceValidation from "./returnInvoice.validation.js";
 
 const router = express.Router();
 
+router.get(
+  "/",
+  validate(returnInvoiceValidation.getReturnInvoices),
+  returnInvoiceController.getReturnInvoices,
+);
+
 router.post(
   "/sale",
   validate(returnInvoiceValidation.createReturnInvoice),

@@ -5,6 +5,46 @@ import purchaseInvoiceRepository from "../purchaseInvoice/purchaseInvoice.reposi
 import productRepository from "../product/product.repository.js";
 import customerRepository from "../customer/customer.repository.js";
 import supplierRepository from "../supplier/supplier.repository.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+
+const _toInvoiceItemApiFields = (item) => {
+  if (!item) return null;
+  return {
+    id: item.id,
+    returnInvoiceId: item.return_invoice_id,
+    productId: item.product_id,
+    productName: item.product_name,
+    quantity: item.quantity,
+    unitPrice: item.unit_price,
+    lineTotal: item.line_total,
+  };
+};
+
+const _toInvoiceApiFields = (invoice) => {
+  const isSaleReturn = invoice.return_type === "SALE_RETURN";
+
+  const personName = isSaleReturn
+    ? invoice.customer_name
+    : invoice.supplier_name;
+
+  const personPhone = isSaleReturn
+    ? invoice.customer_phone
+    : invoice.supplier_phone;
+
+  return {
+    id: invoice.id,
+    returnType: invoice.return_type,
+    personId: invoice.person_id,
+    personName: personName || null,
+    personPhone: personPhone || null,
+    referenceInvoiceId: invoice.reference_invoice_id,
+    totalQuantity: invoice.total_quantity,
+    totalAmount: invoice.total_amount,
+    status: invoice.status,
+    createdAt: invoice.created_at,
+    updatedAt: invoice.updated_at,
+  };
+};
 
 const createReturnInvoice = async ({
   returnType,
@@ -162,6 +202,21 @@ const createReturnInvoice = async ({
   }
 };
 
+const getReturnInvoices = async (filters) => {
+  const { invoices, total } =
+    await returnInvoiceRepository.getInvoices(filters);
+
+  return {
+    returnInvoices: invoices.map(_toInvoiceApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
+
 export default {
   createReturnInvoice,
+  getReturnInvoices,
 };

@@ -61,9 +61,104 @@ const createReturnItem = async (returnInvoiceId, item, connection = pool) => {
   ]);
 };
 
+const getInvoices = async ({
+  page = 1,
+  limit = 20,
+  sortBy = "createdAt",
+  order = "desc",
+  search,
+  startDate,
+  endDate,
+  returnType,
+  status,
+}) => {
+  const offset = (page - 1) * limit;
+
+  const conditions = [];
+  const queryParams = [];
+
+  conditions.push("ri.return_type = ?");
+  queryParams.push(returnType);
+
+  let joinClause = "";
+  let selectPerson = "";
+
+  if (returnType === "SALE_RETURN") {
+    joinClause = "LEFT JOIN customers p ON ri.person_id = p.id";
+    selectPerson = "p.name AS customer_name, p.phone AS customer_phone";
+  } else {
+    joinClause = "LEFT JOIN suppliers p ON ri.person_id = p.id";
+    selectPerson = "p.name AS supplier_name, p.phone AS supplier_phone";
+  }
+
+  if (search) {
+    conditions.push(
+      "(p.name LIKE ? OR p.phone LIKE ? OR ri.reference_invoice_id = ?)",
+    );
+    const searchTerm = `%${search}%`;
+    const searchId = !isNaN(Number(search)) ? Number(search) : null;
+
+    queryParams.push(searchTerm, searchTerm, searchId);
+  }
+
+  if (status) {
+    conditions.push("ri.status = ?");
+    queryParams.push(status);
+  }
+
+  if (startDate) {
+    conditions.push("ri.created_at >= ?");
+    queryParams.push(startDate);
+  }
+
+  if (endDate) {
+    conditions.push("ri.created_at <= ?");
+    queryParams.push(endDate);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const sortColumnMap = {
+    createdAt: "ri.created_at",
+    totalAmount: "ri.total_amount",
+  };
+  const sortColumn = sortColumnMap[sortBy] || "ri.created_at";
+  const sortDirection = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+  const dataQuery = `
+    SELECT 
+      ri.*, 
+      ${selectPerson}
+    FROM return_invoices ri
+    ${joinClause}
+    ${whereClause}
+    ORDER BY ${sortColumn} ${sortDirection}
+    LIMIT ? OFFSET ?
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*) AS total
+    FROM return_invoices ri
+    ${joinClause}
+    ${whereClause}
+  `;
+
+  const [rows] = await pool.query(dataQuery, [
+    ...queryParams,
+    Number(limit),
+    Number(offset),
+  ]);
+
+  const [[{ total }]] = await pool.query(countQuery, queryParams);
+
+  return { invoices: rows, total };
+};
+
 export default {
   getConnection,
   getPreviouslyReturnedQuantities,
   createReturnHeader,
   createReturnItem,
+  getInvoices,
 };

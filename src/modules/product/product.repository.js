@@ -113,10 +113,10 @@ const hardDeleteProduct = async (id) => {
   await pool.query("DELETE FROM products WHERE id = ?", [id]);
 };
 
-const decrementStock = async (id, quantity, executor = pool) => {
+const adjustStock = async (id, quantityDelta, executor = pool) => {
   await executor.query(
-    "UPDATE products SET stock = stock - ?, updated_at = NOW() WHERE id = ?",
-    [quantity, id],
+    "UPDATE products SET stock = stock + ?, updated_at = NOW() WHERE id = ?",
+    [quantityDelta, id],
   );
 
   const [rows] = await executor.query(
@@ -192,7 +192,7 @@ export default {
   updateProduct,
   checkProductUsage,
   hardDeleteProduct,
-  decrementStock,
+  adjustStock,
   getProductForUpdate,
   applyPurchaseUpdate,
 };

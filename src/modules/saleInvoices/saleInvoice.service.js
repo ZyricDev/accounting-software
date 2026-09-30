@@ -149,9 +149,9 @@ const addSaleInvoice = async ({
     );
 
     for (const item of invoiceItems) {
-      await productRepository.decrementStock(
+      await productRepository.adjustStock(
         item.productId,
-        item.quantity,
+        -item.quantity,
         connection,
       );
     }
@@ -277,9 +277,9 @@ const cancelSaleInvoiceById = async (invoiceId) => {
     await connection.beginTransaction();
 
     for (const item of items) {
-      await productRepository.decrementStock(
+      await productRepository.adjustStock(
         item.product_id,
-        -item.quantity,
+        item.quantity,
         connection,
       );
     }
@@ -439,10 +439,10 @@ const updateSaleInvoiceById = async (
             400,
           );
         }
+      }
 
-        await productRepository.decrementStock(productId, diff, connection);
-      } else if (diff < 0) {
-        await productRepository.decrementStock(productId, diff, connection);
+      if (diff !== 0) {
+        await productRepository.adjustStock(productId, -diff, connection);
       }
     }
 

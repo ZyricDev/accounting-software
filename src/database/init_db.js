@@ -180,6 +180,41 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
 );
 `;
 
+  const returnInvoicesTable = `
+    CREATE TABLE IF NOT EXISTS return_invoices (
+      id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      return_type ENUM('SALE_RETURN', 'PURCHASE_RETURN') NOT NULL,
+      person_id INT DEFAULT NULL,
+      reference_invoice_id INT UNSIGNED NOT NULL,
+      total_quantity INT UNSIGNED NOT NULL,
+      total_amount BIGINT UNSIGNED NOT NULL,
+      status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+      INDEX (reference_invoice_id),
+      INDEX (return_type, person_id),
+      INDEX (created_at)
+    );
+  `;
+
+  const returnInvoiceItemsTable = `
+    CREATE TABLE IF NOT EXISTS return_invoice_items (
+      id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      return_invoice_id INT UNSIGNED NOT NULL,
+      product_id INT NOT NULL,
+      product_name VARCHAR(255) NOT NULL,
+      quantity INT UNSIGNED NOT NULL,
+      unit_price BIGINT UNSIGNED NOT NULL,
+      line_total BIGINT UNSIGNED NOT NULL,
+
+      FOREIGN KEY (return_invoice_id) REFERENCES return_invoices(id),
+      FOREIGN KEY (product_id) REFERENCES products(id),
+
+      INDEX (return_invoice_id)
+    );
+  `;
+
   try {
     await pool.query(adminTable);
     await pool.query(bankAccountsTable);
@@ -193,6 +228,8 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     await pool.query(purchasesCartTable);
     await pool.query(purchaseInvoicesTable);
     await pool.query(purchaseInvoiceItemsTable);
+    await pool.query(returnInvoicesTable);
+    await pool.query(returnInvoiceItemsTable);
 
     const [checkAdmin] = await pool.query(
       `SELECT COUNT(*) as count FROM admin`,

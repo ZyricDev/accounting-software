@@ -377,7 +377,7 @@ const updateSaleInvoiceById = async (
     const oldItem = oldItemsMap[item.productId];
     return {
       productId: item.productId,
-      productName: item.productName,
+      productName: oldItem.product_name,
       quantity: item.quantity,
       salePrice: item.salePrice,
       originalPrice: oldItem.original_price,

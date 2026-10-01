@@ -249,12 +249,6 @@ const updateSaleInvoice = {
               "any.required": "شناسه محصول در اقلام فاکتور الزامی است.",
             }),
 
-          productName: joi.string().trim().required().messages({
-            "string.base": "نام محصول باید متن باشد.",
-            "string.empty": "نام محصول نمی‌تواند خالی باشد.",
-            "any.required": "نام محصول در اقلام فاکتور الزامی است.",
-          }),
-
           quantity: joi.number().integer().min(0).required().messages({
             "number.base": "تعداد محصول باید عدد باشد.",
             "number.min": "تعداد محصول نمی‌تواند منفی باشد.",

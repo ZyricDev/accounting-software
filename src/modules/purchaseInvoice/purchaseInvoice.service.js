@@ -361,9 +361,223 @@ const cancelPurchaseInvoiceById = async (invoiceId) => {
   }
 };
 
+const updatePurchaseInvoiceById = async (
+  invoiceId,
+  {
+    items,
+    discountAmount = 0,
+    cashAmount = 0,
+    pos = { amount: 0, accountId: null },
+    transfer = { amount: 0, accountId: null },
+    creditAmount = 0,
+  },
+) => {
+  const oldInvoice =
+    await purchaseInvoiceRepository.getPurchaseInvoiceById(invoiceId);
+  if (!oldInvoice) throw new AppError("فاکتور مدنظر یافت نشد", 404);
+
+  if (oldInvoice.status === "CANCELLED") {
+    throw new AppError(
+      "این فاکتور باطل شده است و امکان ویرایش آن وجود ندارد.",
+      403,
+    );
+  }
+
+  if (oldInvoice.has_return) {
+    throw new AppError(
+      "این فاکتور دارای سند مرجوعی فعال است و امکان ویرایش آن وجود ندارد. لطفاً ابتدا مرجوعی را باطل کنید.",
+      400,
+    );
+  }
+
+  const oldItems = await purchaseInvoiceRepository.getInvoiceItems(invoiceId);
+
+  const accountIdsToValidate = [];
+  if (pos.amount > 0 && pos.accountId) accountIdsToValidate.push(pos.accountId);
+  if (transfer.amount > 0 && transfer.accountId)
+    accountIdsToValidate.push(transfer.accountId);
+
+  await validateBankAccounts(accountIdsToValidate);
+
+  const validItems = items.filter((item) => item.quantity > 0);
+  if (validItems.length === 0) {
+    throw new AppError(
+      "فاکتور نمی‌تواند بدون آیتم باشد. در صورت نیاز کل فاکتور را حذف (باطل) کنید.",
+      400,
+    );
+  }
+
+  const oldItemsMap = {};
+  for (const old of oldItems) {
+    oldItemsMap[old.product_id] = old;
+  }
+
+  for (const item of validItems) {
+    if (!oldItemsMap[item.productId]) {
+      throw new AppError(
+        `امکان اضافه کردن محصول جدید به فاکتور صادر شده وجود ندارد. برای اقلام جدید، فاکتور مجزا ثبت کنید.`,
+        400,
+      );
+    }
+  }
+
+  const invoiceItems = validItems.map((item) => {
+    const oldItem = oldItemsMap[item.productId];
+    return {
+      productId: item.productId,
+      productName: oldItem.product_name,
+      quantity: item.quantity,
+      purchasePrice: item.purchase_price,
+      lineTotal: item.purchase_price * item.quantity,
+    };
+  });
+
+  const subtotal = invoiceItems.reduce((sum, item) => sum + item.lineTotal, 0);
+  const totalQuantity = invoiceItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+  const totalAmount = subtotal - discountAmount;
+
+  const totalPaid = cashAmount + pos.amount + transfer.amount + creditAmount;
+  if (totalPaid !== totalAmount) {
+    throw new AppError(
+      `مجموع مبالغ پرداختی (${totalPaid}) با مبلغ نهایی فاکتور (${totalAmount}) برابر نیست`,
+      400,
+    );
+  }
+
+  const paymentMethod = _resolvePaymentMethodLabel({
+    cashAmount,
+    posAmount: pos.amount,
+    transferAmount: transfer.amount,
+    creditAmount,
+  });
+
+  let connection;
+
+  try {
+    connection = await purchaseInvoiceRepository.getConnection();
+    await connection.beginTransaction();
+
+    const productDeltas = {};
+
+    for (const oldItem of oldItems) {
+      productDeltas[oldItem.product_id] = -oldItem.quantity;
+    }
+
+    for (const newItem of validItems) {
+      productDeltas[newItem.productId] += newItem.quantity;
+    }
+
+    for (const [productId, diff] of Object.entries(productDeltas)) {
+      if (diff < 0) {
+        const product = await productRepository.getProductById(
+          productId,
+          connection,
+        );
+
+        if (!product) throw new AppError("محصول یافت نشد", 404);
+
+        const removeAmount = Math.abs(diff);
+        if (product.stock < removeAmount) {
+          throw new AppError(
+            `موجودی محصول "${product.name}" برای کاهش این آیتم در فاکتور کافی نیست. (موجودی: ${product.stock} | تعداد کسری: ${removeAmount})`,
+            400,
+          );
+        }
+      }
+
+      if (diff !== 0) {
+        await productRepository.adjustStock(productId, diff, connection);
+      }
+    }
+
+    if (oldInvoice.supplier_id) {
+      const creditDelta = creditAmount - oldInvoice.credit_amount;
+
+      if (creditDelta !== 0) {
+        await supplierRepository.incrementDebt(
+          oldInvoice.supplier_id,
+          creditDelta,
+          connection,
+        );
+      }
+    }
+
+    await purchaseInvoiceRepository.updateInvoice(
+      invoiceId,
+      {
+        paymentMethod,
+        discountAmount,
+        creditAmount,
+        totalAmount,
+        totalQuantity,
+      },
+      connection,
+    );
+
+    await purchaseInvoiceRepository.deleteInvoiceItems(invoiceId, connection);
+    await purchaseInvoiceRepository.createInvoiceItems(
+      invoiceId,
+      invoiceItems,
+      connection,
+    );
+
+    await paymentRepository.deletePaymentsByInvoiceId(
+      "PURCHASE",
+      invoiceId,
+      connection,
+    );
+
+    const paymentsToCreate = [];
+    if (cashAmount > 0)
+      paymentsToCreate.push({
+        method: "CASH",
+        amount: cashAmount,
+        accountId: null,
+      });
+    if (pos.amount > 0)
+      paymentsToCreate.push({
+        method: "CARD",
+        amount: pos.amount,
+        accountId: pos.accountId,
+      });
+    if (transfer.amount > 0)
+      paymentsToCreate.push({
+        method: "TRANSFER",
+        amount: transfer.amount,
+        accountId: transfer.accountId,
+      });
+
+    if (paymentsToCreate.length > 0) {
+      await paymentRepository.createPayments(
+        {
+          invoiceType: "PURCHASE",
+          invoiceId: invoiceId,
+          personType: "SUPPLIER",
+          personId: oldInvoice.supplier_id,
+          payments: paymentsToCreate,
+          originalDate: oldInvoice.created_at,
+        },
+        connection,
+      );
+    }
+
+    await connection.commit();
+    return { id: invoiceId };
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 export default {
   addPurchaseInvoice,
   getPurchaseInvoices,
   getPurchaseInvoiceById,
   cancelPurchaseInvoiceById,
+  updatePurchaseInvoiceById,
 };

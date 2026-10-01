@@ -33,9 +33,22 @@ const cancelPurchaseInvoice = async (req, res) => {
   return sendSuccess(res, "فاکتور خرید با موفقیت باطل شد", { invoice });
 };
 
+const updatePurchaseInvoice = async (req, res) => {
+  const { purchaseInvoiceId } = req.params;
+  const invoiceData = req.body;
+
+  const invoice = await purchaseInvoiceService.updatePurchaseInvoiceById(
+    purchaseInvoiceId,
+    invoiceData,
+  );
+
+  return sendSuccess(res, "فاکتور فروش با موفقیت آپدیت شد", { invoice });
+};
+
 export default {
   addPurchaseInvoice,
   getPurchaseInvoices,
   getPurchaseInvoice,
   cancelPurchaseInvoice,
+  updatePurchaseInvoice,
 };

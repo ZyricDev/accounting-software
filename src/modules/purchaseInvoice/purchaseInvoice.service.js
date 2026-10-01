@@ -72,6 +72,15 @@ const _toInvoiceApiFields = (dbRow) => ({
   updatedAt: dbRow.updated_at,
 });
 
+const _toInvoiceItemApiFields = (dbRow) => ({
+  id: dbRow.id,
+  productId: dbRow.product_id,
+  productName: dbRow.product_name,
+  quantity: Number(dbRow.quantity),
+  purchasePrice: Number(dbRow.purchase_price),
+  lineTotal: Number(dbRow.line_total),
+});
+
 const addPurchaseInvoice = async ({
   supplierId = null,
   cashAmount = 0,
@@ -255,15 +264,6 @@ const addPurchaseInvoice = async ({
   }
 };
 
-const _toInvoiceItemApiFields = (dbRow) => ({
-  id: dbRow.id,
-  productId: dbRow.product_id,
-  productName: dbRow.product_name,
-  quantity: Number(dbRow.quantity),
-  salePrice: Number(dbRow.sale_price),
-  lineTotal: Number(dbRow.line_total),
-});
-
 const getPurchaseInvoices = async (filters) => {
   const supplier = await supplierRepository.getSupplierById(filters.supplierId);
   if (!supplier) {
@@ -427,8 +427,8 @@ const updatePurchaseInvoiceById = async (
       productId: item.productId,
       productName: oldItem.product_name,
       quantity: item.quantity,
-      purchasePrice: item.purchase_price,
-      lineTotal: item.purchase_price * item.quantity,
+      purchasePrice: item.purchasePrice,
+      lineTotal: item.purchasePrice * item.quantity,
     };
   });
 

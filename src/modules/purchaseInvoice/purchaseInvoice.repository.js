@@ -203,7 +203,7 @@ const updateInvoice = async (
 
 const deleteInvoiceItems = async (id, connection = pool) => {
   const query = `
-    DELETE FROM purchase_invoices_items 
+    DELETE FROM purchase_invoice_items 
     WHERE invoice_id = ?
   `;
 

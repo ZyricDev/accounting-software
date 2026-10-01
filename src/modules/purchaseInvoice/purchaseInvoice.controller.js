@@ -15,4 +15,13 @@ const getPurchaseInvoices = async (req, res) => {
   return sendSuccess(res, "فاکتورهای خرید با موفقیت دریافت شد", result);
 };
 
-export default { addPurchaseInvoice, getPurchaseInvoices };
+const getPurchaseInvoice = async (req, res) => {
+  const { purchaseInvoiceId } = req.params;
+
+  const invoice =
+    await purchaseInvoiceService.getPurchaseInvoiceById(purchaseInvoiceId);
+
+  return sendSuccess(res, "فاکتور خرید با موفقیت دریافت شد", { invoice });
+};
+
+export default { addPurchaseInvoice, getPurchaseInvoices, getPurchaseInvoice };

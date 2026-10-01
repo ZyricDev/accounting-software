@@ -255,6 +255,15 @@ const addPurchaseInvoice = async ({
   }
 };
 
+const _toInvoiceItemApiFields = (dbRow) => ({
+  id: dbRow.id,
+  productId: dbRow.product_id,
+  productName: dbRow.product_name,
+  quantity: Number(dbRow.quantity),
+  salePrice: Number(dbRow.sale_price),
+  lineTotal: Number(dbRow.line_total),
+});
+
 const getPurchaseInvoices = async (filters) => {
   const supplier = await supplierRepository.getSupplierById(filters.supplierId);
   if (!supplier) {
@@ -274,4 +283,25 @@ const getPurchaseInvoices = async (filters) => {
   };
 };
 
-export default { addPurchaseInvoice, getPurchaseInvoices };
+const getPurchaseInvoiceById = async (purchaseInvoiceId) => {
+  const purchaseInvoice =
+    await purchaseInvoiceRepository.getPurchaseInvoiceById(purchaseInvoiceId);
+
+  if (!purchaseInvoice) {
+    throw new AppError("فاکتور فروش مدنظر یافت نشد", 404);
+  }
+
+  const items =
+    await purchaseInvoiceRepository.getInvoiceItems(purchaseInvoiceId);
+
+  return {
+    ..._toInvoiceApiFields(purchaseInvoice),
+    items: items.map(_toInvoiceItemApiFields),
+  };
+};
+
+export default {
+  addPurchaseInvoice,
+  getPurchaseInvoices,
+  getPurchaseInvoiceById,
+};

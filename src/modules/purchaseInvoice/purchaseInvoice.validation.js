@@ -46,6 +46,17 @@ const buildPaymentMethodSchema = (label) =>
     })
     .default({ amount: 0, accountId: null });
 
+const purchaseInvoiceIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه فاکتور فروش باید عدد باشد.",
+    "number.positive": "شناسه فاکتور فروش نامعتبر است.",
+    "any.required": "شناسه فاکتور فروش الزامی است.",
+  });
+
 const addPurchaseInvoice = {
   body: createBodyObjectSchema({
     supplierId: joi.persianNumber().integer().positive().required().messages({
@@ -105,7 +116,7 @@ const getPurchaseInvoices = {
       "number.base": "شناسه تامین کننده باید عدد باشد.",
       "number.positive": "شناسه تامین کننده نامعتبر است.",
       "any.required": "شناسه تامین کننده الزامی است.",
-    }), 
+    }),
     sortBy: joi
       .string()
       .valid(...ALLOWED_INVOICE_SORT_FIELDS)
@@ -194,4 +205,8 @@ const getPurchaseInvoices = {
   }),
 };
 
-export default { addPurchaseInvoice, getPurchaseInvoices };
+const getPurchaseInvoice = {
+  params: joi.object({ purchaseInvoiceId: purchaseInvoiceIdParamSchema }),
+};
+
+export default { addPurchaseInvoice, getPurchaseInvoices, getPurchaseInvoice };

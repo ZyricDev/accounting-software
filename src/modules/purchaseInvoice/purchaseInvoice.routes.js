@@ -17,4 +17,11 @@ router
     purchaseInvoiceController.getPurchaseInvoices,
   );
 
+router
+  .route("/:purchaseInvoiceId")
+  .get(
+    validate(purchaseInvoiceValidation.getPurchaseInvoice),
+    purchaseInvoiceController.getPurchaseInvoice,
+  );
+
 export default router;

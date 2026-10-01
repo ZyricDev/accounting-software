@@ -8,10 +8,8 @@ import supplierRepository from "../supplier/supplier.repository.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 
 const _toInvoiceItemApiFields = (item) => {
-  if (!item) return null;
   return {
     id: item.id,
-    returnInvoiceId: item.return_invoice_id,
     productId: item.product_id,
     productName: item.product_name,
     quantity: item.quantity,
@@ -165,8 +163,13 @@ const createReturnInvoice = async ({
     const stockMultiplier = isSaleReturn ? 1 : -1;
 
     for (const returnItem of finalReturnItems) {
-      const stockChange = returnItem.quantity * stockMultiplier;
+      await returnInvoiceRepository.createReturnItem(
+        returnInvoiceId,
+        returnItem,
+        connection,
+      );
 
+      const stockChange = returnItem.quantity * stockMultiplier;
       await productRepository.adjustStock(
         returnItem.productId,
         stockChange,
@@ -191,6 +194,7 @@ const createReturnInvoice = async ({
     }
 
     await connection.commit();
+
     return {
       id: returnInvoiceId,
     };

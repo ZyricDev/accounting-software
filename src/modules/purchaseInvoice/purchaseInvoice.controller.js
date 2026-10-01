@@ -24,4 +24,18 @@ const getPurchaseInvoice = async (req, res) => {
   return sendSuccess(res, "فاکتور خرید با موفقیت دریافت شد", { invoice });
 };
 
-export default { addPurchaseInvoice, getPurchaseInvoices, getPurchaseInvoice };
+const cancelPurchaseInvoice = async (req, res) => {
+  const { purchaseInvoiceId } = req.params;
+
+  const invoice =
+    await purchaseInvoiceService.cancelPurchaseInvoiceById(purchaseInvoiceId);
+
+  return sendSuccess(res, "فاکتور خرید با موفقیت باطل شد", { invoice });
+};
+
+export default {
+  addPurchaseInvoice,
+  getPurchaseInvoices,
+  getPurchaseInvoice,
+  cancelPurchaseInvoice,
+};

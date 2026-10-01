@@ -155,15 +155,21 @@ const getPurchaseInvoiceById = async (id) => {
   return rows[0] || null;
 };
 
-const getInvoiceItems = async (invoiceId) => {
+const getInvoiceItems = async (id) => {
   const query = `
     SELECT * 
     FROM purchase_invoice_items 
     WHERE invoice_id = ?
   `;
 
-  const [rows] = await pool.query(query, [invoiceId]);
+  const [rows] = await pool.query(query, [id]);
   return rows;
+};
+
+const cancelInvoiceStatus = async (id, connection = pool) => {
+  const query = `UPDATE purchase_invoices SET status = 'CANCELLED' WHERE id = ?`;
+  const [result] = await connection.query(query, [id]);
+  return result;
 };
 
 export default {
@@ -173,4 +179,5 @@ export default {
   getPurchaseInvoices,
   getPurchaseInvoiceById,
   getInvoiceItems,
+  cancelInvoiceStatus,
 };

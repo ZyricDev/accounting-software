@@ -22,6 +22,10 @@ router
   .get(
     validate(purchaseInvoiceValidation.getPurchaseInvoice),
     purchaseInvoiceController.getPurchaseInvoice,
+  )
+  .patch(
+    validate(purchaseInvoiceValidation.cancelPurchaseInvoice),
+    purchaseInvoiceController.cancelPurchaseInvoice,
   );
 
 export default router;

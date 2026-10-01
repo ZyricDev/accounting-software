@@ -300,8 +300,70 @@ const getPurchaseInvoiceById = async (purchaseInvoiceId) => {
   };
 };
 
+const cancelPurchaseInvoiceById = async (invoiceId) => {
+  const invoice =
+    await purchaseInvoiceRepository.getPurchaseInvoiceById(invoiceId);
+  if (!invoice) {
+    throw new AppError("فاکتور مدنظر یافت نشد", 404);
+  }
+
+  if (invoice.status === "CANCELLED") {
+    throw new AppError("این فاکتور قبلاً باطل شده است.", 400);
+  }
+
+  if (invoice.has_return) {
+    throw new AppError(
+      "این فاکتور دارای سند مرجوعی فعال است و امکان ابطال آن وجود ندارد. لطفاً ابتدا مرجوعی را باطل کنید.",
+      400,
+    );
+  }
+
+  const items = await purchaseInvoiceRepository.getInvoiceItems(invoiceId);
+
+  let connection;
+
+  try {
+    connection = await purchaseInvoiceRepository.getConnection();
+    await connection.beginTransaction();
+
+    for (const item of items) {
+      await productRepository.adjustStock(
+        item.product_id,
+        -item.quantity,
+        connection,
+      );
+    }
+
+    if (invoice.supplier_id && invoice.credit_amount > 0) {
+      await supplierRepository.incrementDebt(
+        invoice.supplier_id,
+        -invoice.credit_amount,
+        connection,
+      );
+    }
+
+    await purchaseInvoiceRepository.cancelInvoiceStatus(invoiceId, connection);
+
+    await paymentRepository.cancelPaymentsByInvoiceId(
+      "PURCHASE",
+      invoiceId,
+      connection,
+    );
+
+    await connection.commit();
+
+    return { id: invoiceId };
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 export default {
   addPurchaseInvoice,
   getPurchaseInvoices,
   getPurchaseInvoiceById,
+  cancelPurchaseInvoiceById,
 };

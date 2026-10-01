@@ -209,4 +209,11 @@ const getPurchaseInvoice = {
   params: joi.object({ purchaseInvoiceId: purchaseInvoiceIdParamSchema }),
 };
 
-export default { addPurchaseInvoice, getPurchaseInvoices, getPurchaseInvoice };
+const cancelPurchaseInvoice = getPurchaseInvoice;
+
+export default {
+  addPurchaseInvoice,
+  getPurchaseInvoices,
+  getPurchaseInvoice,
+  cancelPurchaseInvoice,
+};

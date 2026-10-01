@@ -211,7 +211,7 @@ const getReturnInvoices = async (filters) => {
     await returnInvoiceRepository.getInvoices(filters);
 
   return {
-    returnInvoices: invoices.map(_toInvoiceApiFields),
+    invoices: invoices.map(_toInvoiceApiFields),
     pagination: generatePaginationData({
       page: filters.page,
       limit: filters.limit,

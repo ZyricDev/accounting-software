@@ -184,6 +184,15 @@ const getInvoiceItems = async (returnInvoiceId) => {
   return rows;
 };
 
+const cancelInvoiceStatus = async (id, connection = pool) => {
+  const query = `
+    UPDATE return_invoices 
+    SET status = 'CANCELLED', updated_at = NOW() 
+    WHERE id = ?
+  `;
+  await connection.query(query, [id]);
+};
+
 export default {
   getConnection,
   getPreviouslyReturnedQuantities,
@@ -192,4 +201,5 @@ export default {
   getInvoices,
   getReturnInvoiceById,
   getInvoiceItems,
+  cancelInvoiceStatus,
 };

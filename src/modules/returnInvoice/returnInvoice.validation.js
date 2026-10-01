@@ -166,8 +166,11 @@ const getReturnInvoice = {
   params: joi.object({ returnInvoiceId: returnInvoiceIdParamSchema }),
 };
 
+const cancelReturnInvoice = getReturnInvoice;
+
 export default {
   getReturnInvoices,
   createReturnInvoice,
   getReturnInvoice,
+  cancelReturnInvoice,
 };

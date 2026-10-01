@@ -42,9 +42,19 @@ const getReturnInvoice = async (req, res) => {
   return sendSuccess(res, "فاکتور مرجوعی با موفقیت دریافت شد", { invoice });
 };
 
+const cancelReturnInvoice = async (req, res) => {
+  const { returnInvoiceId } = req.params;
+
+  const invoice =
+    await returnInvoiceService.cancelReturnInvoiceById(returnInvoiceId);
+
+  return sendSuccess(res, "فاکتور مرجوعی با موفقیت باطل شد", { invoice });
+};
+
 export default {
   getReturnInvoices,
   createSaleReturn,
   createPurchaseReturn,
   getReturnInvoice,
+  cancelReturnInvoice,
 };

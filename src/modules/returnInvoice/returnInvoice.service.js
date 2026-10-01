@@ -236,8 +236,75 @@ const getReturnInvoiceById = async (returnInvoiceId) => {
   };
 };
 
+const cancelReturnInvoiceById = async (returnInvoiceId) => {
+  const returnInvoice =
+    await returnInvoiceRepository.getReturnInvoiceById(returnInvoiceId);
+  if (!returnInvoice) {
+    throw new AppError("فاکتور مرجوعی مدنظر یافت نشد", 404);
+  }
+
+  if (returnInvoice.status === "CANCELLED") {
+    throw new AppError("این فاکتور مرجوعی قبلاً باطل شده است.", 400);
+  }
+
+  const items = await returnInvoiceRepository.getInvoiceItems(returnInvoiceId);
+
+  const isSaleReturn = returnInvoice.return_type === "SALE_RETURN";
+  const personId = returnInvoice.person_id;
+  const totalAmount = returnInvoice.total_amount;
+
+  let connection;
+
+  try {
+    connection = await returnInvoiceRepository.getConnection();
+    await connection.beginTransaction();
+
+    const stockMultiplier = isSaleReturn ? -1 : 1;
+
+    for (const item of items) {
+      const stockChange = item.quantity * stockMultiplier;
+      await productRepository.adjustStock(
+        item.product_id,
+        stockChange,
+        connection,
+      );
+    }
+
+    if (personId) {
+      if (isSaleReturn) {
+        await customerRepository.incrementDebt(
+          personId,
+          totalAmount,
+          connection,
+        );
+      } else {
+        await supplierRepository.incrementDebt(
+          personId,
+          totalAmount,
+          connection,
+        );
+      }
+    }
+
+    await returnInvoiceRepository.cancelInvoiceStatus(
+      returnInvoiceId,
+      connection,
+    );
+
+    await connection.commit();
+
+    return { id: returnInvoiceId };
+  } catch (err) {
+    if (connection) await connection.rollback();
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
 export default {
   createReturnInvoice,
   getReturnInvoices,
   getReturnInvoiceById,
+  cancelReturnInvoiceById,
 };

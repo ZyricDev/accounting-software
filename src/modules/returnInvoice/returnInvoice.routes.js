@@ -18,6 +18,11 @@ router
   .get(
     validate(returnInvoiceValidation.getReturnInvoice),
     returnInvoiceController.getReturnInvoice,
+  )
+  .patch(
+    requireAuth,
+    validate(returnInvoiceValidation.cancelReturnInvoice),
+    returnInvoiceController.cancelReturnInvoice,
   );
 
 router.post(

@@ -4,6 +4,17 @@ import {
   createQuerySchema,
 } from "../../shared/utils/validationHelpers.js";
 
+const returnInvoiceIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه فاکتور مرجوعی باید عدد باشد.",
+    "number.positive": "شناسه فاکتور مرجوعی نامعتبر است.",
+    "any.required": "شناسه فاکتور مرجوعی الزامی است.",
+  });
+
 const getReturnInvoices = {
   query: createQuerySchema({
     returnType: joi
@@ -151,7 +162,12 @@ const createReturnInvoice = {
   }),
 };
 
+const getReturnInvoice = {
+  params: joi.object({ returnInvoiceId: returnInvoiceIdParamSchema }),
+};
+
 export default {
   getReturnInvoices,
   createReturnInvoice,
+  getReturnInvoice,
 };

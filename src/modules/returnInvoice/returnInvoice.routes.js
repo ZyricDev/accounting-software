@@ -13,6 +13,13 @@ router.get(
   returnInvoiceController.getReturnInvoices,
 );
 
+router
+  .route("/:returnInvoiceId")
+  .get(
+    validate(returnInvoiceValidation.getReturnInvoice),
+    returnInvoiceController.getReturnInvoice,
+  );
+
 router.post(
   "/sale",
   validate(returnInvoiceValidation.createReturnInvoice),

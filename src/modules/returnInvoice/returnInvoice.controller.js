@@ -2,7 +2,9 @@ import { sendSuccess } from "../../shared/utils/apiResponse.js";
 import returnInvoiceService from "./returnInvoice.service.js";
 
 const getReturnInvoices = async (req, res) => {
-  const result = await returnInvoiceService.getReturnInvoices(req.validatedQuery);
+  const result = await returnInvoiceService.getReturnInvoices(
+    req.validatedQuery,
+  );
 
   return sendSuccess(res, "فاکتورهای مرجوعی با موفقیت دریافت شد", result);
 };
@@ -31,4 +33,18 @@ const createPurchaseReturn = async (req, res) => {
   return sendSuccess(res, "مرجوعی با موفقیت ثبت شد", { returnInvoice });
 };
 
-export default { getReturnInvoices, createSaleReturn, createPurchaseReturn };
+const getReturnInvoice = async (req, res) => {
+  const { returnInvoiceId } = req.params;
+
+  const invoice =
+    await returnInvoiceService.getReturnInvoiceById(returnInvoiceId);
+
+  return sendSuccess(res, "فاکتور مرجوعی با موفقیت دریافت شد", { invoice });
+};
+
+export default {
+  getReturnInvoices,
+  createSaleReturn,
+  createPurchaseReturn,
+  getReturnInvoice,
+};

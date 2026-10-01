@@ -155,10 +155,41 @@ const getInvoices = async ({
   return { invoices: rows, total };
 };
 
+const getReturnInvoiceById = async (id) => {
+  const query = `
+    SELECT 
+      ri.*,
+      c.name AS customer_name,
+      c.phone AS customer_phone,
+      s.name AS supplier_name,
+      s.phone AS supplier_phone
+    FROM return_invoices ri
+    LEFT JOIN customers c ON ri.person_id = c.id AND ri.return_type = 'SALE_RETURN'
+    LEFT JOIN suppliers s ON ri.person_id = s.id AND ri.return_type = 'PURCHASE_RETURN'
+    WHERE ri.id = ?
+  `;
+
+  const [rows] = await pool.query(query, [id]);
+  return rows[0] || null;
+};
+
+const getInvoiceItems = async (returnInvoiceId) => {
+  const query = `
+    SELECT *
+    FROM return_invoice_items
+    WHERE return_invoice_id = ?
+  `;
+
+  const [rows] = await pool.query(query, [returnInvoiceId]);
+  return rows;
+};
+
 export default {
   getConnection,
   getPreviouslyReturnedQuantities,
   createReturnHeader,
   createReturnItem,
   getInvoices,
+  getReturnInvoiceById,
+  getInvoiceItems,
 };

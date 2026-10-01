@@ -220,7 +220,24 @@ const getReturnInvoices = async (filters) => {
   };
 };
 
+const getReturnInvoiceById = async (returnInvoiceId) => {
+  const returnInvoice =
+    await returnInvoiceRepository.getReturnInvoiceById(returnInvoiceId);
+
+  if (!returnInvoice) {
+    throw new AppError("فاکتور مرجوعی مدنظر یافت نشد", 404);
+  }
+
+  const items = await returnInvoiceRepository.getInvoiceItems(returnInvoiceId);
+
+  return {
+    ..._toInvoiceApiFields(returnInvoice),
+    items: items.map(_toInvoiceItemApiFields),
+  };
+};
+
 export default {
   createReturnInvoice,
   getReturnInvoices,
+  getReturnInvoiceById,
 };

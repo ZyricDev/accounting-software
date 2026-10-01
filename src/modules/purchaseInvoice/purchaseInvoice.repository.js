@@ -51,6 +51,7 @@ const createInvoiceItems = async (invoiceId, items, connection) => {
 };
 
 const getPurchaseInvoices = async ({
+  supplierId,
   page = 1,
   limit = 20,
   sortBy = "createdAt",
@@ -62,13 +63,17 @@ const getPurchaseInvoices = async ({
 }) => {
   const offset = (page - 1) * limit;
 
-  const conditions = [];
-  const queryParams = [];
+  const conditions = ["pi.supplier_id = ?"];
+  const queryParams = [supplierId];
 
   if (search) {
-    conditions.push("(s.name LIKE ? OR s.phone LIKE ?)");
-    const searchTerm = `%${search}%`;
-    queryParams.push(searchTerm, searchTerm);
+    const searchId = Number(search);
+    if (!isNaN(searchId)) {
+      conditions.push("pi.id = ?");
+      queryParams.push(searchId);
+    } else {
+      conditions.push("1 = 0");
+    }
   }
 
   if (startDate) {
@@ -86,8 +91,7 @@ const getPurchaseInvoices = async ({
     queryParams.push(paymentMethod);
   }
 
-  const whereClause =
-    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const whereClause = `WHERE ${conditions.join(" AND ")}`;
 
   const sortColumnMap = {
     createdAt: "pi.created_at",
@@ -98,9 +102,7 @@ const getPurchaseInvoices = async ({
 
   const dataQuery = `
     SELECT 
-      pi.*, 
-      s.name AS supplier_name, 
-      s.phone AS supplier_phone,
+      pi.*,
       EXISTS (
         SELECT 1 
         FROM return_invoices ri 
@@ -109,7 +111,6 @@ const getPurchaseInvoices = async ({
           AND ri.status = 'ACTIVE'
       ) AS has_return
     FROM purchase_invoices pi
-    LEFT JOIN suppliers s ON pi.supplier_id = s.id
     ${whereClause}
     ORDER BY ${sortColumn} ${sortDirection}
     LIMIT ? OFFSET ?
@@ -118,7 +119,6 @@ const getPurchaseInvoices = async ({
   const countQuery = `
     SELECT COUNT(*) AS total
     FROM purchase_invoices pi
-    LEFT JOIN suppliers s ON pi.supplier_id = s.id
     ${whereClause}
   `;
 

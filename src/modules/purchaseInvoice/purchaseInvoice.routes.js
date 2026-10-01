@@ -6,10 +6,15 @@ import purchaseInvoiceValidation from "./purchaseInvoice.validation.js";
 
 const router = Router();
 
-router.post(
-  "/",
-  validate(purchaseInvoiceValidation.addPurchaseInvoice),
-  purchaseInvoiceController.addPurchaseInvoice,
-);
+router
+  .route("/")
+  .post(
+    validate(purchaseInvoiceValidation.addPurchaseInvoice),
+    purchaseInvoiceController.addPurchaseInvoice,
+  )
+  .get(
+    validate(purchaseInvoiceValidation.getPurchaseInvoices),
+    purchaseInvoiceController.getPurchaseInvoices,
+  );
 
 export default router;

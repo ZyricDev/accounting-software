@@ -5,6 +5,7 @@ import productRepository from "../product/product.repository.js";
 import purchaseInvoiceRepository from "./purchaseInvoice.repository.js";
 import paymentRepository from "../payment/payment.repository.js";
 import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -55,6 +56,21 @@ const _validateInvoiceItems = (items) => {
     );
   }
 };
+
+const _toInvoiceApiFields = (dbRow) => ({
+  id: dbRow.id,
+  status: dbRow.status,
+  hasReturn: Boolean(dbRow.has_return),
+  supplierId: dbRow.supplier_id,
+
+  paymentMethod: dbRow.payment_method,
+  discountAmount: Number(dbRow.discount_amount),
+  creditAmount: Number(dbRow.credit_amount),
+  totalAmount: Number(dbRow.total_amount),
+  totalQuantity: Number(dbRow.total_quantity),
+  createdAt: dbRow.created_at,
+  updatedAt: dbRow.updated_at,
+});
 
 const addPurchaseInvoice = async ({
   supplierId = null,
@@ -239,4 +255,23 @@ const addPurchaseInvoice = async ({
   }
 };
 
-export default { addPurchaseInvoice };
+const getPurchaseInvoices = async (filters) => {
+  const supplier = await supplierRepository.getSupplierById(filters.supplierId);
+  if (!supplier) {
+    throw new AppError("تامین کننده یافت نشد", 404);
+  }
+
+  const { invoices, total } =
+    await purchaseInvoiceRepository.getPurchaseInvoices(filters);
+
+  return {
+    invoices: invoices.map(_toInvoiceApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
+
+export default { addPurchaseInvoice, getPurchaseInvoices };

@@ -7,4 +7,12 @@ const addPurchaseInvoice = async (req, res) => {
   return sendSuccess(res, "فاکتور خرید با موفقیت نهایی شد", { invoice }, 201);
 };
 
-export default { addPurchaseInvoice };
+const getPurchaseInvoices = async (req, res) => {
+  const result = await purchaseInvoiceService.getPurchaseInvoices(
+    req.validatedQuery,
+  );
+
+  return sendSuccess(res, "فاکتورهای خرید با موفقیت دریافت شد", result);
+};
+
+export default { addPurchaseInvoice, getPurchaseInvoices };

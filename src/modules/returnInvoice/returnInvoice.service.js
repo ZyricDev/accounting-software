@@ -177,20 +177,18 @@ const createReturnInvoice = async ({
       );
     }
 
-    if (personId) {
-      if (isSaleReturn) {
-        await customerRepository.incrementDebt(
-          personId,
-          -totalAmount,
-          connection,
-        );
-      } else {
-        await supplierRepository.incrementDebt(
-          personId,
-          -totalAmount,
-          connection,
-        );
-      }
+    if (isSaleReturn) {
+      await customerRepository.incrementDebt(
+        personId,
+        -totalAmount,
+        connection,
+      );
+    } else {
+      await supplierRepository.incrementDebt(
+        personId,
+        -totalAmount,
+        connection,
+      );
     }
 
     await connection.commit();
@@ -270,20 +268,10 @@ const cancelReturnInvoiceById = async (returnInvoiceId) => {
       );
     }
 
-    if (personId) {
-      if (isSaleReturn) {
-        await customerRepository.incrementDebt(
-          personId,
-          totalAmount,
-          connection,
-        );
-      } else {
-        await supplierRepository.incrementDebt(
-          personId,
-          totalAmount,
-          connection,
-        );
-      }
+    if (isSaleReturn) {
+      await customerRepository.incrementDebt(personId, totalAmount, connection);
+    } else {
+      await supplierRepository.incrementDebt(personId, totalAmount, connection);
     }
 
     await returnInvoiceRepository.cancelInvoiceStatus(

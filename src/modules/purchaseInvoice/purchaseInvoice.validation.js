@@ -76,8 +76,6 @@ const addPurchaseInvoice = {
         "number.min": "مبلغ نقدی نمی‌تواند منفی باشد.",
       }),
 
-    pos: buildPaymentMethodSchema("کارت‌خوان"),
-
     transfer: buildPaymentMethodSchema("کارت به کارت"),
 
     creditAmount: joi
@@ -94,7 +92,6 @@ const addPurchaseInvoice = {
     .custom((value, helpers) => {
       const totalPaid =
         value.cashAmount +
-        value.pos.amount +
         value.transfer.amount +
         value.creditAmount;
 
@@ -106,7 +103,7 @@ const addPurchaseInvoice = {
     })
     .messages({
       "object.noPaymentProvided":
-        "حداقل باید یکی از روش‌های پرداخت (نقدی، کارت‌خوان، کارت به کارت یا نسیه) مبلغ داشته باشد.",
+        "حداقل باید یکی از روش‌های پرداخت (نقدی، کارت به کارت یا نسیه) مبلغ داشته باشد.",
     }),
 };
 
@@ -284,8 +281,6 @@ const updatePurchaseInvoice = {
         "number.min": "مبلغ نقدی نمی‌تواند منفی باشد.",
       }),
 
-    pos: buildPaymentMethodSchema("کارت‌خوان"),
-
     transfer: buildPaymentMethodSchema("کارت به کارت"),
 
     creditAmount: joi
@@ -314,7 +309,7 @@ const updatePurchaseInvoice = {
     })
     .messages({
       "object.noPaymentProvided":
-        "حداقل باید یکی از روش‌های پرداخت (نقدی، کارت‌خوان، کارت به کارت یا نسیه) مبلغ داشته باشد.",
+        "حداقل باید یکی از روش‌های پرداخت (نقدی، کارت به کارت یا نسیه) مبلغ داشته باشد.",
     }),
 };
 

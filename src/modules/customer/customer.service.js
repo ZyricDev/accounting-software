@@ -80,6 +80,14 @@ const getCustomerById = async (customerId) => {
 const updateCustomerById = async (customerId, customerData) => {
   const { phone, initialBalance } = customerData;
 
+  const guestId = await customerRepository.getGuestCustomerId();
+  if (guestId && Number(customerId) === Number(guestId)) {
+    throw new AppError(
+      "شما اجازه ویرایش اطلاعات مشتری سیستمی (گذری) را ندارید.",
+      403,
+    );
+  }
+
   const customer = await customerRepository.getCustomerById(customerId);
   if (!customer) {
     throw new AppError("مشتری یافت نشد", 404);
@@ -129,6 +137,11 @@ const updateCustomerById = async (customerId, customerData) => {
 };
 
 const deleteCustomerById = async (customerId) => {
+  const guestId = await customerRepository.getGuestCustomerId();
+  if (guestId && Number(customerId) === Number(guestId)) {
+    throw new AppError("مشتری سیستمی (گذری) غیرقابل حذف است.", 403);
+  }
+
   const customer = await customerRepository.getCustomerById(customerId);
   if (!customer) {
     throw new AppError("مشتری یافت نشد", 404);
@@ -148,6 +161,11 @@ const deleteCustomerById = async (customerId) => {
 };
 
 const toggleCustomerStatusById = async (customerId) => {
+  const guestId = await customerRepository.getGuestCustomerId();
+  if (guestId && Number(customerId) === Number(guestId)) {
+    throw new AppError("وضعیت مشتری سیستمی (گذری) غیرقابل تغییر است.", 403);
+  }
+
   const customer = await customerRepository.getCustomerById(customerId);
   if (!customer) {
     throw new AppError("مشتری یافت نشد", 404);

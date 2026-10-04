@@ -82,6 +82,8 @@ const addSaleInvoice = async ({
     if (!customer) {
       throw new AppError("مشتری یافت نشد", 404);
     }
+  } else {
+    customerId = await customerRepository.getGuestCustomerId();
   }
 
   const accountIdsToValidate = [];
@@ -193,7 +195,7 @@ const addSaleInvoice = async ({
       );
     }
 
-    if (creditAmount > 0 && customerId) {
+    if (creditAmount > 0) {
       await customerRepository.incrementDebt(
         customerId,
         creditAmount,
@@ -284,7 +286,7 @@ const cancelSaleInvoiceById = async (invoiceId) => {
       );
     }
 
-    if (invoice.customer_id && invoice.credit_amount > 0) {
+    if (invoice.credit_amount > 0) {
       await customerRepository.incrementDebt(
         invoice.customer_id,
         -invoice.credit_amount,
@@ -346,9 +348,7 @@ const updateSaleInvoiceById = async (
   if (transfer.amount > 0 && transfer.accountId)
     accountIdsToValidate.push(transfer.accountId);
 
-  if (accountIdsToValidate.length > 0) {
-    await validateBankAccounts(accountIdsToValidate);
-  }
+  await validateBankAccounts(accountIdsToValidate);
 
   const validItems = items.filter((item) => item.quantity > 0);
 
@@ -446,15 +446,13 @@ const updateSaleInvoiceById = async (
       }
     }
 
-    if (oldInvoice.customer_id) {
-      const creditDelta = creditAmount - oldInvoice.credit_amount;
-      if (creditDelta !== 0) {
-        await customerRepository.incrementDebt(
-          oldInvoice.customer_id,
-          creditDelta,
-          connection,
-        );
-      }
+    const creditDelta = creditAmount - oldInvoice.credit_amount;
+    if (creditDelta !== 0) {
+      await customerRepository.incrementDebt(
+        oldInvoice.customer_id,
+        creditDelta,
+        connection,
+      );
     }
 
     await saleInvoiceRepository.updateInvoice(

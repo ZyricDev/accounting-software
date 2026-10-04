@@ -65,6 +65,7 @@ const createTables = async () => {
     is_active BOOLEAN DEFAULT 1,
     birth_month INT DEFAULT NULL,
     birth_day INT DEFAULT NULL,
+    initial_balance BIGINT NOT NULL DEFAULT 0,
     current_balance BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -84,7 +85,7 @@ const createTables = async () => {
   const salesInvoicesTable = `
   CREATE TABLE IF NOT EXISTS sales_invoices (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT DEFAULT NULL,
+    customer_id INT NOT NULL,
     payment_method ENUM('CASH', 'CARD', 'TRANSFER', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
     discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
@@ -122,7 +123,7 @@ const createTables = async () => {
     id INT AUTO_INCREMENT PRIMARY KEY,
     account_id INT DEFAULT NULL,
     person_type ENUM('CUSTOMER', 'SUPPLIER') DEFAULT NULL,
-    person_id INT DEFAULT NULL,
+    person_id INT NOT NULL,
     invoice_type ENUM('SALE', 'PURCHASE', 'SETTLEMENT_IN', 'SETTLEMENT_OUT') NOT NULL,
     invoice_id INT UNSIGNED DEFAULT NULL,
     method ENUM('CASH', 'CARD', 'TRANSFER') NOT NULL,
@@ -184,7 +185,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     CREATE TABLE IF NOT EXISTS return_invoices (
       id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       return_type ENUM('SALE_RETURN', 'PURCHASE_RETURN') NOT NULL,
-      person_id INT DEFAULT NULL,
+      person_id INT NOT NULL,
       reference_invoice_id INT UNSIGNED NOT NULL,
       total_quantity INT UNSIGNED NOT NULL,
       total_amount BIGINT UNSIGNED NOT NULL,
@@ -231,16 +232,33 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     await pool.query(returnInvoicesTable);
     await pool.query(returnInvoiceItemsTable);
 
-    const [checkAdmin] = await pool.query(
-      `SELECT COUNT(*) as count FROM admin`,
-    );
-    if (Number(checkAdmin[0].count) === 0) {
-      const defaultAdminQuery = `INSERT INTO admin (username, password) VALUES ('admin', '$2b$10$KsELeWS4ZLKf8RWjPKfNduDo/m4TuU4gksJYVIQ6Eu/FsTZABkqFG');`;
-      await pool.query(defaultAdminQuery);
-      logger.info(
-        "👨‍💻 Default admin user created (Username: admin, Password: admin)",
+    const setupAdmin = async () => {
+      const [checkAdmin] = await pool.query(
+        `SELECT COUNT(*) as count FROM admin`,
       );
-    }
+      if (Number(checkAdmin[0].count) === 0) {
+        const defaultAdminQuery = `INSERT INTO admin (username, password) VALUES ('admin', '$2b$10$KsELeWS4ZLKf8RWjPKfNduDo/m4TuU4gksJYVIQ6Eu/FsTZABkqFG');`;
+        await pool.query(defaultAdminQuery);
+        logger.info(
+          "👨‍‍💻 Default admin user created (Username: admin, Password: admin)",
+        );
+      }
+    };
+
+    const setupGuestCustomer = async () => {
+      const [checkGuest] = await pool.query(
+        `SELECT id FROM customers WHERE phone = '00000000000'`,
+      );
+
+      if (checkGuest.length === 0) {
+        const guestQuery = `INSERT INTO customers (name, phone, initial_balance, current_balance) VALUES ('مشتری گذری', '00000000000', 0, 0);`;
+        await pool.query(guestQuery);
+        logger.info("👤 Default guest customer created successfully.");
+      }
+    };
+
+    await Promise.all([setupAdmin(), setupGuestCustomer()]);
+
     logger.info("✅ All database tables checked/created successfully!");
   } catch (error) {
     logger.error("❌ Error creating database tables:", {

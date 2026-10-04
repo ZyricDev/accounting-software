@@ -72,6 +72,13 @@ const isPhoneTaken = async (phone) => {
   return rows.length > 0;
 };
 
+const getGuestCustomerId = async () => {
+  const [rows] = await pool.query(
+    "SELECT id FROM customers WHERE phone = '00000000000' LIMIT 1",
+  );
+  return rows[0] ? rows[0].id : null;
+};
+
 const getCustomerById = async (id) => {
   const [rows] = await pool.query("SELECT * FROM customers WHERE id= ? ", [id]);
 
@@ -161,6 +168,7 @@ export default {
   findOrCreateCustomer,
   incrementDebt,
   isPhoneTaken,
+  getGuestCustomerId,
   getCustomerById,
   createCustomer,
   getCustomers,

@@ -1,10 +1,13 @@
 import { Router } from "express";
 
 import validate from "../../shared/middleware/validate.js";
+import requireAuth from "../../shared/middleware/index.js";
 import purchaseInvoiceController from "./purchaseInvoice.controller.js";
 import purchaseInvoiceValidation from "./purchaseInvoice.validation.js";
 
 const router = Router();
+
+router.use(requireAuth);
 
 router
   .route("/")

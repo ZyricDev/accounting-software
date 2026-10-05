@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import AppError from "../../shared/errors/AppError.js";
 import logger from "../../shared/utils/logger.js";
 import config from "../../config/env.js";
@@ -45,10 +45,17 @@ const createBackup = async () => {
     await fs.mkdir(localDayFolderPath, { recursive: true });
     const localFilePath = path.join(localDayFolderPath, fileName);
 
-    const dumpCommand = `mysqldump -h ${config.DB.host} -u ${config.DB.user} -p${config.DB.password} ${config.DB.name} > ${localFilePath}`;
-
+    const args = [
+      "-h",
+      config.DB.host,
+      "-u",
+      config.DB.user,
+      `-p${config.DB.password}`,
+      config.DB.name,
+      `--result-file=${localFilePath}`,
+    ];
     await new Promise((resolve, reject) => {
-      exec(dumpCommand, (err, stdout, stderr) => {
+      execFile("mysqldump", args, (err, stdout, stderr) => {
         if (err) {
           logger.error("❌ mysqldump failed", { error: err.message, stderr });
           return reject(err);

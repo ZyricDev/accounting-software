@@ -23,8 +23,7 @@ const searchProducts = async (searchTerm) => {
      FROM products
      WHERE stock > 0
        AND (barcode = ? OR name LIKE ?)
-     ORDER BY CASE WHEN barcode = ? THEN 0 ELSE 1 END, name ASC
-     LIMIT 10`,
+     ORDER BY CASE WHEN barcode = ? THEN 0 ELSE 1 END, name ASC `,
     [searchTerm, `%${searchTerm}%`, searchTerm],
   );
   return rows;

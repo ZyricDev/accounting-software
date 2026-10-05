@@ -4,16 +4,34 @@ import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import { cleanPayload } from "../../shared/utils/object.js";
 
-const _toApiFields = (dbRow) => ({
-  id: dbRow.id,
-  name: dbRow.name,
-  barcode: dbRow?.barcode,
-  stock: dbRow.stock,
-  purchasePrice: dbRow.purchase_price,
-  salePrice: dbRow.sale_price,
-  lastStockInAt: dbRow.last_stock_in_at,
-  stockHistory: dbRow?.stock_history,
-});
+const _toApiFields = (dbRow) => {
+  let lastPurchasePrice;
+  if (dbRow.stock_history) {
+    const history =
+      typeof dbRow.stock_history === "string"
+        ? JSON.parse(dbRow.stock_history)
+        : dbRow.stock_history;
+
+    const latestRecord = history.reduce((latest, current) => {
+      return new Date(current.date).getTime() > new Date(latest.date).getTime()
+        ? current
+        : latest;
+    });
+
+    lastPurchasePrice = latestRecord.purchasePrice;
+  }
+
+  return {
+    id: dbRow.id,
+    name: dbRow.name,
+    barcode: dbRow?.barcode,
+    stock: dbRow.stock,
+    purchasePrice: lastPurchasePrice,
+    salePrice: dbRow.sale_price,
+    lastStockInAt: dbRow.last_stock_in_at,
+    stockHistory: dbRow?.stock_history,
+  };
+};
 
 const getProducts = async (filters) => {
   const { products, total } = await productRepository.getProducts(filters);

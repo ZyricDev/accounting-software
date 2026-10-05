@@ -17,7 +17,7 @@ const getProducts = async ({ search, page, limit, sortBy, order }) => {
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
   const [rows] = await pool.query(
-    `SELECT id, name, barcode, stock, purchase_price, sale_price, last_stock_in_at FROM products 
+    `SELECT id, name, barcode, stock, stock_history, sale_price, last_stock_in_at FROM products 
      ${whereClause} 
      ORDER BY ${sortColumn} ${order.toUpperCase()}
      LIMIT ? OFFSET ?`,

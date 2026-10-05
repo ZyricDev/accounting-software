@@ -183,6 +183,21 @@ const applyPurchaseUpdate = async (
   );
 };
 
+const updateStockHistory = async (
+  productId,
+  historyJsonString,
+  lastStockInAt,
+  connection = pool,
+) => {
+  const query = `
+    UPDATE products 
+    SET stock_history = ?, last_stock_in_at = ? 
+    WHERE id = ?
+  `;
+
+  await connection.query(query, [historyJsonString, lastStockInAt, productId]);
+};
+
 export default {
   getProducts,
   getProductById,
@@ -195,4 +210,5 @@ export default {
   adjustStock,
   getProductForUpdate,
   applyPurchaseUpdate,
+  updateStockHistory,
 };

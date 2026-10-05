@@ -175,6 +175,44 @@ const createReturnInvoice = async ({
         stockChange,
         connection,
       );
+
+      if (!isSaleReturn) {
+        const product = await productRepository.getProductById(
+          returnItem.productId,
+          connection,
+        );
+
+        let history =
+          typeof product.stock_history === "string"
+            ? JSON.parse(product.stock_history)
+            : product.stock_history || [];
+
+        const historyIndex = history.findIndex(
+          (h) => Number(h.invoiceId) === Number(referenceInvoiceId),
+        );
+
+        if (historyIndex !== -1) {
+          history[historyIndex].quantity -= returnItem.quantity;
+
+          if (history[historyIndex].quantity <= 0) {
+            history.splice(historyIndex, 1);
+          }
+        }
+
+        const newLastStockInAt =
+          history.length > 0
+            ? new Date(
+                Math.max(...history.map((h) => new Date(h.date).getTime())),
+              )
+            : null;
+
+        await productRepository.updateStockHistory(
+          returnItem.productId,
+          JSON.stringify(history),
+          newLastStockInAt,
+          connection,
+        );
+      }
     }
 
     if (isSaleReturn) {
@@ -250,6 +288,21 @@ const cancelReturnInvoiceById = async (returnInvoiceId) => {
   const isSaleReturn = returnInvoice.return_type === "SALE_RETURN";
   const personId = returnInvoice.person_id;
   const totalAmount = returnInvoice.total_amount;
+  const referenceInvoiceId = returnInvoice.reference_invoice_id;
+
+  let originalPurchaseInvoice = null;
+  let originalPurchaseItemsMap = {};
+  if (!isSaleReturn) {
+    originalPurchaseInvoice =
+      await purchaseInvoiceRepository.getPurchaseInvoiceById(
+        referenceInvoiceId,
+      );
+    const oldItems =
+      await purchaseInvoiceRepository.getInvoiceItems(referenceInvoiceId);
+    for (const old of oldItems) {
+      originalPurchaseItemsMap[old.product_id] = old;
+    }
+  }
 
   let connection;
 
@@ -266,6 +319,51 @@ const cancelReturnInvoiceById = async (returnInvoiceId) => {
         stockChange,
         connection,
       );
+
+      if (!isSaleReturn) {
+        const product = await productRepository.getProductById(
+          item.product_id,
+          connection,
+        );
+
+        let history =
+          typeof product.stock_history === "string"
+            ? JSON.parse(product.stock_history)
+            : product.stock_history || [];
+
+        const historyIndex = history.findIndex(
+          (h) => Number(h.invoiceId) === Number(referenceInvoiceId),
+        );
+
+        if (historyIndex !== -1) {
+          history[historyIndex].quantity += item.quantity;
+        } else {
+          const originalItem = originalPurchaseItemsMap[item.product_id];
+          if (originalItem && originalPurchaseInvoice) {
+            history.push({
+              invoiceId: referenceInvoiceId,
+              supplierId: personId,
+              quantity: item.quantity,
+              purchasePrice: originalItem.purchase_price,
+              date: originalPurchaseInvoice.created_at,
+            });
+          }
+        }
+
+        const newLastStockInAt =
+          history.length > 0
+            ? new Date(
+                Math.max(...history.map((h) => new Date(h.date).getTime())),
+              )
+            : null;
+
+        await productRepository.updateStockHistory(
+          item.product_id,
+          JSON.stringify(history),
+          newLastStockInAt,
+          connection,
+        );
+      }
     }
 
     if (isSaleReturn) {

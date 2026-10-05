@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.get(
   "/",
+  requireAuth,
   validate(returnInvoiceValidation.getReturnInvoices),
   returnInvoiceController.getReturnInvoices,
 );

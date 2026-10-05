@@ -332,9 +332,35 @@ const cancelPurchaseInvoiceById = async (invoiceId) => {
         -item.quantity,
         connection,
       );
+
+      const product = await productRepository.getProductById(
+        item.product_id,
+        connection,
+      );
+      if (product) {
+        let history = product.stock_history;
+
+        history = history.filter(
+          (h) => Number(h.invoiceId) !== Number(invoiceId),
+        );
+
+        const newLastStockInAt =
+          history.length > 0
+            ? new Date(
+                Math.max(...history.map((h) => new Date(h.date).getTime())),
+              )
+            : null;
+
+        await productRepository.updateStockHistory(
+          item.product_id,
+          JSON.stringify(history),
+          newLastStockInAt,
+          connection,
+        );
+      }
     }
 
-    if (invoice.supplier_id && invoice.credit_amount > 0) {
+    if (invoice.credit_amount > 0) {
       await supplierRepository.incrementDebt(
         invoice.supplier_id,
         -invoice.credit_amount,
@@ -470,15 +496,17 @@ const updatePurchaseInvoiceById = async (
       productDeltas[newItem.productId] += newItem.quantity;
     }
 
-    for (const [productId, diff] of Object.entries(productDeltas)) {
+    for (const [productIdStr, diff] of Object.entries(productDeltas)) {
+      const productId = Number(productIdStr);
+
+      const product = await productRepository.getProductById(
+        productId,
+        connection,
+      );
+
+      if (!product) throw new AppError("محصول یافت نشد", 404);
+
       if (diff < 0) {
-        const product = await productRepository.getProductById(
-          productId,
-          connection,
-        );
-
-        if (!product) throw new AppError("محصول یافت نشد", 404);
-
         const removeAmount = Math.abs(diff);
         if (product.stock < removeAmount) {
           throw new AppError(
@@ -491,6 +519,41 @@ const updatePurchaseInvoiceById = async (
       if (diff !== 0) {
         await productRepository.adjustStock(productId, diff, connection);
       }
+
+      let history = product.stock_history;
+
+      history = history.filter(
+        (h) => Number(h.invoiceId) !== Number(invoiceId),
+      );
+
+      const updatedItem = invoiceItems.find(
+        (i) => Number(i.productId) === productId,
+      );
+
+      if (updatedItem) {
+        history.push({
+          invoiceId: invoiceId,
+          supplierId: oldInvoice.supplier_id,
+          quantity: updatedItem.quantity,
+          purchasePrice: updatedItem.purchasePrice,
+          date: oldInvoice.created_at,
+        });
+      }
+
+      const newLastStockInAt =
+        history.length > 0
+          ? new Date(
+              Math.max(...history.map((h) => new Date(h.date).getTime())),
+            )
+          : null;
+      console.log("----------------->", newLastStockInAt);
+
+      await productRepository.updateStockHistory(
+        productId,
+        JSON.stringify(history),
+        newLastStockInAt,
+        connection,
+      );
     }
 
     if (oldInvoice.supplier_id) {

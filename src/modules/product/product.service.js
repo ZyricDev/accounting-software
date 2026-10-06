@@ -5,8 +5,9 @@ import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import { cleanPayload } from "../../shared/utils/object.js";
 
 const _toApiFields = (dbRow) => {
-  let lastPurchasePrice;
-  if (dbRow.stock_history) {
+  let lastPurchasePrice = null;
+
+  if (dbRow.stock_history.length > 0) {
     const history =
       typeof dbRow.stock_history === "string"
         ? JSON.parse(dbRow.stock_history)

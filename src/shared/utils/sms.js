@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import smsRepository from "../../modules/sms/sms.repository.js";
+import couponRepository from "../../modules/coupon/coupon.repository.js";
 import config from "../../config/env.js";
 import logger from "./logger.js";
 
@@ -27,7 +27,7 @@ const ـgenerateUniqueCouponCode = async () => {
     const randomNum = crypto.randomInt(0, 100000);
     newCode = String(randomNum).padStart(5, "0");
 
-    const exists = await smsRepository.checkCouponExists(newCode);
+    const exists = await couponRepository.checkCouponExists(newCode);
 
     if (!exists) {
       isUnique = true;
@@ -63,7 +63,7 @@ const sendPurchaseDiscountSMS = async (
     day: "numeric",
   }).format(expireDateObj);
 
-  await smsRepository.createCoupon({
+  await couponRepository.createCoupon({
     code,
     amount: discountAmount,
     minPurchase: minPurchaseAmount,
@@ -73,8 +73,7 @@ const sendPurchaseDiscountSMS = async (
   const formattedDiscount = ـformatTomanReadable(discountAmount);
   const formattedMinPurchase = ـformatTomanReadable(minPurchaseAmount);
 
-  const messageText = `${customerName} عزیز؛ هدیه ویژه مینل برای شما! 💎\n${formattedDiscount} تومان تخفیف اختصاصی\nحداقل خرید ${formattedMinPurchase} تومان\nکد تخفیف: ${code}\nتا: ${expireDateShamsi}`;
-  console.log(messageText);
+  const messageText = `${customerName} عزیز؛ هدیه ویژه مینل برای شما! 💎\n${formattedDiscount} تومان تخفیف اختصاصی\nحداقل خرید ${formattedMinPurchase} تومان\nکد تخفیف: ${code}\nتا ${expireDateShamsi}`;
 
   const params = new URLSearchParams({
     receptor: phoneNumber,

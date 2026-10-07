@@ -8,6 +8,14 @@ const checkCouponExists = async (code) => {
   return rows.length > 0;
 };
 
+const getCouponByCode = async (code) => {
+  const [rows] = await pool.query(`SELECT * FROM coupons WHERE code = ?`, [
+    code,
+  ]);
+
+  return rows[0] || null;
+};
+
 const createCoupon = async (
   { code, amount, minPurchase, expiresAt },
   connection = pool,
@@ -22,5 +30,6 @@ const createCoupon = async (
 
 export default {
   checkCouponExists,
+  getCouponByCode,
   createCoupon,
 };

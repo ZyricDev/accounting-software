@@ -49,6 +49,7 @@ const _toInvoiceApiFields = (dbRow) => ({
   customerPhone: dbRow.customer_phone || null,
 
   paymentMethod: dbRow.payment_method,
+  discountType: dbRow.discount_type,
   discountAmount: Number(dbRow.discount_amount),
   creditAmount: Number(dbRow.credit_amount),
   totalAmount: Number(dbRow.total_amount),
@@ -142,6 +143,7 @@ const addSaleInvoice = async ({
         creditAmount,
         totalAmount,
         totalQuantity,
+        discount_type: cart.discountType,
       },
       connection,
     );

@@ -37,6 +37,8 @@ const getCartById = async (id) => {
   return {
     id: cart.id,
     discountAmount: cart.discount_amount,
+    discountType: cart.discount_type,
+    couponCode: cart.coupon_code,
     items: typeof cart.items === "string" ? JSON.parse(cart.items) : cart.items,
   };
 };
@@ -46,10 +48,16 @@ const deleteCartById = async (id, executor = pool) => {
   return result.affectedRows;
 };
 
-const updateCartState = async (id, items, discountAmount) => {
+const updateCartState = async (
+  id,
+  items,
+  discountAmount,
+  discountType,
+  couponCode,
+) => {
   await pool.query(
-    "UPDATE carts SET items = ?, discount_amount = ? WHERE id = ?",
-    [JSON.stringify(items), discountAmount, id],
+    "UPDATE carts SET items = ?, discount_amount = ?, discount_type = ?, coupon_code = ? WHERE id = ?",
+    [JSON.stringify(items), discountAmount, discountType, couponCode, id],
   );
 };
 

@@ -98,7 +98,7 @@ const deleteItem = {
   }),
 };
 
-const applyDiscount = {
+const applyManualDiscount = {
   params: joi.object({ cartId: cartIdParamSchema }),
 
   body: createBodyObjectSchema({
@@ -110,6 +110,25 @@ const applyDiscount = {
   }),
 };
 
+const applyCoupon = {
+  params: joi.object({ cartId: cartIdParamSchema }),
+
+  body: createBodyObjectSchema({
+    code: joi
+      .string()
+      .trim()
+      .pattern(/^[a-zA-Z0-9]+$/)
+      .required()
+      .messages({
+        "string.base": "کد تخفیف باید متن باشد.",
+        "string.empty": "کد تخفیف الزامی است.",
+        "string.pattern.base":
+          "کد تخفیف فقط می‌تواند شامل حروف انگلیسی و اعداد باشد.",
+        "any.required": "کد تخفیف الزامی است.",
+      }),
+  }),
+};
+
 export default {
   addItem,
   getCart,
@@ -118,5 +137,6 @@ export default {
   quantityItem,
   priceItem,
   deleteItem,
-  applyDiscount,
+  applyManualDiscount,
+  applyCoupon,
 };

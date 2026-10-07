@@ -3,6 +3,7 @@ import AppError from "../../shared/errors/AppError.js";
 import cartRepository from "./cart.repository.js";
 import productRepository from "../product/product.repository.js";
 import { buildCartSummary, toApiCart } from "../../shared/utils/cart.js";
+import couponRepository from "../coupon/coupon.repository.js";
 
 const MAX_ACTIVE_CARTS = 5;
 
@@ -27,10 +28,15 @@ const salesItemTransformer = (item) => {
 const _saveAndFormatCart = async (cart) => {
   if (cart.items.length === 0) {
     cart.discountAmount = 0;
+    cart.discountType = "NONE";
+    cart.couponCode = null;
   } else {
     const { subtotal } = buildCartSummary(cart.items, "salePrice");
+
     if (cart.discountAmount > subtotal) {
       cart.discountAmount = 0;
+      cart.discountType = "NONE";
+      cart.couponCode = null;
     }
   }
 
@@ -38,6 +44,8 @@ const _saveAndFormatCart = async (cart) => {
     cart.id,
     cart.items,
     cart.discountAmount,
+    cart.discountType,
+    cart.couponCode,
   );
 
   return toApiCart(cart, "salePrice", salesItemTransformer);
@@ -141,33 +149,6 @@ const updateSalePriceItemById = async ({ cartId, itemId, salePrice }) => {
   return _saveAndFormatCart(cart);
 };
 
-const applyDiscount = async (cartId, discountAmount) => {
-  const cart = await _getCartOrThrow(cartId);
-  const { subtotal } = buildCartSummary(cart.items, "salePrice");
-
-  if (subtotal === 0) {
-    throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست", 400);
-  }
-
-  if (discountAmount > subtotal) {
-    throw new AppError("مبلغ تخفیف نمی‌تواند بیشتر از جمع کل سبد باشد", 400);
-  }
-
-  cart.discountAmount = discountAmount;
-  return _saveAndFormatCart(cart);
-};
-
-const removeDiscount = async (cartId) => {
-  const cart = await _getCartOrThrow(cartId);
-
-  if (cart.items.length === 0) {
-    throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست", 400);
-  }
-
-  cart.discountAmount = 0;
-  return _saveAndFormatCart(cart);
-};
-
 const clearCartItems = async (cartId) => {
   const cart = await _getCartOrThrow(cartId);
   cart.items = [];
@@ -186,6 +167,81 @@ const deleteItemById = async ({ cartId, itemId }) => {
   return _saveAndFormatCart(cart);
 };
 
+const applyManualDiscount = async (cartId, discountAmount) => {
+  const cart = await _getCartOrThrow(cartId);
+  const { subtotal } = buildCartSummary(cart.items, "salePrice");
+
+  if (subtotal === 0) {
+    throw new AppError("سبد خرید خالی است، امکان اعمال تخفیف نیست.", 400);
+  }
+
+  if (cart.discountType === "COUPON") {
+    throw new AppError(
+      "یک کد تخفیف روی این فاکتور فعال است. لطفاً ابتدا کد تخفیف را حذف کنید.",
+      400,
+    );
+  }
+
+  if (discountAmount > subtotal) {
+    throw new AppError("مبلغ تخفیف نمی‌تواند بیشتر از جمع کل سبد باشد.", 400);
+  }
+
+  cart.discountAmount = discountAmount;
+  cart.discountType = "MANUAL";
+  cart.couponCode = null;
+
+  return _saveAndFormatCart(cart);
+};
+
+const applyCoupon = async (cartId, code) => {
+  const cart = await _getCartOrThrow(cartId);
+  const { subtotal } = buildCartSummary(cart.items, "salePrice");
+
+  if (subtotal === 0) {
+    throw new AppError("سبد خرید خالی است، امکان اعمال کد تخفیف نیست.", 400);
+  }
+
+  if (cart.discountType === "MANUAL") {
+    throw new AppError(
+      "روی این فاکتور تخفیف دستی اعمال شده است. ابتدا آن را حذف کنید.",
+      400,
+    );
+  }
+
+  const coupon = await couponRepository.getCouponByCode(code);
+
+  if (!coupon) {
+    throw new AppError("کد تخفیف وارد شده نامعتبر است یا منقضی شده است.", 404);
+  }
+
+  if (subtotal < coupon.min_purchase_amount) {
+    throw new AppError(
+      `حداقل مبلغ خرید برای استفاده از این کد ${coupon.min_purchase_amount.toLocaleString("fa-IR")} تومان است.`,
+      400,
+    );
+  }
+
+  cart.discountAmount = coupon.amount;
+  cart.couponCode = coupon.code;
+  cart.discountType = "COUPON";
+
+  return _saveAndFormatCart(cart);
+};
+
+const removeDiscount = async (cartId) => {
+  const cart = await _getCartOrThrow(cartId);
+
+  if (cart.discountType === "NONE") {
+    throw new AppError("هیچ تخفیفی فعال نیست", 400);
+  }
+
+  cart.discountAmount = 0;
+  cart.discountType = "NONE";
+  cart.couponCode = null;
+
+  return _saveAndFormatCart(cart);
+};
+
 export default {
   createCart,
   getCarts,
@@ -195,8 +251,9 @@ export default {
   addItem,
   updateQuantityItemById,
   updateSalePriceItemById,
-  applyDiscount,
-  removeDiscount,
   clearCartItems,
   deleteItemById,
+  applyManualDiscount,
+  applyCoupon,
+  removeDiscount,
 };

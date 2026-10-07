@@ -44,7 +44,14 @@ router.patch(
 
 router
   .route("/:cartId/discount")
-  .post(validate(cartValidation.applyDiscount), cartController.applyDiscount)
+  .post(
+    validate(cartValidation.applyManualDiscount),
+    cartController.applyManualDiscount,
+  )
   .delete(validate(cartValidation.cartId), cartController.removeDiscount);
+
+router
+  .route("/:cartId/coupon")
+  .post(validate(cartValidation.applyCoupon), cartController.applyCoupon)
 
 export default router;

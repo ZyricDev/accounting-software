@@ -89,13 +89,13 @@ const deleteItem = async (req, res) => {
   return sendSuccess(res, " محصول با موفقیت حذف شد", { cart });
 };
 
-const applyDiscount = async (req, res) => {
+const applyManualDiscount = async (req, res) => {
   const { cartId } = req.params;
   const { discountAmount } = req.body;
 
-  const cart = await cartService.applyDiscount(cartId, discountAmount);
+  const cart = await cartService.applyManualDiscount(cartId, discountAmount);
 
-  return sendSuccess(res, "تخفیف با موفقیت اعمال شد", { cart });
+  return sendSuccess(res, "مبلغ تخفیف با موفقیت اعمال شد", { cart });
 };
 
 const removeDiscount = async (req, res) => {
@@ -103,7 +103,16 @@ const removeDiscount = async (req, res) => {
 
   const cart = await cartService.removeDiscount(cartId);
 
-  return sendSuccess(res, "تخفیف با موفقیت حذف شد", { cart });
+  return sendSuccess(res, " تخفیف با موفقیت حذف شد", { cart });
+};
+
+const applyCoupon = async (req, res) => {
+  const { cartId } = req.params;
+  const { code } = req.body;
+
+  const cart = await cartService.applyCoupon(cartId, code);
+
+  return sendSuccess(res, "کد تخفیف با موفقیت اعمال شد", { cart });
 };
 
 export default {
@@ -117,6 +126,7 @@ export default {
   updatePriceItem,
   deleteItems,
   deleteItem,
-  applyDiscount,
+  applyManualDiscount,
   removeDiscount,
+  applyCoupon,
 };

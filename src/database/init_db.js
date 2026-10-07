@@ -76,7 +76,9 @@ const createTables = async () => {
     CREATE TABLE IF NOT EXISTS carts (
       id INT AUTO_INCREMENT PRIMARY KEY,
       items JSON NOT NULL DEFAULT (JSON_ARRAY()),
+      discount_type ENUM('NONE', 'MANUAL', 'COUPON') DEFAULT 'NONE',
       discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
+      coupon_code VARCHAR(20) DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );
@@ -87,6 +89,7 @@ const createTables = async () => {
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     payment_method ENUM('CASH', 'CARD', 'TRANSFER', 'CREDIT', 'MIXED') NOT NULL DEFAULT 'CASH',
+    discount_type ENUM('NONE', 'MANUAL', 'COUPON') DEFAULT 'NONE',
     discount_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,
     status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     credit_amount BIGINT UNSIGNED NOT NULL DEFAULT 0,

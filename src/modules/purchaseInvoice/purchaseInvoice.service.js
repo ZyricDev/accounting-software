@@ -546,7 +546,6 @@ const updatePurchaseInvoiceById = async (
               Math.max(...history.map((h) => new Date(h.date).getTime())),
             )
           : null;
-      console.log("----------------->", newLastStockInAt);
 
       await productRepository.updateStockHistory(
         productId,

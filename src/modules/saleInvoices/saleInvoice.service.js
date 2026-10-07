@@ -6,6 +6,7 @@ import saleInvoiceRepository from "./saleInvoice.repository.js";
 import paymentRepository from "../payment/payment.repository.js";
 import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+import smsService from "../../shared/utils/sms.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -77,8 +78,9 @@ const addSaleInvoice = async ({
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
   if (cart.items.length === 0) throw new AppError("سبد خرید خالی است", 400);
 
+  let customer;
   if (customerId) {
-    const customer = await customerRepository.getCustomerById(customerId);
+    customer = await customerRepository.getCustomerById(customerId);
     if (!customer) {
       throw new AppError("مشتری یافت نشد", 404);
     }
@@ -201,6 +203,14 @@ const addSaleInvoice = async ({
         creditAmount,
         connection,
       );
+    } else {
+      if (customer) {
+        smsService.sendPurchaseDiscountSMS(
+          customer.name,
+          customer.phone,
+          totalAmount,
+        );
+      }
     }
 
     await connection.commit();

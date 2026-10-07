@@ -21,6 +21,15 @@ const config = {
   backupRootDir: process.env.BACKUP_DIR,
   usbBackupRootDir: process.env.USB_BACKUP_DIR,
   usbBackupRootDir: process.env.LOG_DIR,
+
+  kavenegar: {
+    apikey: process.env.KAVENEGAR_API_KEY,
+    senderNumber: process.env.KAVENEGAR_SENDER_NUMBER,
+  },
+
+  sms: {
+    expireDays: process.env.expire_days || 25,
+  },
 };
 
 export default config;

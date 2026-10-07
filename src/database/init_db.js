@@ -216,6 +216,19 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     );
   `;
 
+  const couponsTable = `
+  CREATE TABLE IF NOT EXISTS coupons (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(20) NOT NULL UNIQUE,
+  amount BIGINT NOT NULL,
+  min_purchase_amount BIGINT NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX (code)
+);
+`;
+
   try {
     await pool.query(adminTable);
     await pool.query(bankAccountsTable);
@@ -231,6 +244,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     await pool.query(purchaseInvoiceItemsTable);
     await pool.query(returnInvoicesTable);
     await pool.query(returnInvoiceItemsTable);
+    await pool.query(couponsTable);
 
     const setupAdmin = async () => {
       const [checkAdmin] = await pool.query(

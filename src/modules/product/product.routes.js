@@ -14,6 +14,8 @@ router
   .get(validate(productValidation.getProducts), productController.getProducts)
   .post(validate(productValidation.addProduct), productController.addProduct);
 
+router.get("/valuation", productController.getProductValuation);
+
 router
   .route("/:productId")
   .get(validate(productValidation.getProduct), productController.getProduct)

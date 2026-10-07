@@ -168,10 +168,22 @@ const deleteProduct = async (productId) => {
   return { id: product.id, name: product.name };
 };
 
+const getProductValuation = async () => {
+  const valuation = await productRepository.getProductValuation();
+
+  const formattedData = {
+    totalProductValue: Number(valuation.totalProductValue),
+    totalPotentialProfit: Number(valuation.totalPotentialProfit),
+  };
+
+  return formattedData;
+};
+
 export default {
   getProducts,
   addProduct,
   getProduct,
   updateProduct,
   deleteProduct,
+  getProductValuation,
 };

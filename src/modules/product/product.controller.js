@@ -68,10 +68,17 @@ const deleteProduct = async (req, res) => {
   });
 };
 
+const getProductValuation = async (req, res) => {
+  const valuation = await productService.getProductValuation();
+
+  return sendSuccess(res, "ارزش انبار دریافت شد",  valuation );
+};
+
 export default {
   getProducts,
   addProduct,
   getProduct,
   updateProduct,
   deleteProduct,
+  getProductValuation,
 };

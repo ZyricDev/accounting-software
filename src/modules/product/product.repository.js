@@ -198,6 +198,20 @@ const updateStockHistory = async (
   await connection.query(query, [historyJsonString, lastStockInAt, productId]);
 };
 
+export const getProductValuation = async (connection = pool) => {
+  const query = `
+    SELECT 
+        COALESCE(SUM(stock * purchase_price), 0) AS totalProductValue,
+        COALESCE(SUM(stock * (sale_price - purchase_price)), 0) AS totalPotentialProfit
+    FROM products
+    WHERE stock > 0;
+  `;
+
+  const [rows] = await connection.query(query);
+
+  return rows[0];
+};
+
 export default {
   getProducts,
   getProductById,
@@ -211,4 +225,5 @@ export default {
   getProductForUpdate,
   applyPurchaseUpdate,
   updateStockHistory,
+  getProductValuation,
 };

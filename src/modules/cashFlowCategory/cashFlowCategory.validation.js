@@ -5,6 +5,17 @@ import {
   createQuerySchema,
 } from "../../shared/utils/validationHelpers.js";
 
+const cashFlowCategoryIdParamSchema = joi
+  .number()
+  .integer()
+  .positive()
+  .required()
+  .messages({
+    "number.base": "شناسه دسته‌بندی باید عدد باشد.",
+    "number.positive": "شناسه دسته‌بندی نامعتبر است.",
+    "any.required": "شناسه دسته‌بندی الزامی است.",
+  });
+
 const addCashFlowCategory = {
   body: createBodyObjectSchema({
     title: joi.string().trim().min(3).max(125).required().messages({
@@ -25,4 +36,8 @@ const addCashFlowCategory = {
   }),
 };
 
-export default { addCashFlowCategory };
+const getCashFlowCategory = {
+  params: joi.object({ categoryId: cashFlowCategoryIdParamSchema }),
+};
+
+export default { addCashFlowCategory, getCashFlowCategory };

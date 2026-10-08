@@ -18,7 +18,24 @@ const addCashFlowCategory = async (req, res) => {
     type,
   });
 
-  return sendSuccess(res, "دسته‌بندی با موفقیت اضافه شد", { cashFlowCategory });
+  return sendSuccess(res, "دسته‌بندی‌ با موفقیت اضافه شد", {
+    cashFlowCategory,
+  });
 };
 
-export default { getCashFlowCategories, addCashFlowCategory };
+const getCashFlowCategory = async (req, res) => {
+  const { categoryId } = req.params;
+
+  const cashFlowCategory =
+    await cashFlowCategoryService.getCashFlowCategoryById(categoryId);
+
+  return sendSuccess(res, "دسته‌بندی‌ با موفقیت دریافت شد", {
+    cashFlowCategory,
+  });
+};
+
+export default {
+  getCashFlowCategories,
+  addCashFlowCategory,
+  getCashFlowCategory,
+};

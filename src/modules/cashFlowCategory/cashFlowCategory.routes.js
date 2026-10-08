@@ -17,4 +17,11 @@ router
     cashFlowCategoryController.addCashFlowCategory,
   );
 
+router
+  .route("/:categoryId")
+  .get(
+    validate(cashFlowCategoryValidation.getCashFlowCategory),
+    cashFlowCategoryController.getCashFlowCategory,
+  );
+
 export default router;

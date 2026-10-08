@@ -21,4 +21,19 @@ const addCashFlowCategory = async ({ title, type }) => {
   return cashFlowCategory;
 };
 
-export default { getCashFlowCategories, addCashFlowCategory };
+const getCashFlowCategoryById = async (categoryId) => {
+  const cashFlowCategory =
+    await cashFlowCategoryRepository.getCashFlowCategoryById(categoryId);
+
+  if (!cashFlowCategory) {
+    throw new AppError("دسته‌بندی یافت نشد", 404);
+  }
+
+  return cashFlowCategory;
+};
+
+export default {
+  getCashFlowCategories,
+  addCashFlowCategory,
+  getCashFlowCategoryById,
+};

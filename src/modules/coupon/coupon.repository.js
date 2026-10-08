@@ -9,9 +9,10 @@ const checkCouponExists = async (code) => {
 };
 
 const getCouponByCode = async (code) => {
-  const [rows] = await pool.query(`SELECT * FROM coupons WHERE code = ?`, [
-    code,
-  ]);
+  const [rows] = await pool.query(
+    `SELECT * FROM coupons WHERE code = ? AND expires_at > NOW()`,
+    [code],
+  );
 
   return rows[0] || null;
 };

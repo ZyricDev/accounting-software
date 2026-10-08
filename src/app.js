@@ -18,6 +18,7 @@ import purchaseInvoiceRoutes from "./modules/purchaseInvoice/purchaseInvoice.rou
 import bankAccountRoutes from "./modules/bankAccount/bankAccount.routes.js";
 import customerRoutes from "./modules/customer/customer.routes.js";
 import returnInvoiceRoutes from "./modules/returnInvoice/returnInvoice.routes.js";
+import cashFlowCategoryRoutes from "./modules/cashFlowCategory/cashFlowCategory.routes.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/v1/purchase-invoices", purchaseInvoiceRoutes);
 app.use("/api/v1/bank-accounts", bankAccountRoutes);
 app.use("/api/v1/customers", customerRoutes);
 app.use("/api/v1/return-invoices", returnInvoiceRoutes);
+app.use("/api/v1/cash-flow-categories", cashFlowCategoryRoutes);
 
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

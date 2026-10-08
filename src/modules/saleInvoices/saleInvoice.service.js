@@ -7,6 +7,7 @@ import paymentRepository from "../payment/payment.repository.js";
 import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import smsService from "../../shared/utils/sms.js";
+import couponRepository from "../coupon/coupon.repository.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -79,6 +80,13 @@ const addSaleInvoice = async ({
   if (!cart) throw new AppError("سبد خرید پیدا نشد", 404);
   if (cart.items.length === 0) throw new AppError("سبد خرید خالی است", 400);
 
+  if (creditAmount > 0 && cart.discountType === "COUPON") {
+    throw new AppError(
+      "استفاده از کد تخفیف برای خرید نسیه امکان‌پذیر نیست",
+      400,
+    );
+  }
+
   let customer;
   if (customerId) {
     customer = await customerRepository.getCustomerById(customerId);
@@ -128,6 +136,10 @@ const addSaleInvoice = async ({
     );
     if (affectedRows === 0) {
       throw new AppError("این سبد خرید پردازش شده است", 409);
+    }
+
+    if (cart.discountType === "COUPON" && cart.couponCode) {
+      await couponRepository.deleteCouponByCode(cart.couponCode, connection);
     }
 
     const totalQuantity = invoiceItems.reduce(

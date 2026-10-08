@@ -29,8 +29,13 @@ const createCoupon = async (
   return result.insertId;
 };
 
+const deleteCouponByCode = async (code, connection) => {
+  await connection.query(`DELETE FROM coupons WHERE code = ?`, [code]);
+};
+
 export default {
   checkCouponExists,
   getCouponByCode,
   createCoupon,
+  deleteCouponByCode,
 };

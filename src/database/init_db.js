@@ -238,7 +238,9 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
       id INT AUTO_INCREMENT PRIMARY KEY,
       title VARCHAR(100) NOT NULL UNIQUE,
       type ENUM('INCOME', 'EXPENSE') NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      INDEX (title)
     );
   `;
 

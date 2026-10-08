@@ -10,4 +10,15 @@ const getCashFlowCategories = async (req, res) => {
   });
 };
 
-export default { getCashFlowCategories };
+const addCashFlowCategory = async (req, res) => {
+  const { title, type } = req.body;
+
+  const cashFlowCategory = await cashFlowCategoryService.addCashFlowCategory({
+    title,
+    type,
+  });
+
+  return sendSuccess(res, "دسته‌بندی با موفقیت اضافه شد", { cashFlowCategory });
+};
+
+export default { getCashFlowCategories, addCashFlowCategory };

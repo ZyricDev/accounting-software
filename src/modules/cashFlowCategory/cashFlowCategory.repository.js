@@ -7,11 +7,16 @@ const getCashFlowCategories = async () => {
   return rows;
 };
 
-const isTitleTaken = async (title) => {
-  const [rows] = await pool.query(
-    "SELECT id FROM cash_flow_categories WHERE title= ? ",
-    [title],
-  );
+const isTitleTaken = async (title, excludeId = null) => {
+  let query = "SELECT id FROM cash_flow_categories WHERE title = ?";
+  const params = [title];
+
+  if (excludeId) {
+    query += " AND id != ?";
+    params.push(excludeId);
+  }
+
+  const [rows] = await pool.query(query, params);
 
   return rows.length > 0;
 };
@@ -39,10 +44,20 @@ const createCashFlowCategory = async ({ title, type }) => {
   return getCashFlowCategoryById(rows.insertId);
 };
 
+const updateCashFlowCategoryTitle = async (id, title) => {
+  await pool.query("UPDATE cash_flow_categories SET title = ? WHERE id = ?", [
+    title,
+    id,
+  ]);
+
+  return getCashFlowCategoryById(id);
+};
+
 export default {
   getCashFlowCategories,
   getCashFlowCategories,
   isTitleTaken,
   getCashFlowCategoryById,
   createCashFlowCategory,
+  updateCashFlowCategoryTitle,
 };

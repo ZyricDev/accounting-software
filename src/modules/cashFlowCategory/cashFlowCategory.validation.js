@@ -40,4 +40,22 @@ const getCashFlowCategory = {
   params: joi.object({ categoryId: cashFlowCategoryIdParamSchema }),
 };
 
-export default { addCashFlowCategory, getCashFlowCategory };
+const updateCashFlowCategory = {
+  params: joi.object({ categoryId: cashFlowCategoryIdParamSchema }),
+
+  body: createBodyObjectSchema({
+    title: joi.string().trim().min(3).max(125).required().messages({
+      "string.base": "عنوان دسته‌بندی باید متن باشد.",
+      "string.empty": "عنوان دسته‌بندی الزامی است.",
+      "string.min": "عنوان دسته‌بندی باید حداقل ۳ کاراکتر باشد.",
+      "string.max": "عنوان دسته‌بندی نمی‌تواند بیشتر از ۱۲۵ کاراکتر باشد.",
+      "any.required": "عنوان دسته‌بندی الزامی است.",
+    }),
+  }),
+};
+
+export default {
+  addCashFlowCategory,
+  getCashFlowCategory,
+  updateCashFlowCategory,
+};

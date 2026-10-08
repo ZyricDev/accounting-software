@@ -34,8 +34,21 @@ const getCashFlowCategory = async (req, res) => {
   });
 };
 
+const updateCashFlowCategory = async (req, res) => {
+  const { categoryId } = req.params;
+  const { title } = req.body;
+
+  const cashFlowCategory =
+    await cashFlowCategoryService.updateCashFlowCategoryById(categoryId, title);
+
+  return sendSuccess(res, "دسته‌بندی‌ با موفقیت آپدیت شد", {
+    cashFlowCategory,
+  });
+};
+
 export default {
   getCashFlowCategories,
   addCashFlowCategory,
   getCashFlowCategory,
+  updateCashFlowCategory,
 };

@@ -22,6 +22,10 @@ router
   .get(
     validate(cashFlowCategoryValidation.getCashFlowCategory),
     cashFlowCategoryController.getCashFlowCategory,
+  )
+  .patch(
+    validate(cashFlowCategoryValidation.updateCashFlowCategory),
+    cashFlowCategoryController.updateCashFlowCategory,
   );
 
 export default router;

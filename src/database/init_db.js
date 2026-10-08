@@ -1,5 +1,6 @@
 import { pool } from "./connection.js";
 import logger from "../shared/utils/logger.js";
+import { runAllSeeds } from "./seed.js";
 
 const createTables = async () => {
   const adminTable = `
@@ -232,49 +233,73 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
 );
 `;
 
+  const cashFlowCategoriesTable = `
+    CREATE TABLE IF NOT EXISTS cash_flow_categories (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(100) NOT NULL UNIQUE,
+      type ENUM('INCOME', 'EXPENSE') NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  const cashFlowsTable = `
+    CREATE TABLE IF NOT EXISTS cash_flows (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      account_id INT DEFAULT NULL, 
+      category_id INT NOT NULL,
+      flow_type ENUM('INCOME', 'EXPENSE') NOT NULL,
+      method ENUM('CASH', 'TRANSFER') NOT NULL,
+      title VARCHAR(150) NOT NULL,
+      amount BIGINT UNSIGNED NOT NULL,
+      description TEXT DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT,
+      INDEX (account_id),
+      INDEX (flow_type, created_at)
+    );
+  `;
+
+  const inventoryAdjustmentsTable = `
+    CREATE TABLE IF NOT EXISTS inventory_adjustments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      product_id INT NOT NULL,
+      adjustment_type ENUM('DAMAGED', 'EXPIRED', 'TESTER', 'DEFICIT', 'SURPLUS') NOT NULL,
+      quantity INT UNSIGNED NOT NULL,
+      unit_cost BIGINT UNSIGNED NOT NULL, 
+      total_value BIGINT UNSIGNED NOT NULL, 
+      description TEXT DEFAULT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (product_id) REFERENCES products(id),
+      INDEX (product_id),
+      INDEX (adjustment_type, created_at)
+    );
+  `;
+
   try {
-    await pool.query(adminTable);
-    await pool.query(bankAccountsTable);
-    await pool.query(suppliersTable);
-    await pool.query(productsTable);
-    await pool.query(customersTable);
-    await pool.query(cartsTable);
-    await pool.query(salesInvoicesTable);
-    await pool.query(salesInvoicesItemsTable);
-    await pool.query(paymentsTable);
-    await pool.query(purchasesCartTable);
-    await pool.query(purchaseInvoicesTable);
-    await pool.query(purchaseInvoiceItemsTable);
-    await pool.query(returnInvoicesTable);
-    await pool.query(returnInvoiceItemsTable);
-    await pool.query(couponsTable);
+    await Promise.all([
+      pool.query(adminTable),
+      pool.query(bankAccountsTable),
+      pool.query(suppliersTable),
+      pool.query(productsTable),
+      pool.query(customersTable),
+      pool.query(cartsTable),
+      pool.query(salesInvoicesTable),
+      pool.query(salesInvoicesItemsTable),
+      pool.query(paymentsTable),
+      pool.query(purchasesCartTable),
+      pool.query(purchaseInvoicesTable),
+      pool.query(purchaseInvoiceItemsTable),
+      pool.query(returnInvoicesTable),
+      pool.query(returnInvoiceItemsTable),
+      pool.query(couponsTable),
+      pool.query(cashFlowCategoriesTable),
+      pool.query(cashFlowsTable),
+      pool.query(inventoryAdjustmentsTable),
+    ]);
 
-    const setupAdmin = async () => {
-      const [checkAdmin] = await pool.query(
-        `SELECT COUNT(*) as count FROM admin`,
-      );
-      if (Number(checkAdmin[0].count) === 0) {
-        const defaultAdminQuery = `INSERT INTO admin (username, password) VALUES ('admin', '$2b$10$KsELeWS4ZLKf8RWjPKfNduDo/m4TuU4gksJYVIQ6Eu/FsTZABkqFG');`;
-        await pool.query(defaultAdminQuery);
-        logger.info(
-          "👨‍‍💻 Default admin user created (Username: admin, Password: admin)",
-        );
-      }
-    };
-
-    const setupGuestCustomer = async () => {
-      const [checkGuest] = await pool.query(
-        `SELECT id FROM customers WHERE phone = '00000000000'`,
-      );
-
-      if (checkGuest.length === 0) {
-        const guestQuery = `INSERT INTO customers (name, phone, initial_balance, current_balance) VALUES ('مشتری گذری', '00000000000', 0, 0);`;
-        await pool.query(guestQuery);
-        logger.info("👤 Default guest customer created successfully.");
-      }
-    };
-
-    await Promise.all([setupAdmin(), setupGuestCustomer()]);
+    await runAllSeeds();
 
     logger.info("✅ All database tables checked/created successfully!");
   } catch (error) {

@@ -53,6 +53,15 @@ const updateCashFlowCategoryTitle = async (id, title) => {
   return getCashFlowCategoryById(id);
 };
 
+const deleteCategoryById = async (id) => {
+  const [result] = await pool.query(
+    "DELETE FROM cash_flow_categories WHERE id = ?",
+    [id],
+  );
+
+  return result.affectedRows > 0;
+};
+
 export default {
   getCashFlowCategories,
   getCashFlowCategories,
@@ -60,4 +69,5 @@ export default {
   getCashFlowCategoryById,
   createCashFlowCategory,
   updateCashFlowCategoryTitle,
+  deleteCategoryById,
 };

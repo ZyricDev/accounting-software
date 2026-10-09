@@ -26,6 +26,10 @@ router
   .patch(
     validate(cashFlowCategoryValidation.updateCashFlowCategory),
     cashFlowCategoryController.updateCashFlowCategory,
+  )
+  .delete(
+    validate(cashFlowCategoryValidation.deleteCashFlowCategory),
+    cashFlowCategoryController.deleteCashFlowCategory,
   );
 
 export default router;

@@ -57,9 +57,30 @@ const updateCashFlowCategoryById = async (categoryId, title) => {
   return updatedCategory;
 };
 
+const deleteCashFlowCategoryById = async (categoryId) => {
+  try {
+    const isDeleted =
+      await cashFlowCategoryRepository.deleteCategoryById(categoryId);
+
+    if (!isDeleted) {
+      throw new AppError("دسته‌بندی یافت نشد", 404);
+    }
+  } catch (err) {
+    if (err.code === "ER_ROW_IS_REFERENCED_2" || err.errno === 1451) {
+      throw new AppError(
+        "این دسته‌بندی دارای تراکنش مالی است و قابل حذف نیست.",
+        400,
+      );
+    }
+
+    throw err;
+  }
+};
+
 export default {
   getCashFlowCategories,
   addCashFlowCategory,
   getCashFlowCategoryById,
   updateCashFlowCategoryById,
+  deleteCashFlowCategoryById,
 };

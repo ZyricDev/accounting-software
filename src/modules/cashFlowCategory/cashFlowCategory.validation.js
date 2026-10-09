@@ -54,8 +54,11 @@ const updateCashFlowCategory = {
   }),
 };
 
+const deleteCashFlowCategory = getCashFlowCategory;
+
 export default {
   addCashFlowCategory,
   getCashFlowCategory,
   updateCashFlowCategory,
+  deleteCashFlowCategory,
 };

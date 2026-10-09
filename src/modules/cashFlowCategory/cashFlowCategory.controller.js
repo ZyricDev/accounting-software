@@ -46,9 +46,18 @@ const updateCashFlowCategory = async (req, res) => {
   });
 };
 
+const deleteCashFlowCategory = async (req, res) => {
+  const { categoryId } = req.params;
+
+  await cashFlowCategoryService.deleteCashFlowCategoryById(categoryId);
+
+  return sendSuccess(res, "دسته‌بندی‌ با موفقیت حذف شد");
+};
+
 export default {
   getCashFlowCategories,
   addCashFlowCategory,
   getCashFlowCategory,
   updateCashFlowCategory,
+  deleteCashFlowCategory,
 };

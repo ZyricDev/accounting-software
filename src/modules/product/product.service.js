@@ -169,11 +169,12 @@ const deleteProduct = async (productId) => {
 };
 
 const getProductValuation = async () => {
-  const valuation = await productRepository.getProductValuation();
+  const { totalProductValue, totalExpectedSales } =
+    await productRepository.getProductValuation();
 
   const formattedData = {
-    totalProductValue: Number(valuation.totalProductValue),
-    totalPotentialProfit: Number(valuation.totalPotentialProfit),
+    totalProductValue: Number(totalProductValue),
+    totalPotentialProfit: Number(totalExpectedSales - totalProductValue),
   };
 
   return formattedData;

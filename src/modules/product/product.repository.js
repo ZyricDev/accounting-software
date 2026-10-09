@@ -202,7 +202,7 @@ export const getProductValuation = async (connection = pool) => {
   const query = `
     SELECT 
         COALESCE(SUM(stock * purchase_price), 0) AS totalProductValue,
-        COALESCE(SUM(stock * (sale_price - purchase_price)), 0) AS totalPotentialProfit
+        COALESCE(SUM(stock * sale_price), 0) AS totalExpectedSales
     FROM products
     WHERE stock > 0;
   `;

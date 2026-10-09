@@ -137,27 +137,28 @@ const updateCustomerById = async (customerId, customerData) => {
 };
 
 const deleteCustomerById = async (customerId) => {
-  const guestId = await customerRepository.getGuestCustomerId();
-  if (guestId && Number(customerId) === Number(guestId)) {
-    throw new AppError("مشتری سیستمی (گذری) غیرقابل حذف است.", 403);
+  try {
+    const guestId = await customerRepository.getGuestCustomerId();
+    if (guestId && Number(customerId) === Number(guestId)) {
+      throw new AppError("مشتری سیستمی (گذری) غیرقابل حذف است.", 403);
+    }
+
+    const customer = await customerRepository.getCustomerById(customerId);
+    if (!customer) {
+      throw new AppError("مشتری یافت نشد", 404);
+    }
+
+    await customerRepository.deleteCustomerById(customerId);
+
+    return _toApiFields(customer);
+  } catch (err) {
+    if (err.code === "ER_ROW_IS_REFERENCED_2" || err.errno === 1451) {
+      throw new AppError(
+        "این مشتری دارای تراکنش مالی است و قابل حذف نیست. لطفاً آن را غیرفعال کنید.",
+        409,
+      );
+    }
   }
-
-  const customer = await customerRepository.getCustomerById(customerId);
-  if (!customer) {
-    throw new AppError("مشتری یافت نشد", 404);
-  }
-
-  const hasUsage = await customerRepository.checkCustomerUsage(customerId);
-  if (hasUsage) {
-    throw new AppError(
-      "این مشتری دارای تراکنش مالی است و قابل حذف نیست. لطفاً آن را غیرفعال کنید.",
-      409,
-    );
-  }
-
-  await customerRepository.deleteCustomerById(customerId);
-
-  return _toApiFields(customer);
 };
 
 const toggleCustomerStatusById = async (customerId) => {

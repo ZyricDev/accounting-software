@@ -117,6 +117,9 @@ const applyCoupon = {
     code: joi
       .string()
       .trim()
+      .custom((value) =>
+        value === null ? value : joi.persianToEnglishDigits(value),
+      )
       .pattern(/^[a-zA-Z0-9]+$/)
       .required()
       .messages({

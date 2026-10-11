@@ -124,6 +124,8 @@ const settlementSupplierById = async (
     cashAmount = 0,
     pos = { amount: 0, accountId: null },
     transfer = { amount: 0, accountId: null },
+    description = null,
+    paymentDate,
   },
 ) => {
   const supplierData = await supplierRepository.getSupplierById(supplierId);
@@ -177,6 +179,8 @@ const settlementSupplierById = async (
         personType: "SUPPLIER",
         personId: supplierId,
         payments: paymentsToCreate,
+        description,
+        paymentDate,
       },
       connection,
     );

@@ -1,7 +1,16 @@
 import { pool } from "../../database/connection.js";
 
 const createPayments = async (
-  { invoiceType, invoiceId, personType, personId, payments, originalDate },
+  {
+    invoiceType,
+    invoiceId,
+    personType,
+    personId,
+    payments,
+    originalDate,
+    paymentDate = new Date(),
+    description = null,
+  },
   executor = pool,
 ) => {
   const createdAt = originalDate || new Date();
@@ -15,10 +24,12 @@ const createPayments = async (
     p.method,
     p.amount,
     createdAt,
+    description,
+    paymentDate,
   ]);
 
   await executor.query(
-    `INSERT INTO payments (account_id, person_type, person_id, invoice_type, invoice_id, method, amount, created_at) VALUES ?`,
+    `INSERT INTO payments (account_id, person_type, person_id, invoice_type, invoice_id, method, amount, created_at, description, payment_date) VALUES ?`,
     [values],
   );
 };

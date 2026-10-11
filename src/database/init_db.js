@@ -132,6 +132,8 @@ const createTables = async () => {
     invoice_id INT UNSIGNED DEFAULT NULL,
     method ENUM('CASH', 'CARD', 'TRANSFER') NOT NULL,
     amount BIGINT UNSIGNED NOT NULL,
+    description TEXT DEFAULT NULL,
+    payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -139,7 +141,7 @@ const createTables = async () => {
 
     INDEX (invoice_type, invoice_id),
     INDEX (person_type, person_id),
-    INDEX (account_id)
+    INDEX (payment_date)
   );
 `;
 

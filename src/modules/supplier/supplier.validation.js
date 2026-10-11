@@ -256,6 +256,22 @@ const settlementSupplier = {
         "any.only":
           "نوع تسویه نامعتبر است و فقط می‌تواند 'SETTLEMENT_IN' (دریافت وجه) یا 'SETTLEMENT_OUT' (پرداخت وجه) باشد.",
       }),
+
+    description: joi.string().trim().allow(null, "").max(1000).messages({
+      "string.base": "توضیحات باید متن باشد.",
+      "string.max": "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.",
+    }),
+
+    paymentDate: joi
+      .date()
+      .iso()
+      .empty(joi.valid("", null))
+      .default(() => new Date())
+      .messages({
+        "date.base": "تاریخ پرداخت نامعتبر است.",
+        "date.format":
+          "تاریخ پرداخت باید یک تاریخ معتبر با فرمت استاندارد باشد.",
+      }),
   })
     .custom((value, helpers) => {
       const totalPaid =

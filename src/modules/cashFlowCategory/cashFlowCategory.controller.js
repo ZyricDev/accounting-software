@@ -20,7 +20,7 @@ const addCashFlowCategory = async (req, res) => {
 
   return sendSuccess(res, "دسته‌بندی‌ با موفقیت اضافه شد", {
     cashFlowCategory,
-  });
+  }, 201);
 };
 
 const getCashFlowCategory = async (req, res) => {

@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
       id INT AUTO_INCREMENT PRIMARY KEY,
       account_id INT DEFAULT NULL, 
       category_id INT NOT NULL,
-      method ENUM('CASH', 'TRANSFER') NOT NULL,
+      payment_method ENUM('CASH', 'TRANSFER') NOT NULL,
       amount BIGINT UNSIGNED NOT NULL,
       payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       description TEXT DEFAULT NULL,

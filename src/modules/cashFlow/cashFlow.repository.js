@@ -19,7 +19,7 @@ const createCashFlow = async (
   {
     accountId,
     categoryId,
-    method,
+    paymentMethod,
     amount,
     paymentDate = new Date(),
     description,
@@ -28,14 +28,14 @@ const createCashFlow = async (
 ) => {
   const query = `
     INSERT INTO cash_flows 
-    (account_id, category_id, method, amount, payment_date, description) 
+    (account_id, category_id, payment_method, amount, payment_date, description) 
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
     accountId,
     categoryId,
-    method,
+    paymentMethod,
     amount,
     paymentDate,
     description,

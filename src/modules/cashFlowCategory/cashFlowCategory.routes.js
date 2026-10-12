@@ -11,7 +11,10 @@ router.use(requireAuth);
 
 router
   .route("/")
-  .get(cashFlowCategoryController.getCashFlowCategories)
+  .get(
+    validate(cashFlowCategoryValidation.getCashFlowCategories),
+    cashFlowCategoryController.getCashFlowCategories,
+  )
   .post(
     validate(cashFlowCategoryValidation.addCashFlowCategory),
     cashFlowCategoryController.addCashFlowCategory,

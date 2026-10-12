@@ -2,12 +2,11 @@ import { sendSuccess } from "../../shared/utils/apiResponse.js";
 import cashFlowCategoryService from "./cashFlowCategory.service.js";
 
 const getCashFlowCategories = async (req, res) => {
-  const cashFlowCategories =
-    await cashFlowCategoryService.getCashFlowCategories();
+  const result = await cashFlowCategoryService.getCashFlowCategories(
+    req.validatedQuery,
+  );
 
-  return sendSuccess(res, "دسته‌بندی هزینه‌ها با موفقیت دریافت شد", {
-    cashFlowCategories,
-  });
+  return sendSuccess(res, "دسته‌بندی هزینه‌ها با موفقیت دریافت شد", result);
 };
 
 const addCashFlowCategory = async (req, res) => {
@@ -18,9 +17,14 @@ const addCashFlowCategory = async (req, res) => {
     type,
   });
 
-  return sendSuccess(res, "دسته‌بندی‌ با موفقیت اضافه شد", {
-    cashFlowCategory,
-  }, 201);
+  return sendSuccess(
+    res,
+    "دسته‌بندی‌ با موفقیت اضافه شد",
+    {
+      cashFlowCategory,
+    },
+    201,
+  );
 };
 
 const getCashFlowCategory = async (req, res) => {

@@ -36,6 +36,33 @@ const addCashFlowCategory = {
   }),
 };
 
+const getCashFlowCategories = {
+  query: createQuerySchema({
+    page: joi.number().integer().min(1).default(1).messages({
+      "number.base": "شماره صفحه باید عدد باشد.",
+      "number.min": "شماره صفحه باید حداقل ۱ باشد.",
+    }),
+
+    limit: joi.number().integer().min(1).max(100).default(20).messages({
+      "number.base": "تعداد آیتم در هر صفحه باید عدد باشد.",
+      "number.min": "تعداد آیتم باید حداقل ۱ باشد.",
+      "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
+    }),
+
+    search: joi
+      .string()
+      .trim()
+      .custom((value) => joi.persianToEnglishDigits(value))
+      .max(100)
+      .empty("")
+      .default(null)
+      .messages({
+        "string.base": "عبارت جستجو باید متن باشد.",
+        "string.max": "عبارت جستجو نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+      }),
+  }),
+};
+
 const getCashFlowCategory = {
   params: joi.object({ categoryId: cashFlowCategoryIdParamSchema }),
 };
@@ -58,6 +85,7 @@ const deleteCashFlowCategory = getCashFlowCategory;
 
 export default {
   addCashFlowCategory,
+  getCashFlowCategories,
   getCashFlowCategory,
   updateCashFlowCategory,
   deleteCashFlowCategory,

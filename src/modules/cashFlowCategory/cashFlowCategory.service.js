@@ -1,11 +1,19 @@
 import AppError from "../../shared/errors/AppError.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import cashFlowCategoryRepository from "./cashFlowCategory.repository.js";
 
-const getCashFlowCategories = async () => {
-  const cashFlowCategories =
-    await cashFlowCategoryRepository.getCashFlowCategories();
+const getCashFlowCategories = async (filters) => {
+  const { cashFlowCategories, total } =
+    await cashFlowCategoryRepository.getCashFlowCategories(filters);
 
-  return cashFlowCategories;
+  return {
+    cashFlowCategories,
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
 };
 
 const addCashFlowCategory = async ({ title, type }) => {

@@ -1,10 +1,25 @@
 import { pool } from "../../database/connection.js";
 
-const getCashFlowCategories = async () => {
+const getCashFlowCategories = async ({ search, limit = 20, page = 1 }) => {
+  const offset = (page - 1) * limit;
+
+  const whereClause = search ? "WHERE title LIKE ?" : "";
+  const searchParams = search ? [`%${search}%`] : [];
+
   const [rows] = await pool.query(
-    `SELECT id, title, type FROM cash_flow_categories`,
+    `SELECT id, title, type FROM cash_flow_categories
+     ${whereClause}
+     ORDER BY id DESC
+     LIMIT ? OFFSET ?`,
+    [...searchParams, Number(limit), Number(offset)],
   );
-  return rows;
+
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) AS total FROM cash_flow_categories ${whereClause}`,
+    searchParams,
+  );
+
+  return { cashFlowCategories: rows, total };
 };
 
 const isTitleTaken = async (title, excludeId = null) => {
@@ -63,7 +78,6 @@ const deleteCategoryById = async (id) => {
 };
 
 export default {
-  getCashFlowCategories,
   getCashFlowCategories,
   isTitleTaken,
   getCashFlowCategoryById,

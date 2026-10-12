@@ -254,6 +254,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
       payment_method ENUM('CASH', 'TRANSFER') NOT NULL,
       amount BIGINT UNSIGNED NOT NULL,
       payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      status ENUM('ACTIVE', 'CANCELLED') NOT NULL DEFAULT 'ACTIVE',
       description TEXT DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

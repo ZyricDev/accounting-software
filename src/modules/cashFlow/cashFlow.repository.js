@@ -143,4 +143,27 @@ const getCashFlows = async ({
   return { cashFlows: rows, total };
 };
 
-export default { getConnection, getCashFlowById, createCashFlow, getCashFlows };
+const updateCashFlow = async (id, { categoryId, paymentDate, description }) => {
+  const query = `
+    UPDATE cash_flows 
+    SET category_id = ?, payment_date = ?, description = ?
+    WHERE id = ?
+  `;
+
+  const [result] = await pool.query(query, [
+    categoryId,
+    paymentDate,
+    description,
+    id,
+  ]);
+
+  return result.affectedRows > 0;
+};
+
+export default {
+  getConnection,
+  getCashFlowById,
+  createCashFlow,
+  getCashFlows,
+  updateCashFlow,
+};

@@ -85,4 +85,46 @@ const getCashFlowById = async (cashFlowId) => {
   return _toApiFields(cashFlow);
 };
 
-export default { addCashFlow, getCashFlows, getCashFlowById };
+const updateCashFlowById = async (cashFlowId, updateData) => {
+  const existingFlow = await cashFlowRepository.getCashFlowById(cashFlowId);
+  if (!existingFlow) {
+    throw new AppError("هزینه/درآمد یافت نشد", 404);
+  }
+
+  if (existingFlow.status === "CANCELLED") {
+    throw new AppError(
+      "این هزینه/درآمد باطل شده است و امکان ویرایش آن وجود ندارد.",
+      400,
+    );
+  }
+
+  if (updateData.categoryId) {
+    const categoryExists =
+      await cashFlowCategoryRepository.getCashFlowCategoryById(
+        updateData.categoryId,
+      );
+    if (!categoryExists) {
+      throw new AppError("دسته‌بندی یافت نشد", 404);
+    }
+  }
+
+  const finalData = {
+    categoryId: updateData.categoryId || existingFlow.category_id,
+    paymentDate: updateData.paymentDate || existingFlow.payment_date,
+    description:
+      updateData.description !== undefined
+        ? updateData.description
+        : existingFlow.description,
+  };
+
+  await cashFlowRepository.updateCashFlow(cashFlowId, finalData);
+
+  return { id: cashFlowId };
+};
+
+export default {
+  addCashFlow,
+  getCashFlows,
+  getCashFlowById,
+  updateCashFlowById,
+};

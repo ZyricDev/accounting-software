@@ -23,4 +23,16 @@ const getCashFlow = async (req, res) => {
   return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت ثبت شد", cashFlow);
 };
 
-export default { addCashFlow, getCashFlows, getCashFlow };
+const updateCashFlow = async (req, res) => {
+  const { cashFlowId } = req.params;
+  const updateData = req.body;
+
+  const cashFlow = await cashFlowService.updateCashFlowById(
+    cashFlowId,
+    updateData,
+  );
+
+  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت آپدیت شد", cashFlow);
+};
+
+export default { addCashFlow, getCashFlows, getCashFlow, updateCashFlow };

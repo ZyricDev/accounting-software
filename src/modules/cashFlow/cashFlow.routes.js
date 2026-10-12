@@ -22,9 +22,10 @@ router
 
 router
   .route("/:cashFlowId")
-  .get(
-    validate(cashFlowValidation.getCashFlow),
-    cashFlowController.getCashFlow,
+  .get(validate(cashFlowValidation.getCashFlow), cashFlowController.getCashFlow)
+  .patch(
+    validate(cashFlowValidation.updateCashFlow),
+    cashFlowController.updateCashFlow,
   );
 
 export default router;

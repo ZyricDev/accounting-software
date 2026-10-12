@@ -14,6 +14,10 @@ router
   .post(
     validate(cashFlowValidation.addCashFlow),
     cashFlowController.addCashFlow,
+  )
+  .get(
+    validate(cashFlowValidation.getCashFlows),
+    cashFlowController.getCashFlows,
   );
 
 export default router;

@@ -91,9 +91,7 @@ const addPurchaseInvoice = {
   })
     .custom((value, helpers) => {
       const totalPaid =
-        value.cashAmount +
-        value.transfer.amount +
-        value.creditAmount;
+        value.cashAmount + value.transfer.amount + value.creditAmount;
 
       if (totalPaid <= 0) {
         return helpers.error("object.noPaymentProvided");

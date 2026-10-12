@@ -12,7 +12,15 @@ const addCashFlow = async (req, res) => {
 const getCashFlows = async (req, res) => {
   const result = await cashFlowService.getCashFlows(req.validatedQuery);
 
-  return sendSuccess(res, "هزینه‌ها/درآمد‌ها با موفقیت ثبت شد", result, 201);
+  return sendSuccess(res, "هزینه‌ها/درآمد‌ها با موفقیت ثبت شد", result);
 };
 
-export default { addCashFlow, getCashFlows };
+const getCashFlow = async (req, res) => {
+  const { cashFlowId } = req.params;
+
+  const cashFlow = await cashFlowService.getCashFlowById(cashFlowId);
+
+  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت ثبت شد", cashFlow);
+};
+
+export default { addCashFlow, getCashFlows, getCashFlow };

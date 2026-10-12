@@ -20,4 +20,11 @@ router
     cashFlowController.getCashFlows,
   );
 
+router
+  .route("/:cashFlowId")
+  .get(
+    validate(cashFlowValidation.getCashFlow),
+    cashFlowController.getCashFlow,
+  );
+
 export default router;

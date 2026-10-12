@@ -5,15 +5,23 @@ import cashFlowRepository from "./cashFlow.repository.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 
 const _toApiFields = (dbRow) => {
-  return {
+  let result = {
     id: dbRow.id,
     amount: dbRow.amount,
     paymentMethod: dbRow.payment_method,
-    categoryId: dbRow.categoryId,
+    categoryId: dbRow.category_id,
     categoryTitle: dbRow.category_title,
     flowType: dbRow.flow_type,
+    paymentDate: dbRow?.payment_date,
+    description: dbRow?.description,
     createdAt: dbRow.created_at,
   };
+
+  if (dbRow.payment_method === "TRANSFER") {
+    result.accountId = dbRow.account_id;
+    result.accountTitle = dbRow.account_title;
+  }
+  return result;
 };
 
 const addCashFlow = async ({
@@ -67,4 +75,14 @@ const getCashFlows = async (filters) => {
   };
 };
 
-export default { addCashFlow, getCashFlows };
+const getCashFlowById = async (cashFlowId) => {
+  const cashFlow = await cashFlowRepository.getCashFlowById(cashFlowId);
+
+  if (!cashFlow) {
+    throw new AppError("هزینه/درآمد یافت نشد", 404);
+  }
+
+  return _toApiFields(cashFlow);
+};
+
+export default { addCashFlow, getCashFlows, getCashFlowById };

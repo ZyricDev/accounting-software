@@ -194,4 +194,8 @@ const getCashFlows = {
   }),
 };
 
-export default { addCashFlow, getCashFlows };
+const getCashFlow = {
+  params: joi.object({ cashFlowId: buildIdSchema("هزینه/درآمد") }),
+};
+
+export default { addCashFlow, getCashFlows, getCashFlow };

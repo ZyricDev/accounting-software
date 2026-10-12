@@ -4,15 +4,29 @@ const getConnection = async () => {
   return await pool.getConnection();
 };
 
-const getCashFlowById = async (id) => {
-  const [rows] = await pool.query("SELECT * FROM cash_flows WHERE id= ?", [id]);
+const getCashFlowById = async (id, connection = pool) => {
+  const query = `
+    SELECT 
+      cf.id, 
+      cf.amount, 
+      cf.payment_method, 
+      cf.payment_date, 
+      cf.description,
+      cf.created_at,
+      c.id AS category_id,
+      c.title AS category_title,
+      c.type AS flow_type,
+      ba.id AS account_id,
+      ba.title AS account_title 
+    FROM cash_flows cf
+    INNER JOIN cash_flow_categories c ON cf.category_id = c.id
+    LEFT JOIN bank_accounts ba ON cf.account_id = ba.id
+    WHERE cf.id = ?
+  `;
 
-  const CashFlow = rows[0];
-  if (!CashFlow) {
-    return null;
-  }
+  const [rows] = await connection.query(query, [id]);
 
-  return CashFlow;
+  return rows[0] || null;
 };
 
 const createCashFlow = async (
@@ -100,7 +114,8 @@ const getCashFlows = async ({
       cf.id, 
       cf.amount, 
       cf.payment_method, 
-      cf.payment_date AS created_at, 
+      cf.payment_date,
+      cf.created_at, 
       c.id AS category_id,
       c.title AS category_title,
       c.type AS flow_type

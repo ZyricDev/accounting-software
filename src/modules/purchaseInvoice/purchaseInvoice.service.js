@@ -291,11 +291,14 @@ const getPurchaseInvoiceById = async (purchaseInvoiceId) => {
     throw new AppError("فاکتور فروش مدنظر یافت نشد", 404);
   }
 
-  const items =
-    await purchaseInvoiceRepository.getInvoiceItems(purchaseInvoiceId);
+  const [items, payments] = await Promise.all([
+    purchaseInvoiceRepository.getInvoiceItems(purchaseInvoiceId),
+    paymentRepository.getPaymentsByInvoiceId(purchaseInvoiceId),
+  ]);
 
   return {
     ..._toInvoiceApiFields(purchaseInvoice),
+    payments,
     items: items.map(_toInvoiceItemApiFields),
   };
 };

@@ -58,8 +58,27 @@ const cancelPaymentsByInvoiceId = async (
   return result;
 };
 
+const getPaymentsByInvoiceId = async (invoiceId, connection = pool) => {
+  const query = `
+    SELECT 
+      id,
+      method,
+      amount,
+      status,
+      payment_date AS paymentDate, 
+      description
+    FROM payments 
+    WHERE invoice_id = ?
+  `;
+
+  const [rows] = await connection.query(query, [invoiceId]);
+
+  return rows;
+};
+
 export default {
   createPayments,
   deletePaymentsByInvoiceId,
   cancelPaymentsByInvoiceId,
+  getPaymentsByInvoiceId,
 };

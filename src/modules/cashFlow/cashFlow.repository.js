@@ -9,6 +9,7 @@ const getCashFlowById = async (id, connection = pool) => {
     SELECT 
       cf.id, 
       cf.amount, 
+      cf.status,
       cf.payment_method, 
       cf.payment_date, 
       cf.description,
@@ -113,6 +114,7 @@ const getCashFlows = async ({
     SELECT 
       cf.id, 
       cf.amount, 
+      cf.status,
       cf.payment_method, 
       cf.payment_date,
       cf.created_at, 
@@ -160,10 +162,17 @@ const updateCashFlow = async (id, { categoryId, paymentDate, description }) => {
   return result.affectedRows > 0;
 };
 
+const cancelCashFlowById = async (id) => {
+  await pool.query("UPDATE cash_flows SET status = 'CANCELLED' WHERE id = ?", [
+    id,
+  ]);
+};
+
 export default {
   getConnection,
   getCashFlowById,
   createCashFlow,
   getCashFlows,
   updateCashFlow,
+  cancelCashFlowById,
 };

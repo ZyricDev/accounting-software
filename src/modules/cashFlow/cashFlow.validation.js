@@ -220,4 +220,12 @@ const updateCashFlow = {
     }),
 };
 
-export default { addCashFlow, getCashFlows, getCashFlow, updateCashFlow };
+const cancelCashFlow = getCashFlow;
+
+export default {
+  addCashFlow,
+  getCashFlows,
+  getCashFlow,
+  updateCashFlow,
+  cancelCashFlow,
+};

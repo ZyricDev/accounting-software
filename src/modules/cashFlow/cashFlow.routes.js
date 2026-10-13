@@ -20,6 +20,12 @@ router
     cashFlowController.getCashFlows,
   );
 
+router.patch(
+  "/:cashFlowId/cancel",
+  validate(cashFlowValidation.cancelCashFlow),
+  cashFlowController.cancelCashFlow,
+);
+
 router
   .route("/:cashFlowId")
   .get(validate(cashFlowValidation.getCashFlow), cashFlowController.getCashFlow)

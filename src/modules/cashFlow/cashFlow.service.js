@@ -7,6 +7,7 @@ import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 const _toApiFields = (dbRow) => {
   let result = {
     id: dbRow.id,
+    status: dbRow.status,
     amount: dbRow.amount,
     paymentMethod: dbRow.payment_method,
     categoryId: dbRow.category_id,
@@ -122,9 +123,25 @@ const updateCashFlowById = async (cashFlowId, updateData) => {
   return { id: cashFlowId };
 };
 
+const cancelCashFlowById = async (cashFlowId) => {
+  const existingFlow = await cashFlowRepository.getCashFlowById(cashFlowId);
+  if (!existingFlow) {
+    throw new AppError("هزینه/درآمد یافت نشد", 404);
+  }
+
+  if (existingFlow.status === "CANCELLED") {
+    throw new AppError("این هزینه/درآمد قبلا باطل شده است.", 400);
+  }
+
+  await cashFlowRepository.cancelCashFlowById(cashFlowId);
+
+  return { cashFlowId };
+};
+
 export default {
   addCashFlow,
   getCashFlows,
   getCashFlowById,
   updateCashFlowById,
+  cancelCashFlowById,
 };

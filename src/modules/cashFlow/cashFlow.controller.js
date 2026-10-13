@@ -20,7 +20,7 @@ const getCashFlow = async (req, res) => {
 
   const cashFlow = await cashFlowService.getCashFlowById(cashFlowId);
 
-  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت ثبت شد", cashFlow);
+  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت ثبت شد", { cashFlow });
 };
 
 const updateCashFlow = async (req, res) => {
@@ -32,7 +32,21 @@ const updateCashFlow = async (req, res) => {
     updateData,
   );
 
-  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت آپدیت شد", cashFlow);
+  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت آپدیت شد", { cashFlow });
 };
 
-export default { addCashFlow, getCashFlows, getCashFlow, updateCashFlow };
+const cancelCashFlow = async (req, res) => {
+  const { cashFlowId } = req.params;
+
+  const cashFlow = await cashFlowService.cancelCashFlowById(cashFlowId);
+
+  return sendSuccess(res, "هزینه‌/درآمد‌ با موفقیت باطل شد", { cashFlow });
+};
+
+export default {
+  addCashFlow,
+  getCashFlows,
+  getCashFlow,
+  updateCashFlow,
+  cancelCashFlow,
+};

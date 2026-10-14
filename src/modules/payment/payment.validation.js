@@ -139,4 +139,11 @@ const updateSettlement = {
     }),
 };
 
-export default { getSettlements, getSettlement, updateSettlement };
+const cancelSettlement = getSettlement;
+
+export default {
+  getSettlements,
+  getSettlement,
+  updateSettlement,
+  cancelSettlement,
+};

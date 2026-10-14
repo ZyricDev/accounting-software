@@ -16,9 +16,26 @@ const getSettlement = async (req, res) => {
 
 const updateSettlement = async (req, res) => {
   const { settlementId } = req.params;
-  const settlement = await paymentService.updateSettlementById(settlementId);
+  const updateData = req.body;
+
+  const settlement = await paymentService.updateSettlementById(
+    settlementId,
+    updateData,
+  );
 
   return sendSuccess(res, "تراکنش‌ با موفقیت آپدیت شد", settlement);
 };
 
-export default { getSettlements, getSettlement, updateSettlement };
+const cancelSettlement = async (req, res) => {
+  const { settlementId } = req.params;
+  const settlement = await paymentService.cancelSettlementById(settlementId);
+
+  return sendSuccess(res, "تراکنش‌ با موفقیت باطل شد", settlement);
+};
+
+export default {
+  getSettlements,
+  getSettlement,
+  updateSettlement,
+  cancelSettlement,
+};

@@ -1,6 +1,8 @@
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import paymentRepository from "./payment.repository.js";
+import customerRepository from "../customer/customer.repository.js";
+import supplierRepository from "../supplier/supplier.repository.js";
 
 const _toApiFields = (dbRow) => {
   let result = {
@@ -75,4 +77,59 @@ const updateSettlementById = async (settlementId, updateData) => {
   return { id: settlementId };
 };
 
-export default { getSettlements, getSettlementById, updateSettlementById };
+const cancelSettlementById = async (settlementId) => {
+  const existingSettlement =
+    await paymentRepository.getSettlementById(settlementId);
+  if (!existingSettlement) {
+    throw new AppError("تراکنش یافت نشد", 404);
+  }
+
+  if (existingSettlement.status === "CANCELLED") {
+    throw new AppError("این تراکنش قبلا باطل شده است.", 400);
+  }
+
+  let connection;
+  try {
+    connection = await paymentRepository.getConnection();
+    await connection.beginTransaction();
+
+    await paymentRepository.cancelSettlementById(settlementId, connection);
+
+    const { person_type, reference_type, person_id, amount } =
+      existingSettlement;
+
+    if (person_type === "CUSTOMER") {
+      const balanceChange =
+        reference_type === "SETTLEMENT_IN" ? amount : -amount;
+      await customerRepository.incrementDebt(
+        person_id,
+        balanceChange,
+        connection,
+      );
+    } else if (person_type === "SUPPLIER") {
+      const balanceChange =
+        reference_type === "SETTLEMENT_OUT" ? amount : -amount;
+      await supplierRepository.incrementDebt(
+        person_id,
+        balanceChange,
+        connection,
+      );
+    }
+
+    await connection.commit();
+
+    return { id: settlementId };
+  } catch (error) {
+    if (connection) await connection.rollback();
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+export default {
+  getSettlements,
+  getSettlementById,
+  updateSettlementById,
+  cancelSettlementById,
+};

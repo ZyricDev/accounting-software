@@ -26,4 +26,10 @@ router
     paymentController.updateSettlement,
   );
 
+router.patch(
+  "/settlements/:settlementId/cancel",
+  validate(paymentValidation.cancelSettlement),
+  paymentController.cancelSettlement,
+);
+
 export default router;

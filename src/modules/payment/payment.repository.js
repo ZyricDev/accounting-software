@@ -1,5 +1,9 @@
 import { pool } from "../../database/connection.js";
 
+const getConnection = async () => {
+  return await pool.getConnection();
+};
+
 const createPayments = async (
   {
     referenceType,
@@ -231,20 +235,23 @@ const getSettlementById = async (id) => {
 const updateSettlementById = async (id, { paymentDate, description }) => {
   const query = `
     UPDATE payments 
-    SET reference_type = ?, description = ?
+    SET payment_date = ?, description = ?
     WHERE id = ?
   `;
 
-  const [result] = await pool.query(query, [
-    paymentDate,
-    description,
-    id,
-  ]);
+  const [result] = await pool.query(query, [paymentDate, description, id]);
 
   return result.affectedRows > 0;
 };
 
+const cancelSettlementById = async (id) => {
+  await pool.query("UPDATE payments SET status = 'CANCELLED' WHERE id = ?", [
+    id,
+  ]);
+};
+
 export default {
+  getConnection,
   createPayments,
   deletePaymentsByInvoiceId,
   cancelPaymentsByInvoiceId,
@@ -252,4 +259,5 @@ export default {
   getSettlements,
   getSettlementById,
   updateSettlementById,
+  cancelSettlementById,
 };

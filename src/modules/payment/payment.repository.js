@@ -76,9 +76,137 @@ const getPaymentsByInvoiceId = async (invoiceId, connection = pool) => {
   return rows;
 };
 
+const getSettlements = async ({
+  page = 1,
+  limit = 20,
+  sortBy = "createdAt",
+  order = "desc",
+  search,
+  startDate,
+  endDate,
+  personType,
+  status,
+}) => {
+  const offset = (page - 1) * limit;
+
+  const conditions = [];
+  const queryParams = [];
+
+  conditions.push("p.reference_type IN ('SETTLEMENT_IN', 'SETTLEMENT_OUT')");
+
+  if (personType) {
+    conditions.push("p.person_type = ?");
+    queryParams.push(personType);
+  }
+
+  let joinClause = "";
+  let selectPerson = "";
+  let searchAlias = "";
+
+  if (personType === "CUSTOMER") {
+    joinClause = "LEFT JOIN customers c ON p.person_id = c.id";
+    selectPerson = "c.name AS person_name, c.phone AS person_phone";
+    searchAlias = "c";
+  } else if (personType === "SUPPLIER") {
+    joinClause = "LEFT JOIN suppliers s ON p.person_id = s.id";
+    selectPerson = "s.name AS person_name, s.phone AS person_phone";
+    searchAlias = "s";
+  } else {
+    joinClause = `
+      LEFT JOIN customers c ON p.person_id = c.id AND p.person_type = 'CUSTOMER'
+      LEFT JOIN suppliers s ON p.person_id = s.id AND p.person_type = 'SUPPLIER'
+    `;
+    selectPerson = `
+      CASE 
+        WHEN p.person_type = 'CUSTOMER' THEN c.name
+        WHEN p.person_type = 'SUPPLIER' THEN s.name
+      END AS person_name,
+      CASE 
+        WHEN p.person_type = 'CUSTOMER' THEN c.phone
+        WHEN p.person_type = 'SUPPLIER' THEN s.phone
+      END AS person_phone
+    `;
+  }
+
+  if (search) {
+    if (searchAlias) {
+      conditions.push(
+        `(${searchAlias}.name LIKE ? OR ${searchAlias}.phone LIKE ?)`,
+      );
+      const searchTerm = `%${search}%`;
+      queryParams.push(searchTerm, searchTerm);
+    } else {
+      conditions.push(
+        `(c.name LIKE ? OR c.phone LIKE ? OR s.name LIKE ? OR s.phone LIKE ?)`,
+      );
+      const searchTerm = `%${search}%`;
+      queryParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+  }
+
+  if (status) {
+    conditions.push("p.status = ?");
+    queryParams.push(status);
+  }
+
+  if (startDate) {
+    conditions.push("p.payment_date >= ?");
+    queryParams.push(startDate);
+  }
+
+  if (endDate) {
+    conditions.push("p.payment_date <= ?");
+    queryParams.push(endDate);
+  }
+
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const sortColumnMap = {
+    createdAt: "p.payment_date",
+    amount: "p.amount",
+  };
+  const sortColumn = sortColumnMap[sortBy] || "p.payment_date";
+  const sortDirection = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+  const dataQuery = `
+    SELECT 
+      p.id, 
+      p.reference_type,
+      p.method,
+      p.amount,
+      p.status,
+      p.person_id,
+      p.payment_date,
+      ${selectPerson}
+    FROM payments p
+    ${joinClause}
+    ${whereClause}
+    ORDER BY ${sortColumn} ${sortDirection}
+    LIMIT ? OFFSET ?
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*) AS total
+    FROM payments p
+    ${joinClause}
+    ${whereClause}
+  `;
+
+  const [rows] = await pool.query(dataQuery, [
+    ...queryParams,
+    Number(limit),
+    Number(offset),
+  ]);
+  const [[{ total }]] = await pool.query(countQuery, queryParams);
+
+  return { settlements: rows, total };
+};
+
 export default {
   createPayments,
   deletePaymentsByInvoiceId,
   cancelPaymentsByInvoiceId,
   getPaymentsByInvoiceId,
+  getSettlements,
 };

@@ -9,12 +9,12 @@ const _toApiFields = (dbRow) => {
     method: dbRow.method,
     amount: dbRow.amount,
     status: dbRow.status,
-    description: dbRow?.description,
+    description: dbRow.description,
     personId: dbRow.person_id,
     personName: dbRow.person_name,
     personPhone: dbRow.person_phone,
     paymentDate: dbRow.payment_date,
-    createdAt: dbRow?.created_at,
+    createdAt: dbRow.created_at,
   };
 
   if (dbRow.method !== "CASH") {
@@ -48,4 +48,31 @@ const getSettlementById = async (settlementId) => {
   return _toApiFields(settlement);
 };
 
-export default { getSettlements, getSettlementById };
+const updateSettlementById = async (settlementId, updateData) => {
+  const existingSettlement =
+    await paymentRepository.getSettlementById(settlementId);
+  if (!existingSettlement) {
+    throw new AppError("تراکنش یافت نشد", 404);
+  }
+
+  if (existingSettlement.status === "CANCELLED") {
+    throw new AppError(
+      "این تراکنش باطل شده است و امکان ویرایش آن وجود ندارد.",
+      400,
+    );
+  }
+
+  const finalData = {
+    paymentDate: updateData.paymentDate || existingSettlement.payment_date,
+    description:
+      updateData.description !== null
+        ? updateData.description
+        : existingSettlement.description,
+  };
+
+  await paymentRepository.updateSettlementById(settlementId, finalData);
+
+  return { id: settlementId };
+};
+
+export default { getSettlements, getSettlementById, updateSettlementById };

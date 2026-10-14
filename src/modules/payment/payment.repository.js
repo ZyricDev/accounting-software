@@ -228,6 +228,22 @@ const getSettlementById = async (id) => {
   return rows[0] || null;
 };
 
+const updateSettlementById = async (id, { paymentDate, description }) => {
+  const query = `
+    UPDATE payments 
+    SET reference_type = ?, description = ?
+    WHERE id = ?
+  `;
+
+  const [result] = await pool.query(query, [
+    paymentDate,
+    description,
+    id,
+  ]);
+
+  return result.affectedRows > 0;
+};
+
 export default {
   createPayments,
   deletePaymentsByInvoiceId,
@@ -235,4 +251,5 @@ export default {
   getPaymentsByInvoiceId,
   getSettlements,
   getSettlementById,
+  updateSettlementById,
 };

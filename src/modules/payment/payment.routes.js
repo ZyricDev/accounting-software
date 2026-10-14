@@ -15,10 +15,15 @@ router.get(
   paymentController.getSettlements,
 );
 
-router.get(
-  "/settlements/:settlementId",
-  validate(paymentValidation.getSettlement),
-  paymentController.getSettlement,
-);
+router
+  .route("/settlements/:settlementId")
+  .get(
+    validate(paymentValidation.getSettlement),
+    paymentController.getSettlement,
+  )
+  .patch(
+    validate(paymentValidation.updateSettlement),
+    paymentController.updateSettlement,
+  );
 
 export default router;

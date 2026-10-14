@@ -119,4 +119,24 @@ const getSettlement = {
   params: joi.object({ settlementId: buildIdSchema("تراکنش") }),
 };
 
-export default { getSettlements, getSettlement };
+const updateSettlement = {
+  params: joi.object({ settlementId: buildIdSchema("تراکنش") }),
+
+  body: createBodyObjectSchema({
+    description: joi.string().trim().allow(null, "").max(1000).messages({
+      "string.base": "توضیحات باید متن باشد.",
+      "string.max": "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.",
+    }),
+
+    paymentDate: joi.date().iso().messages({
+      "date.base": "تاریخ پرداخت نامعتبر است.",
+      "date.format": "تاریخ پرداخت باید یک تاریخ معتبر با فرمت استاندارد باشد.",
+    }),
+  })
+    .min(1)
+    .messages({
+      "object.min": "حداقل یک فیلد برای ویرایش باید ارسال شود.",
+    }),
+};
+
+export default { getSettlements, getSettlement, updateSettlement };

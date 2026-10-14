@@ -5,6 +5,19 @@ import {
   createQuerySchema,
 } from "../../shared/utils/validationHelpers.js";
 
+const buildIdSchema = (label) =>
+  joi
+    .persianNumber()
+    .integer()
+    .positive()
+    .empty("")
+    .messages({
+      "number.base": `شناسه ${label} باید عدد باشد.`,
+      "number.integer": `شناسه ${label} نامعتبر است.`,
+      "number.positive": `شناسه ${label} نامعتبر است.`,
+      "any.required": `انتخاب ${label} الزامی است.`,
+    });
+
 const getSettlements = {
   query: createQuerySchema({
     personType: joi
@@ -102,4 +115,8 @@ const getSettlements = {
   }),
 };
 
-export default { getSettlements };
+const getSettlement = {
+  params: joi.object({ settlementId: buildIdSchema("تراکنش") }),
+};
+
+export default { getSettlements, getSettlement };

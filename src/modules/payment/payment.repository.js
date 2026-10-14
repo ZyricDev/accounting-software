@@ -203,10 +203,36 @@ const getSettlements = async ({
   return { settlements: rows, total };
 };
 
+const getSettlementById = async (id) => {
+  const query = `
+    SELECT 
+      p.*,
+      CASE 
+        WHEN p.person_type = 'CUSTOMER' THEN c.name
+        WHEN p.person_type = 'SUPPLIER' THEN s.name
+      END AS person_name,
+      CASE 
+        WHEN p.person_type = 'CUSTOMER' THEN c.phone
+        WHEN p.person_type = 'SUPPLIER' THEN s.phone
+      END AS person_phone,
+      ba.title AS account_title
+    FROM payments p
+    LEFT JOIN customers c ON p.person_id = c.id AND p.person_type = 'CUSTOMER'
+    LEFT JOIN suppliers s ON p.person_id = s.id AND p.person_type = 'SUPPLIER'
+    LEFT JOIN bank_accounts ba ON p.account_id = ba.id
+    WHERE p.id = ? AND p.reference_type IN ('SETTLEMENT_IN', 'SETTLEMENT_OUT')
+  `;
+
+  const [rows] = await pool.query(query, [id]);
+
+  return rows[0] || null;
+};
+
 export default {
   createPayments,
   deletePaymentsByInvoiceId,
   cancelPaymentsByInvoiceId,
   getPaymentsByInvoiceId,
   getSettlements,
+  getSettlementById,
 };

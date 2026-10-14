@@ -7,4 +7,11 @@ const getSettlements = async (req, res) => {
   return sendSuccess(res, "تراکنش‌ها با موفقیت دریافت شد", result);
 };
 
-export default { getSettlements };
+const getSettlement = async (req, res) => {
+  const { settlementId } = req.params;
+  const settlement = await paymentService.getSettlementById(settlementId);
+
+  return sendSuccess(res, "تراکنش‌ با موفقیت دریافت شد", settlement);
+};
+
+export default { getSettlements, getSettlement };

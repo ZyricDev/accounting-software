@@ -15,4 +15,10 @@ router.get(
   paymentController.getSettlements,
 );
 
+router.get(
+  "/settlements/:settlementId",
+  validate(paymentValidation.getSettlement),
+  paymentController.getSettlement,
+);
+
 export default router;

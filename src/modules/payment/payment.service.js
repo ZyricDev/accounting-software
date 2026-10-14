@@ -1,3 +1,4 @@
+import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import paymentRepository from "./payment.repository.js";
 
@@ -16,7 +17,7 @@ const _toApiFields = (dbRow) => {
     createdAt: dbRow?.created_at,
   };
 
-  if (dbRow.payment_method !== "CASH") {
+  if (dbRow.method !== "CASH") {
     result.accountId = dbRow.account_id;
     result.accountTitle = dbRow.account_title;
   }
@@ -37,4 +38,14 @@ const getSettlements = async (filters) => {
   };
 };
 
-export default { getSettlements };
+const getSettlementById = async (settlementId) => {
+  const settlement = await paymentRepository.getSettlementById(settlementId);
+
+  if (!settlement) {
+    throw new AppError("تراکنش یافت نشد", 404);
+  }
+
+  return _toApiFields(settlement);
+};
+
+export default { getSettlements, getSettlementById };

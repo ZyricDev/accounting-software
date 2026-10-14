@@ -2,7 +2,7 @@ import { pool } from "../../database/connection.js";
 
 const createPayments = async (
   {
-    invoiceType,
+    referenceType,
     invoiceId,
     personType,
     personId,
@@ -19,7 +19,7 @@ const createPayments = async (
     p.accountId,
     personType,
     personId,
-    invoiceType,
+    referenceType,
     invoiceId,
     p.method,
     p.amount,
@@ -29,32 +29,32 @@ const createPayments = async (
   ]);
 
   await executor.query(
-    `INSERT INTO payments (account_id, person_type, person_id, invoice_type, invoice_id, method, amount, created_at, description, payment_date) VALUES ?`,
+    `INSERT INTO payments (account_id, person_type, person_id, reference_type, invoice_id, method, amount, created_at, description, payment_date) VALUES ?`,
     [values],
   );
 };
 
 const deletePaymentsByInvoiceId = async (
-  invoiceType,
+  referenceType,
   invoiceId,
   connection = pool,
 ) => {
   const query = `
     DELETE FROM payments 
-    WHERE invoice_type = ? AND invoice_id = ?
+    WHERE reference_type = ? AND invoice_id = ?
   `;
 
-  const [result] = await connection.query(query, [invoiceType, invoiceId]);
+  const [result] = await connection.query(query, [referenceType, invoiceId]);
   return result;
 };
 
 const cancelPaymentsByInvoiceId = async (
-  invoiceType,
+  referenceType,
   invoiceId,
   connection = pool,
 ) => {
-  const query = `UPDATE payments SET status = 'CANCELLED' WHERE invoice_type = ? AND invoice_id = ?`;
-  const [result] = await connection.query(query, [invoiceType, invoiceId]);
+  const query = `UPDATE payments SET status = 'CANCELLED' WHERE reference_type = ? AND invoice_id = ?`;
+  const [result] = await connection.query(query, [referenceType, invoiceId]);
   return result;
 };
 

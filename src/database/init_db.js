@@ -128,7 +128,7 @@ const createTables = async () => {
     account_id INT DEFAULT NULL,
     person_type ENUM('CUSTOMER', 'SUPPLIER') DEFAULT NULL,
     person_id INT NOT NULL,
-    invoice_type ENUM('SALE', 'PURCHASE', 'SETTLEMENT_IN', 'SETTLEMENT_OUT') NOT NULL,
+    reference_type ENUM('SALE', 'PURCHASE', 'SETTLEMENT_IN', 'SETTLEMENT_OUT') NOT NULL,
     invoice_id INT UNSIGNED DEFAULT NULL,
     method ENUM('CASH', 'CARD', 'TRANSFER') NOT NULL,
     amount BIGINT UNSIGNED NOT NULL,
@@ -139,7 +139,7 @@ const createTables = async () => {
 
     FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT,
 
-    INDEX (invoice_type, invoice_id),
+    INDEX (reference_type, invoice_id),
     INDEX (person_type, person_id),
     INDEX (payment_date)
   );

@@ -174,7 +174,7 @@ const settlementSupplierById = async (
 
     await paymentRepository.createPayments(
       {
-        invoiceType: type,
+        referenceType: type,
         invoiceId: null,
         personType: "SUPPLIER",
         personId: supplierId,

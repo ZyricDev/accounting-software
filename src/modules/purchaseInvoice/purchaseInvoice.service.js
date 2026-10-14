@@ -225,7 +225,7 @@ const addPurchaseInvoice = async ({
     if (paymentsToCreate.length > 0) {
       await paymentRepository.createPayments(
         {
-          invoiceType: "PURCHASE",
+          referenceType: "PURCHASE",
           invoiceId: invoiceId,
           personType: "SUPPLIER",
           personId: supplierId,
@@ -618,7 +618,7 @@ const updatePurchaseInvoiceById = async (
     if (paymentsToCreate.length > 0) {
       await paymentRepository.createPayments(
         {
-          invoiceType: "PURCHASE",
+          referenceType: "PURCHASE",
           invoiceId: invoiceId,
           personType: "SUPPLIER",
           personId: oldInvoice.supplier_id,

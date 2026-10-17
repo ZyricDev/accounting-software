@@ -189,7 +189,8 @@ const addPurchaseInvoice = async ({
         item.productId,
         {
           quantity: item.quantity,
-          purchasePrice: weightedAveragePurchasePrice,
+          averagePurchasePrice: weightedAveragePurchasePrice,
+          purchasePrice: item.purchasePrice,
           salePrice: item.salePrice,
           invoiceId,
           supplierId,

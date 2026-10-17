@@ -148,7 +148,7 @@ const getProductForUpdate = async (productId, executor = pool) => {
 
 const applyPurchaseUpdate = async (
   productId,
-  { quantity, purchasePrice, salePrice, invoiceId, supplierId },
+  { quantity,averagePurchasePrice, purchasePrice, salePrice, invoiceId, supplierId },
   executor = pool,
 ) => {
   await executor.query(
@@ -172,7 +172,7 @@ const applyPurchaseUpdate = async (
      WHERE id = ?`,
     [
       quantity,
-      purchasePrice,
+      averagePurchasePrice,
       salePrice,
       invoiceId,
       supplierId,

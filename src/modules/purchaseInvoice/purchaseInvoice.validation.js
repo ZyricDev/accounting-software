@@ -295,7 +295,6 @@ const updatePurchaseInvoice = {
     .custom((value, helpers) => {
       const totalPaid =
         value.cashAmount +
-        value.pos.amount +
         value.transfer.amount +
         value.creditAmount;
 

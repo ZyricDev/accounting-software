@@ -24,8 +24,7 @@ const ـgenerateUniqueCouponCode = async () => {
   let newCode = "";
 
   while (!isUnique) {
-    const randomNum = crypto.randomInt(0, 100000);
-    newCode = String(randomNum).padStart(5, "0");
+    newCode = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
 
     const exists = await couponRepository.checkCouponExists(newCode);
 
@@ -37,22 +36,22 @@ const ـgenerateUniqueCouponCode = async () => {
   return newCode;
 };
 
-const sendPurchaseDiscountSMS = async (
+const sendPurchaseDiscountSMS = async ({
+  invoiceId,
+  customerId,
   customerName = "مشتری",
-  phoneNumber,
-  paidAmount,
-) => {
-  const rawDiscount = paidAmount * 0.05;
+  customerPhone,
+  totalAmount,
+}) => {
+  const rawDiscount = totalAmount * 0.05;
   const discountAmount = Math.floor(rawDiscount / 1000) * 1000;
 
   const rawMinPurchase = discountAmount * 5;
   const minPurchaseAmount = Math.ceil(rawMinPurchase / 10000) * 10000;
 
-  if (discountAmount < 5000) return;
-
   const code = await ـgenerateUniqueCouponCode();
 
-  const expireDays = Number(config.sms.expireDays) || 25;
+  const expireDays = Number(config.coupon.general.validityDays) || 25;
   const expireDateObj = new Date();
   expireDateObj.setDate(expireDateObj.getDate() + expireDays);
   expireDateObj.setHours(23, 59, 59, 999);
@@ -64,6 +63,8 @@ const sendPurchaseDiscountSMS = async (
   }).format(expireDateObj);
 
   await couponRepository.createCoupon({
+    invoiceId,
+    customerId,
     code,
     amount: discountAmount,
     minPurchase: minPurchaseAmount,
@@ -74,9 +75,10 @@ const sendPurchaseDiscountSMS = async (
   const formattedMinPurchase = ـformatTomanReadable(minPurchaseAmount);
 
   const messageText = `${customerName} عزیز؛ هدیه ویژه مینل برای شما! 💎\n${formattedDiscount} تومان تخفیف اختصاصی\nحداقل خرید ${formattedMinPurchase} تومان\nکد تخفیف: ${code}\nتا ${expireDateShamsi}`;
+console.log(messageText);
 
   const params = new URLSearchParams({
-    receptor: phoneNumber,
+    receptor: customerPhone,
     message: messageText,
     sender: config.kavenegar.senderNumber,
   });
@@ -96,10 +98,13 @@ const sendPurchaseDiscountSMS = async (
     const data = await response.json();
 
     if (data.return && data.return.status !== 200) {
-      logger.error(`Kavenegar API Error for ${phoneNumber}:`, data.return);
+      logger.error(`Kavenegar API Error for ${customerPhone}:`, data.return);
     }
   } catch (error) {
-    logger.error(`Network Error Sending SMS to ${phoneNumber}:`, error.message);
+    logger.error(
+      `Network Error Sending SMS to ${customerPhone}:`,
+      error.message,
+    );
   }
 };
 

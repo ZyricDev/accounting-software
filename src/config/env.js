@@ -27,8 +27,18 @@ const config = {
     senderNumber: process.env.KAVENEGAR_SENDER_NUMBER,
   },
 
+  coupon: {
+    general: {
+      validityDays: Number(process.env.COUPON_GENERAL_VALIDITY_DAYS, 25),
+      minPurchaseAmount: Number(process.env.COUPON_GENERAL_MIN_PURCHASE, 200000),
+    },
+    birthday: {
+      validityDays: Number(process.env.COUPON_BIRTHDAY_VALIDITY_DAYS, 7),
+    },
+  },
+
   sms: {
-    expireDays: process.env.expire_days || 25,
+    expireDays: Number(process.env.expire_days) || 25,
   },
 };
 

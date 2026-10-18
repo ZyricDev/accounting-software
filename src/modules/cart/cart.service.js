@@ -214,6 +214,17 @@ const applyCoupon = async (cartId, code) => {
     throw new AppError("کد تخفیف وارد شده نامعتبر است یا منقضی شده است.", 404);
   }
 
+  if (coupon.invoice_status === "CANCELLED") {
+    throw new AppError(
+      "به دلیل ابطال فاکتور خرید قبلی، این کد تخفیف نامعتبر شده است.",
+      400,
+    );
+  }
+
+  if (new Date(coupon.expires_at) < new Date()) {
+    throw new AppError("مهلت استفاده از این کد تخفیف به پایان رسیده است.", 400);
+  }
+
   if (subtotal < coupon.min_purchase_amount) {
     throw new AppError(
       `حداقل مبلغ خرید برای استفاده از این کد ${coupon.min_purchase_amount.toLocaleString("fa-IR")} تومان است.`,

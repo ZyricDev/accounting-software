@@ -222,16 +222,24 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     );
   `;
 
-  const couponsTable = `
+ const couponsTable = `
   CREATE TABLE IF NOT EXISTS coupons (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id INT NOT NULL,
+  invoice_id INT UNSIGNED NOT NULL,
+  used_invoice_id INT UNSIGNED DEFAULT NULL,
   code VARCHAR(20) NOT NULL UNIQUE,
   amount BIGINT NOT NULL,
+  status ENUM('ACTIVE', 'USED', 'REVOKED') NOT NULL DEFAULT 'ACTIVE',
   min_purchase_amount BIGINT NOT NULL,
   expires_at DATETIME NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-  INDEX (code)
+  INDEX (code),
+
+  FOREIGN KEY (customer_id) REFERENCES customers(id),
+  FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id),
+  FOREIGN KEY (used_invoice_id) REFERENCES sales_invoices(id)
 );
 `;
 

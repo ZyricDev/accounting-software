@@ -8,6 +8,7 @@ import { validateBankAccounts } from "../../shared/utils/bankAccountValidator.js
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import smsService from "../../shared/utils/sms.js";
 import couponRepository from "../coupon/coupon.repository.js";
+import config from "../../config/env.js";
 
 const _buildInvoiceItems = (cartItems) => {
   return cartItems.map((item) => ({
@@ -138,10 +139,6 @@ const addSaleInvoice = async ({
       throw new AppError("این سبد خرید پردازش شده است", 409);
     }
 
-    if (cart.discountType === "COUPON" && cart.couponCode) {
-      await couponRepository.deleteCouponByCode(cart.couponCode, connection);
-    }
-
     const totalQuantity = invoiceItems.reduce(
       (sum, item) => sum + item.quantity,
       0,
@@ -155,7 +152,7 @@ const addSaleInvoice = async ({
         creditAmount,
         totalAmount,
         totalQuantity,
-        discount_type: cart.discountType,
+        discountType: cart.discountType,
       },
       connection,
     );
@@ -170,6 +167,15 @@ const addSaleInvoice = async ({
       await productRepository.adjustStock(
         item.productId,
         -item.quantity,
+        connection,
+      );
+    }
+
+
+    if (cart.discountType === "COUPON" && cart.couponCode) {
+      await couponRepository.markCouponAsUsed(
+        cart.couponCode ,
+        invoiceId,
         connection,
       );
     }
@@ -218,12 +224,14 @@ const addSaleInvoice = async ({
         connection,
       );
     } else {
-      if (customer) {
-        smsService.sendPurchaseDiscountSMS(
-          customer.name,
-          customer.phone,
+      if (customer && totalAmount >= config.coupon.general.minPurchaseAmount) {
+        smsService.sendPurchaseDiscountSMS({
+          customerName: customer.name,
+          customerPhone: customer.phone,
+          customerId: customer.id,
+          invoiceId,
           totalAmount,
-        );
+        });
       }
     }
 
@@ -305,6 +313,20 @@ const cancelSaleInvoiceById = async (invoiceId) => {
   try {
     connection = await saleInvoiceRepository.getConnection();
     await connection.beginTransaction();
+
+    await couponRepository.updateCouponStatus(
+      { invoiceId },
+      "REVOKED",
+      connection,
+    );
+
+    if (invoice.discount_type === "COUPON") {
+      await couponRepository.updateCouponStatus(
+        { usedInvoiceId: invoiceId },
+        "ACTIVE",
+        connection,
+      );
+    }
 
     for (const item of items) {
       await productRepository.adjustStock(

@@ -9,6 +9,7 @@ const createInvoice = async (invoiceData, executor = pool) => {
     customerId,
     paymentMethod,
     discountAmount,
+    discountType,
     creditAmount,
     totalAmount,
     totalQuantity,
@@ -16,12 +17,13 @@ const createInvoice = async (invoiceData, executor = pool) => {
 
   const [result] = await executor.query(
     `INSERT INTO sales_invoices
-    (customer_id, payment_method, discount_amount, credit_amount, total_amount, total_quantity)
-    VALUES (?, ?, ?, ?, ?, ?)`,
+    (customer_id, payment_method, discount_amount, discount_type, credit_amount, total_amount, total_quantity)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       customerId,
       paymentMethod,
       discountAmount,
+      discountType,
       creditAmount,
       totalAmount,
       totalQuantity,

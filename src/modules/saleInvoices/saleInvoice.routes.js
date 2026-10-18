@@ -26,10 +26,10 @@ router
   .patch(
     validate(saleInvoiceValidation.cancelSaleInvoice),
     saleInvoiceController.cancelSaleInvoice,
-  )
-  .put(
-    validate(saleInvoiceValidation.updateSaleInvoice),
-    saleInvoiceController.updateSaleInvoice,
   );
+// .put(
+//   validate(saleInvoiceValidation.updateSaleInvoice),
+//   saleInvoiceController.updateSaleInvoice,
+// );
 
 export default router;

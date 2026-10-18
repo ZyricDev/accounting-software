@@ -22,13 +22,24 @@ const config = {
   usbBackupRootDir: process.env.USB_BACKUP_DIR,
   usbBackupRootDir: process.env.LOG_DIR,
 
-  kavenegar: {
-    apikey: process.env.KAVENEGAR_API_KEY,
-    senderNumber: process.env.KAVENEGAR_SENDER_NUMBER,
+  melipayamak: {
+    username: process.env.MELIPAYAMAK_USERNAME,
+    password: process.env.MELIPAYAMAK_PASSWORD,
+    purchaseDiscountPatternId:
+      process.env.MELIPAYAMAK_PURCHASE_DISCOUNT_PATTERN_ID,
   },
 
-  sms: {
-    expireDays: process.env.expire_days || 25,
+  coupon: {
+    general: {
+      validityDays: Number(process.env.COUPON_GENERAL_VALIDITY_DAYS, 25),
+      minPurchaseAmount: Number(
+        process.env.COUPON_GENERAL_MIN_PURCHASE,
+        200000,
+      ),
+    },
+    birthday: {
+      validityDays: Number(process.env.COUPON_BIRTHDAY_VALIDITY_DAYS, 7),
+    },
   },
 };
 

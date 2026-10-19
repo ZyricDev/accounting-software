@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     );
   `;
 
- const couponsTable = `
+  const couponsTable = `
   CREATE TABLE IF NOT EXISTS coupons (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
@@ -290,6 +290,28 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     );
   `;
 
+  const chequesTable = `
+  CREATE TABLE IF NOT EXISTS cheques (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    supplier_id INT NOT NULL,
+    account_id INT NOT NULL,
+    serial_number VARCHAR(50) NOT NULL, 
+    sayyad_id VARCHAR(16) DEFAULT NULL,
+    amount BIGINT UNSIGNED NOT NULL,
+    due_date DATE NOT NULL,
+    status ENUM('PENDING', 'BOUNCED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    description TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT,
+
+    INDEX (account_id, serial_number),
+    INDEX (status, due_date)
+  );
+`;
+
   try {
     await Promise.all([
       pool.query(adminTable),
@@ -310,6 +332,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
       pool.query(cashFlowCategoriesTable),
       pool.query(cashFlowsTable),
       pool.query(inventoryAdjustmentsTable),
+      pool.query(chequesTable),
     ]);
 
     await runAllSeeds();

@@ -110,6 +110,13 @@ const addSaleInvoice = async ({
   const discountAmount = cart.discountAmount ?? 0;
   const totalAmount = subtotal - discountAmount;
 
+  if (cart.discountType === "COUPON" && cart.couponMinPurchase > subtotal) {
+    throw new AppError(
+       `مبلغ سبد خرید از حداقل خرید لازم برای این کد تخفیف (${cart.couponMinPurchase.toLocaleString("fa-IR")} تومان) کمتر شده است. لطفاً کد تخفیف را حذف کنید یا سبد را اصلاح کنید.`,
+    409,
+    );
+  }
+
   const totalPaid = cashAmount + pos.amount + transfer.amount + creditAmount;
   if (totalPaid !== totalAmount) {
     throw new AppError(
@@ -171,10 +178,9 @@ const addSaleInvoice = async ({
       );
     }
 
-
     if (cart.discountType === "COUPON" && cart.couponCode) {
       await couponRepository.markCouponAsUsed(
-        cart.couponCode ,
+        cart.couponCode,
         invoiceId,
         connection,
       );

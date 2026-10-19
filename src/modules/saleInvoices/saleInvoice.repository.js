@@ -101,7 +101,10 @@ const getInvoices = async ({
 
   const dataQuery = `
     SELECT 
-      si.*, 
+      si.id,
+      si.total_amount,
+      si.payment_method,
+      si.created_at, 
       c.name AS customer_name, 
       c.phone AS customer_phone,
       EXISTS (

@@ -15,7 +15,7 @@ const getCouponByCode = async (code) => {
       c.*, 
       i.status AS invoice_status 
     FROM coupons c
-    INNER JOIN sale_invoices i ON c.invoice_id = i.id
+    INNER JOIN sales_invoices i ON c.invoice_id = i.id
     WHERE c.code = ? AND c.expires_at > NOW()
   `;
 

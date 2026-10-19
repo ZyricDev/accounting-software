@@ -28,6 +28,7 @@ const salesItemTransformer = (item) => {
 const _saveAndFormatCart = async (cart) => {
   if (cart.items.length === 0) {
     cart.discountAmount = 0;
+    cart.couponMinPurchase = 0;
     cart.discountType = "NONE";
     cart.couponCode = null;
   } else {
@@ -35,18 +36,20 @@ const _saveAndFormatCart = async (cart) => {
 
     if (cart.discountAmount > subtotal) {
       cart.discountAmount = 0;
+      cart.couponMinPurchase = 0;
       cart.discountType = "NONE";
       cart.couponCode = null;
     }
   }
 
-  await cartRepository.updateCartState(
-    cart.id,
-    cart.items,
-    cart.discountAmount,
-    cart.discountType,
-    cart.couponCode,
-  );
+  await cartRepository.updateCartState({
+    id: cart.id,
+    items: cart.items,
+    discountAmount: cart.discountAmount,
+    couponMinPurchase: cart.couponMinPurchase,
+    discountType: cart.discountType,
+    couponCode: cart.couponCode,
+  });
 
   return toApiCart(cart, "salePrice", salesItemTransformer);
 };
@@ -233,6 +236,7 @@ const applyCoupon = async (cartId, code) => {
   }
 
   cart.discountAmount = coupon.amount;
+  cart.couponMinPurchase = coupon.min_purchase_amount;
   cart.couponCode = coupon.code;
   cart.discountType = "COUPON";
 
@@ -247,6 +251,7 @@ const removeDiscount = async (cartId) => {
   }
 
   cart.discountAmount = 0;
+  cart.couponMinPurchase = 0;
   cart.discountType = "NONE";
   cart.couponCode = null;
 

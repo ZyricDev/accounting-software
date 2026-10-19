@@ -79,6 +79,7 @@ const createTables = async () => {
       items JSON NOT NULL DEFAULT (JSON_ARRAY()),
       discount_type ENUM('NONE', 'MANUAL', 'COUPON') DEFAULT 'NONE',
       discount_amount INT UNSIGNED NOT NULL DEFAULT 0,
+      coupon_min_purchase INT UNSIGNED NOT NULL DEFAULT 0,
       coupon_code VARCHAR(20) DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

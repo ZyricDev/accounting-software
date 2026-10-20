@@ -241,6 +241,8 @@ const settlementSupplier = {
         "number.min": "مبلغ نقدی نمی‌تواند منفی باشد.",
       }),
 
+    pos: buildPaymentMethodSchema("کارت‌خوان"),
+
     transfer: buildPaymentMethodSchema("کارت به کارت"),
 
     type: joi
@@ -272,7 +274,8 @@ const settlementSupplier = {
       }),
   })
     .custom((value, helpers) => {
-      const totalPaid = value.cashAmount + value.transfer.amount;
+      const totalPaid =
+        value.cashAmount + value.pos.amount + value.transfer.amount;
 
       if (totalPaid <= 0) {
         return helpers.error("object.noPaymentProvided");

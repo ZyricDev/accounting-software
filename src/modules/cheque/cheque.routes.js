@@ -20,6 +20,12 @@ router.patch(
   chequeController.cancelCheque,
 );
 
+router.patch(
+  "/:chequeId/clear",
+  validate(chequeValidation.clearCheque),
+  chequeController.clearCheque,
+);
+
 router
   .route("/:chequeId")
   .get(validate(chequeValidation.getCheque), chequeController.getCheque)

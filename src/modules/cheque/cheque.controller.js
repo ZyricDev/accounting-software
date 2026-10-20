@@ -20,7 +20,7 @@ const getCheque = async (req, res) => {
 
   const cheque = await chequeService.getChequeById(chequeId);
 
-  return sendSuccess(res, "چک‌ها با موفقیت دریافت شد", { cheque });
+  return sendSuccess(res, "چک‌ با موفقیت دریافت شد", { cheque });
 };
 
 const updateCheque = async (req, res) => {
@@ -29,16 +29,31 @@ const updateCheque = async (req, res) => {
 
   const cheque = await chequeService.updateChequeById(chequeId, updateData);
 
-  return sendSuccess(res, "چک‌ها با موفقیت آپدیت شد", { cheque });
+  return sendSuccess(res, "چک‌ با موفقیت آپدیت شد", { cheque });
 };
 
 const cancelCheque = async (req, res) => {
   const { chequeId } = req.params;
-  const {description} = req.body;
+  const { description } = req.body;
 
   const cheque = await chequeService.cancelChequeById(chequeId, description);
 
-  return sendSuccess(res, "چک‌ها با موفقیت آپدیت شد", { cheque });
+  return sendSuccess(res, "چک‌ با موفقیت آپدیت شد", { cheque });
 };
 
-export default { addCheque, getCheques, getCheque, updateCheque, cancelCheque };
+const clearCheque = async (req, res) => {
+  const { chequeId } = req.params;
+
+  const cheque = await chequeService.clearChequeById(chequeId);
+
+  return sendSuccess(res, "چک‌ با موفقیت آپدیت شد", { cheque });
+};
+
+export default {
+  addCheque,
+  getCheques,
+  getCheque,
+  updateCheque,
+  clearCheque,
+  cancelCheque,
+};

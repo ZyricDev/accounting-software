@@ -229,6 +229,8 @@ const updateCheque = {
     }),
 };
 
+const clearCheque = getCheque;
+
 const cancelCheque = {
   params: joi.object({ chequeId: buildIdSchema("چک").required() }),
 
@@ -247,4 +249,11 @@ const cancelCheque = {
   }),
 };
 
-export default { addCheque, getCheques, getCheque, updateCheque, cancelCheque };
+export default {
+  addCheque,
+  getCheques,
+  getCheque,
+  updateCheque,
+  clearCheque,
+  cancelCheque,
+};

@@ -162,6 +162,21 @@ const updateChequeById = async (chequeId, updateData) => {
   return { id: chequeId };
 };
 
+const clearChequeById = async (chequeId) => {
+  const cheque = await chequeRepository.getChequeById(chequeId);
+  if (!cheque) {
+    throw new AppError("چک مورد نظر یافت نشد.", 404);
+  }
+
+  if (cheque.status !== "PENDING") {
+    throw new AppError("فقط چک‌های در انتظار قابل پاس شدن هستند.", 400);
+  }
+
+  await chequeRepository.markAsCleared(chequeId);
+
+  return { id: chequeId };
+};
+
 const cancelChequeById = async (chequeId, description = null) => {
   const cheque = await chequeRepository.getChequeById(chequeId);
   if (!cheque) {
@@ -178,7 +193,7 @@ const cancelChequeById = async (chequeId, description = null) => {
     await chequeRepository.markAsCancelled(chequeId, description, connection);
 
     await supplierRepository.incrementDebt(
-      cheque.supplierId,
+      cheque.supplier_id,
       cheque.amount,
       connection,
     );
@@ -199,5 +214,6 @@ export default {
   getCheques,
   getChequeById,
   updateChequeById,
+  clearChequeById,
   cancelChequeById,
 };

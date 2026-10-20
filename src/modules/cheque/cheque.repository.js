@@ -159,14 +159,14 @@ const getAllCheques = async (filters) => {
     ${whereClause}
   `;
 
-  const [[rows], [[total]]] = await Promise.all([
+  const [[dataResult], [countResult]] = await Promise.all([
     pool.query(dataQuery, [...params, limit, offset]),
     pool.query(countQuery, params),
   ]);
 
   return {
-    cheques: rows,
-    total,
+    cheques: dataResult,
+    total: Number(countResult[0].total),
   };
 };
 
@@ -232,6 +232,16 @@ const updateChequeById = async (chequeId, updateData, connection = pool) => {
   return result.affectedRows > 0;
 };
 
+const markAsCleared = async (chequeId, connection = pool) => {
+  const query = `
+    UPDATE cheques 
+    SET status = 'CLEARED' 
+    WHERE id = ? AND status = 'PENDING'
+  `;
+  const [result] = await connection.query(query, [chequeId]);
+  return result.affectedRows > 0;
+};
+
 const markAsCancelled = async (
   chequeId,
   cancelReason = null,
@@ -263,5 +273,6 @@ export default {
   getAllCheques,
   getChequeById,
   updateChequeById,
+  markAsCleared,
   markAsCancelled,
 };

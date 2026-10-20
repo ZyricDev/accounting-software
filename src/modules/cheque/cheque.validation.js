@@ -64,14 +64,28 @@ const addCheque = {
     }),
 
     dueDate: joi
-      .date()
-      .iso()
-      .empty("")
-      .default(null)
-      .raw()
+      .string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .custom((value, helpers) => {
+        const date = new Date(`${value}T00:00:00.000Z`);
+
+        if (
+          isNaN(date.getTime()) ||
+          date.toISOString().slice(0, 10) !== value
+        ) {
+          return helpers.error("date.invalid");
+        }
+        
+        return value;
+      })
       .required()
       .messages({
-        "date.base": "تاریخ سررسید چک نامعتبر است.",
+        "string.base": "تاریخ سررسید چک باید متن باشد.",
+        "string.empty": "تاریخ سررسید چک الزامی است.",
+        "string.pattern.base":
+          "فرمت تاریخ سررسید چک باید به صورت YYYY-MM-DD باشد.",
+        "date.invalid": "تاریخ سررسید وارد شده معتبر نیست.",
         "any.required": "تاریخ سررسید چک الزامی است.",
       }),
 
@@ -136,16 +150,10 @@ const getCheques = {
       "number.max": "تعداد آیتم نباید بیشتر از ۱۰۰ باشد.",
     }),
 
-    startDate: joi
-      .date()
-      .iso()
-      .empty("")
-      .default(null)
-      .raw()
-      .messages({
-        "date.base": "تاریخ شروع نامعتبر است.",
-        "date.format": "تاریخ شروع باید در فرمت استاندارد (YYYY-MM-DD) باشد.",
-      }),
+    startDate: joi.date().iso().empty("").default(null).raw().messages({
+      "date.base": "تاریخ شروع نامعتبر است.",
+      "date.format": "تاریخ شروع باید در فرمت استاندارد (YYYY-MM-DD) باشد.",
+    }),
 
     endDate: joi
       .date()
@@ -165,4 +173,8 @@ const getCheques = {
   }),
 };
 
-export default { addCheque, getCheques };
+const getCheque = {
+  params: joi.object({ chequeId: buildIdSchema("چک") }),
+};
+
+export default { addCheque, getCheques, getCheque };

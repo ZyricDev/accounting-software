@@ -14,4 +14,8 @@ router
   .post(validate(chequeValidation.addCheque), chequeController.addCheque)
   .get(validate(chequeValidation.getCheques), chequeController.getCheques);
 
+router
+  .route("/:chequeId")
+  .get(validate(chequeValidation.getCheque), chequeController.getCheque);
+
 export default router;

@@ -152,10 +152,40 @@ const getAllCheques = async (filters) => {
   };
 };
 
+const getChequeById = async (chequeId, connection = pool) => {
+  const query = `
+    SELECT 
+      c.id,
+      c.supplier_id,
+      s.name AS supplier_name,
+      s.phone AS supplier_phone,
+      c.account_id,
+      b.title AS account_title,
+      c.serial_number,
+      c.sayyad_id,
+      c.amount,
+      c.due_date,
+      c.status,
+      c.description,
+      c.created_at,
+      c.updated_at
+    FROM cheques c
+    INNER JOIN suppliers s ON c.supplier_id = s.id
+    INNER JOIN bank_accounts b ON c.account_id = b.id
+    WHERE c.id = ?
+    LIMIT 1
+  `;
+
+  const [rows] = await connection.query(query, [chequeId]);
+
+  return rows[0] || null;
+};
+
 export default {
   getConnection,
   isSerialNumberTaken,
   isSayyadIdTaken,
   createCheque,
   getAllCheques,
+  getChequeById,
 };

@@ -15,4 +15,12 @@ const getCheques = async (req, res) => {
   return sendSuccess(res, "چک‌ها با موفقیت دریافت شد", result);
 };
 
-export default { addCheque, getCheques };
+const getCheque = async (req, res) => {
+  const { chequeId } = req.params;
+
+  const cheque = await chequeService.getChequeById(chequeId);
+
+  return sendSuccess(res, "چک‌ها با موفقیت دریافت شد", { cheque });
+};
+
+export default { addCheque, getCheques, getCheque };

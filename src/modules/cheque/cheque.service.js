@@ -100,4 +100,14 @@ const getCheques = async (filters) => {
   };
 };
 
-export default { addCheque, getCheques };
+const getChequeById = async (chequeId) => {
+  const cheque = await chequeRepository.getChequeById(chequeId);
+
+  if (!cheque) {
+    throw new AppError("چک یافت نشد", 404);
+  }
+
+  return _toApiFields(cheque);
+};
+
+export default { addCheque, getCheques, getChequeById };

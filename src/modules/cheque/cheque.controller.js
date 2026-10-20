@@ -9,4 +9,10 @@ const addCheque = async (req, res) => {
   return sendSuccess(res, "چک با موفقیت ثبت شد", { cheque }, 201);
 };
 
-export default { addCheque };
+const getCheques = async (req, res) => {
+  const result = await chequeService.getCheques(req.validatedQuery);
+
+  return sendSuccess(res, "چک‌ها با موفقیت دریافت شد", result);
+};
+
+export default { addCheque, getCheques };

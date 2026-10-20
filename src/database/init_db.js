@@ -304,8 +304,8 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT,
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (account_id) REFERENCES bank_accounts(id),
 
     INDEX (account_id, serial_number),
     INDEX (status, due_date)

@@ -11,6 +11,7 @@ router.use(requireAuth);
 
 router
   .route("/")
-  .post(validate(chequeValidation.addCheque), chequeController.addCheque);
+  .post(validate(chequeValidation.addCheque), chequeController.addCheque)
+  .get(validate(chequeValidation.getCheques), chequeController.getCheques);
 
 export default router;

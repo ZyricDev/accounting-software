@@ -2,6 +2,25 @@ import chequeRepository from "./cheque.repository.js";
 import bankAccountRepository from "../bankAccount/bankAccount.repository.js";
 import supplierRepository from "../supplier/supplier.repository.js";
 import AppError from "../../shared/errors/AppError.js";
+import { generatePaginationData } from "../../shared/utils/apiResponse.js";
+
+const _toApiFields = (dbRow) => {
+  return {
+    id: dbRow.id,
+    supplierId: dbRow.supplier_id,
+    supplierName: dbRow.supplier_name,
+    supplierPhone: dbRow.supplier_phone,
+    accountTitle: dbRow.account_title,
+    accountId: dbRow.account_id,
+    serialNumber: dbRow.serial_number,
+    sayyadId: dbRow.sayyad_id,
+    status: dbRow.status,
+    amount: dbRow.amount,
+    dueDate: dbRow.due_date,
+    description: dbRow?.description,
+    createdAt: dbRow.created_at,
+  };
+};
 
 const addCheque = async (chequeData) => {
   const { accountId } = chequeData;
@@ -68,4 +87,17 @@ const addCheque = async (chequeData) => {
   }
 };
 
-export default { addCheque };
+const getCheques = async (filters) => {
+  const { cheques, total } = await chequeRepository.getAllCheques(filters);
+
+  return {
+    cheques: cheques.map(_toApiFields),
+    pagination: generatePaginationData({
+      page: filters.page,
+      limit: filters.limit,
+      total,
+    }),
+  };
+};
+
+export default { addCheque, getCheques };

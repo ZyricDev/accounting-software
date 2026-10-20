@@ -14,9 +14,18 @@ router
   .post(validate(chequeValidation.addCheque), chequeController.addCheque)
   .get(validate(chequeValidation.getCheques), chequeController.getCheques);
 
+router.patch(
+  "/:chequeId/cancel",
+  validate(chequeValidation.cancelCheque),
+  chequeController.cancelCheque,
+);
+
 router
   .route("/:chequeId")
   .get(validate(chequeValidation.getCheque), chequeController.getCheque)
-  .patch(validate(chequeValidation.updateCheque), chequeController.updateCheque);
+  .patch(
+    validate(chequeValidation.updateCheque),
+    chequeController.updateCheque,
+  );
 
 export default router;

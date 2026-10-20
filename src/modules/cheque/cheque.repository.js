@@ -232,6 +232,29 @@ const updateChequeById = async (chequeId, updateData, connection = pool) => {
   return result.affectedRows > 0;
 };
 
+const markAsCancelled = async (
+  chequeId,
+  cancelReason = null,
+  connection = pool,
+) => {
+  const query = `
+    UPDATE cheques 
+    SET 
+      status = 'CANCELLED',
+      description = CASE 
+        WHEN ? IS NOT NULL THEN CONCAT_WS(' | علت ابطال: ', description, ?)
+        ELSE description
+      END
+    WHERE id = ? AND status IN ('PENDING', 'CLEARED')
+  `;
+  const [result] = await connection.query(query, [
+    cancelReason,
+    cancelReason,
+    chequeId,
+  ]);
+  return result.affectedRows > 0;
+};
+
 export default {
   getConnection,
   isSerialNumberTaken,
@@ -240,4 +263,5 @@ export default {
   getAllCheques,
   getChequeById,
   updateChequeById,
+  markAsCancelled,
 };

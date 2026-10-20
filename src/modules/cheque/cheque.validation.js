@@ -229,4 +229,22 @@ const updateCheque = {
     }),
 };
 
-export default { addCheque, getCheques, getCheque, updateCheque };
+const cancelCheque = {
+  params: joi.object({ chequeId: buildIdSchema("چک").required() }),
+
+  body: createBodyObjectSchema({
+    description: joi
+      .string()
+      .trim()
+      .max(500)
+      .empty("")
+      .default(null)
+      .optional()
+      .messages({
+        "string.base": "توضیحات ابطال باید متن باشد.",
+        "string.max": "توضیحات ابطال نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد.",
+      }),
+  }),
+};
+
+export default { addCheque, getCheques, getCheque, updateCheque, cancelCheque };

@@ -32,4 +32,13 @@ const updateCheque = async (req, res) => {
   return sendSuccess(res, "چک‌ها با موفقیت آپدیت شد", { cheque });
 };
 
-export default { addCheque, getCheques, getCheque, updateCheque };
+const cancelCheque = async (req, res) => {
+  const { chequeId } = req.params;
+  const {description} = req.body;
+
+  const cheque = await chequeService.cancelChequeById(chequeId, description);
+
+  return sendSuccess(res, "چک‌ها با موفقیت آپدیت شد", { cheque });
+};
+
+export default { addCheque, getCheques, getCheque, updateCheque, cancelCheque };

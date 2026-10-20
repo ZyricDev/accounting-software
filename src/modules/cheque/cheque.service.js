@@ -162,4 +162,42 @@ const updateChequeById = async (chequeId, updateData) => {
   return { id: chequeId };
 };
 
-export default { addCheque, getCheques, getChequeById, updateChequeById };
+const cancelChequeById = async (chequeId, description = null) => {
+  const cheque = await chequeRepository.getChequeById(chequeId);
+  if (!cheque) {
+    throw new AppError("چک مورد نظر یافت نشد.", 404);
+  }
+
+  if (cheque.status === "CANCELLED") {
+    throw new AppError("این چک قبلاً باطل شده است.", 400);
+  }
+
+  const connection = await chequeRepository.getConnection();
+  await connection.beginTransaction();
+  try {
+    await chequeRepository.markAsCancelled(chequeId, description, connection);
+
+    await supplierRepository.incrementDebt(
+      cheque.supplierId,
+      cheque.amount,
+      connection,
+    );
+
+    await connection.commit();
+
+    return { id: chequeId };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
+export default {
+  addCheque,
+  getCheques,
+  getChequeById,
+  updateChequeById,
+  cancelChequeById,
+};

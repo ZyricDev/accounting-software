@@ -16,6 +16,7 @@ router
 
 router
   .route("/:chequeId")
-  .get(validate(chequeValidation.getCheque), chequeController.getCheque);
+  .get(validate(chequeValidation.getCheque), chequeController.getCheque)
+  .patch(validate(chequeValidation.updateCheque), chequeController.updateCheque);
 
 export default router;

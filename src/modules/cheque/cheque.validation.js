@@ -76,7 +76,7 @@ const addCheque = {
         ) {
           return helpers.error("date.invalid");
         }
-        
+
         return value;
       })
       .required()
@@ -177,4 +177,56 @@ const getCheque = {
   params: joi.object({ chequeId: buildIdSchema("چک") }),
 };
 
-export default { addCheque, getCheques, getCheque };
+const updateCheque = {
+  params: joi.object({ chequeId: buildIdSchema("چک").required() }),
+  body: createBodyObjectSchema({
+    accountId: buildIdSchema("حساب").optional(),
+
+    serialNumber: joi.string().trim().min(1).max(50).optional().messages({
+      "string.base": "شماره سریال چک باید متن باشد.",
+      "string.empty": "شماره سریال چک نمی‌تواند خالی باشد.",
+      "string.max": "شماره سریال چک نمی‌تواند بیشتر از ۵۰ کاراکتر باشد.",
+    }),
+
+    sayyadId: joi
+      .string()
+      .trim()
+      .empty("")
+      .default(null)
+      .pattern(/^\d{16}$/)
+      .optional()
+      .messages({
+        "string.base": "شناسه صیاد باید متن باشد.",
+        "string.pattern.base": "شناسه صیاد باید دقیقاً ۱۶ رقم عددی باشد.",
+      }),
+
+    dueDate: joi
+      .string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .messages({
+        "string.base": "تاریخ سررسید چک نامعتبر است.",
+        "string.pattern.base":
+          "فرمت تاریخ سررسید باید به صورت YYYY-MM-DD باشد.",
+      }),
+
+    description: joi
+      .string()
+      .trim()
+      .max(1000)
+      .empty("")
+      .default(null)
+      .optional()
+      .messages({
+        "string.base": "توضیحات باید متن باشد.",
+        "string.max": "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.",
+      }),
+  })
+    .min(1)
+    .messages({
+      "object.min": "حداقل یک فیلد برای ویرایش باید ارسال شود.",
+    }),
+};
+
+export default { addCheque, getCheques, getCheque, updateCheque };

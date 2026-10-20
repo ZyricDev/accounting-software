@@ -7,28 +7,46 @@ const getConnection = async () => {
 const isSerialNumberTaken = async (
   accountId,
   serialNumber,
+  excludeId = null,
   connection = pool,
 ) => {
-  const query = `
+  let query = `
     SELECT id FROM cheques 
     WHERE account_id = ? AND serial_number = ? AND status != 'CANCELLED'
-    LIMIT 1
   `;
+  const params = [accountId, serialNumber];
 
-  const [rows] = await connection.query(query, [accountId, serialNumber]);
+  if (excludeId) {
+    query += ` AND id != ?`;
+    params.push(excludeId);
+  }
 
+  query += ` LIMIT 1`;
+
+  const [rows] = await connection.query(query, params);
   return rows.length > 0;
 };
 
-const isSayyadIdTaken = async (accountId, sayyadId, connection = pool) => {
-  const query = `
+const isSayyadIdTaken = async (
+  accountId,
+  sayyadId,
+  excludeId = null,
+  connection = pool,
+) => {
+  let query = `
     SELECT id FROM cheques 
     WHERE account_id = ? AND sayyad_id = ? AND status != 'CANCELLED'
-    LIMIT 1
   `;
+  const params = [accountId, sayyadId];
 
-  const [rows] = await connection.query(query, [accountId, sayyadId]);
+  if (excludeId) {
+    query += ` AND id != ?`;
+    params.push(excludeId);
+  }
 
+  query += ` LIMIT 1`;
+
+  const [rows] = await connection.query(query, params);
   return rows.length > 0;
 };
 
@@ -181,6 +199,39 @@ const getChequeById = async (chequeId, connection = pool) => {
   return rows[0] || null;
 };
 
+const updateChequeById = async (chequeId, updateData, connection = pool) => {
+  const fields = [];
+  const params = [];
+
+  const columnMap = {
+    accountId: "account_id",
+    serialNumber: "serial_number",
+    sayyadId: "sayyad_id",
+    dueDate: "due_date",
+    description: "description",
+  };
+
+  for (const [key, column] of Object.entries(columnMap)) {
+    if (updateData[key] !== undefined) {
+      fields.push(`${column} = ?`);
+      params.push(updateData[key]);
+    }
+  }
+
+  if (fields.length === 0) return false;
+
+  const query = `
+    UPDATE cheques
+    SET ${fields.join(", ")}
+    WHERE id = ? AND status = 'PENDING'
+  `;
+
+  params.push(chequeId);
+
+  const [result] = await connection.query(query, params);
+  return result.affectedRows > 0;
+};
+
 export default {
   getConnection,
   isSerialNumberTaken,
@@ -188,4 +239,5 @@ export default {
   createCheque,
   getAllCheques,
   getChequeById,
+  updateChequeById,
 };

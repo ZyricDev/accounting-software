@@ -110,4 +110,56 @@ const getChequeById = async (chequeId) => {
   return _toApiFields(cheque);
 };
 
-export default { addCheque, getCheques, getChequeById };
+const updateChequeById = async (chequeId, updateData) => {
+  const cheque = await chequeRepository.getChequeById(chequeId);
+  if (!cheque) {
+    throw new AppError("چک مورد نظر یافت نشد.", 404);
+  }
+
+  if (cheque.status !== "PENDING") {
+    throw new AppError("فقط چک‌های در انتظار قابل ویرایش هستند.", 400);
+  }
+
+  const targetAccountId = updateData.accountId ?? cheque.accountId;
+  const targetSerialNumber = updateData.serialNumber ?? cheque.serialNumber;
+  const targetSayyadId =
+    updateData.sayyadId !== undefined ? updateData.sayyadId : cheque.sayyadId;
+
+  if (updateData.accountId && updateData.accountId !== cheque.accountId) {
+    const bankAccount =
+      await bankAccountRepository.getBankAccountById(targetAccountId);
+
+    if (!bankAccount || !bankAccount.isActive) {
+      throw new AppError("حساب بانکی پیدا نشد یا غیرفعال است.", 404);
+    }
+  }
+
+  const serialTaken = await chequeRepository.isSerialNumberTaken(
+    targetAccountId,
+    targetSerialNumber,
+    chequeId,
+  );
+  if (serialTaken) {
+    throw new AppError(
+      "چکی با این شماره سریال در این حساب بانکی موجود است.",
+      409,
+    );
+  }
+
+  if (targetSayyadId) {
+    const sayyadTaken = await chequeRepository.isSayyadIdTaken(
+      targetAccountId,
+      targetSayyadId,
+      chequeId,
+    );
+    if (sayyadTaken) {
+      throw new AppError("چکی با این شناسه صیادی قبلاً ثبت شده است.", 409);
+    }
+  }
+
+  await chequeRepository.updateChequeById(chequeId, updateData);
+
+  return { id: chequeId };
+};
+
+export default { addCheque, getCheques, getChequeById, updateChequeById };

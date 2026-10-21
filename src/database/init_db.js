@@ -58,6 +58,21 @@ const createTables = async () => {
   );
 `;
 
+  const productBarcodesTable = `
+  CREATE TABLE IF NOT EXISTS product_barcodes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    barcode VARCHAR(100) NOT NULL UNIQUE,
+    is_primary BOOLEAN NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+
+    INDEX (product_id),
+    INDEX (barcode)
+);
+`;
+
   const customersTable = `
   CREATE TABLE IF NOT EXISTS customers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -318,6 +333,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
       pool.query(bankAccountsTable),
       pool.query(suppliersTable),
       pool.query(productsTable),
+      pool.query(productBarcodesTable),
       pool.query(customersTable),
       pool.query(cartsTable),
       pool.query(salesInvoicesTable),

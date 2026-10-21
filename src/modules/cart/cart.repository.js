@@ -19,12 +19,16 @@ const getCarts = async () => {
 
 const searchProducts = async (searchTerm) => {
   const [rows] = await pool.query(
-    `SELECT id, name, stock, sale_price
-     FROM products
-     WHERE stock > 0
-       AND (barcode = ? OR name LIKE ?)
-     ORDER BY CASE WHEN barcode = ? THEN 0 ELSE 1 END, name ASC `,
-    [searchTerm, `%${searchTerm}%`, searchTerm],
+    `SELECT p.id, p.name, p.stock, p.sale_price
+     FROM products p
+     LEFT JOIN product_barcodes pb 
+       ON p.id = pb.product_id AND pb.barcode = ?
+     WHERE p.stock > 0
+       AND (pb.product_id IS NOT NULL OR p.name LIKE ?)
+     ORDER BY 
+       CASE WHEN pb.product_id IS NOT NULL THEN 0 ELSE 1 END, 
+       p.name ASC`,
+    [searchTerm, `%${searchTerm}%`],
   );
   return rows;
 };

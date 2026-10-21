@@ -72,12 +72,25 @@ const addProduct = {
       "any.required": "نام محصول الزامی است.",
     }),
 
-    barcode: joi.string().trim().min(4).max(100).required().messages({
-      "string.empty": "بارکد محصول الزامی است.",
-      "string.min": "بارکد وارد شده معتبر نیست.",
-      "string.max": "بارکد وارد شده معتبر نیست.",
-      "any.required": "بارکد محصول الزامی است.",
-    }),
+    barcodes: joi
+      .array()
+      .items(
+        joi.string().trim().min(4).max(100).required().messages({
+          "string.base": "بارکد باید متن باشد.",
+          "string.empty": "بارکد نمی‌تواند خالی باشد.",
+          "string.min": "طول بارکد باید حداقل ۴ کاراکتر باشد.",
+          "string.max": "طول بارکد نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+        }),
+      )
+      .min(1)
+      .unique()
+      .required()
+      .messages({
+        "array.base": "لیست بارکدها نامعتبر است.",
+        "array.min": "حداقل وارد کردن یک بارکد برای محصول الزامی است.",
+        "array.unique": "بارکدهای وارد شده نباید تکراری باشند.",
+        "any.required": "بارکدهای محصول الزامی است.",
+      }),
   }),
 };
 
@@ -91,11 +104,23 @@ const updateProduct = {
       "string.max": "نام محصول نباید بیشتر از ۲۵۵ کاراکتر باشد.",
     }),
 
-    barcode: joi.string().trim().min(4).max(100).messages({
-      "string.empty": "بارکد محصول الزامی است.",
-      "string.min": "بارکد وارد شده معتبر نیست.",
-      "string.max": "بارکد وارد شده معتبر نیست.",
-    }),
+    barcodes: joi
+      .array()
+      .items(
+        joi.string().trim().min(4).max(100).required().messages({
+          "string.base": "بارکد باید متن باشد.",
+          "string.empty": "بارکد نمی‌تواند خالی باشد.",
+          "string.min": "طول بارکد باید حداقل ۴ کاراکتر باشد.",
+          "string.max": "طول بارکد نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.",
+        }),
+      )
+      .min(1)
+      .unique()
+      .messages({
+        "array.base": "لیست بارکدها نامعتبر است.",
+        "array.min": "حداقل وارد کردن یک بارکد برای محصول الزامی است.",
+        "array.unique": "بارکدهای وارد شده نباید تکراری باشند.",
+      }),
 
     salePrice: joi.persianNumber().integer().positive().messages({
       "number.base": "قیمت فروش باید عدد باشد.",

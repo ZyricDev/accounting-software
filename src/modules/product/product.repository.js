@@ -2,44 +2,85 @@ import { pool } from "../../database/connection.js";
 import logger from "../../shared/utils/logger.js";
 
 const SORT_COLUMN_MAP = {
-  name: "name",
-  stock: "stock",
-  purchasePrice: "purchase_price",
-  salePrice: "sale_price",
-  lastStockInAt: "last_stock_in_at",
+  name: "p.name",
+  stock: "p.stock",
+  purchasePrice: "p.purchase_price",
+  salePrice: "p.sale_price",
+  lastStockInAt: "p.last_stock_in_at",
 };
 
 const getProducts = async ({ search, page, limit, sortBy, order }) => {
   const offset = (page - 1) * limit;
-  const sortColumn = SORT_COLUMN_MAP[sortBy];
+  const sortColumn = SORT_COLUMN_MAP[sortBy] || "p.id";
 
-  const whereClause = search ? "WHERE (name LIKE ? OR barcode LIKE ?)" : "";
+  const whereClause = search
+    ? "WHERE (p.name LIKE ? OR p.id IN (SELECT product_id FROM product_barcodes WHERE barcode LIKE ?))"
+    : "";
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
-  const [rows] = await pool.query(
-    `SELECT id, name, barcode, stock, stock_history, sale_price, last_stock_in_at FROM products 
-     ${whereClause} 
-     ORDER BY ${sortColumn} ${order.toUpperCase()}
-     LIMIT ? OFFSET ?`,
-    [...searchParams, Number(limit), Number(offset)],
-  );
+  const query = `
+    SELECT 
+      p.id, 
+      p.name, 
+      p.stock, 
+      p.stock_history,
+      p.sale_price, 
+      p.last_stock_in_at
+    FROM products p
+    ${whereClause}
+    ORDER BY ${sortColumn} ${order ? order.toUpperCase() : "DESC"}
+    LIMIT ? OFFSET ?
+  `;
+
+  const [rows] = await pool.query(query, [
+    ...searchParams,
+    Number(limit),
+    Number(offset),
+  ]);
+
+  const formattedProducts = rows.map((row) => ({
+    ...row,
+    stock_history:
+      typeof row.stock_history === "string"
+        ? JSON.parse(row.stock_history)
+        : row.stock_history,
+  }));
 
   const [[{ total }]] = await pool.query(
-    `SELECT COUNT(*) AS total FROM products
+    `SELECT COUNT(*) AS total FROM products p
      ${whereClause}`,
     searchParams,
   );
 
-  return { products: rows, total };
+  return { products: formattedProducts, total };
 };
 
-const getProductById = async (id) => {
-  const [rows] = await pool.query("SELECT * FROM products WHERE id= ? ", [id]);
+const getProductById = async (id, executor = pool) => {
+  const query = `
+    SELECT 
+      p.*,
+      COALESCE(
+        CAST(JSON_ARRAYAGG(pb.barcode) AS CHAR), 
+        '[]'
+      ) AS barcodes
+    FROM products p
+    LEFT JOIN product_barcodes pb ON p.id = pb.product_id
+    WHERE p.id = ?
+    GROUP BY p.id
+    LIMIT 1
+  `;
 
+  const [rows] = await executor.query(query, [id]);
   const product = rows[0];
-  if (!product) {
+
+  if (!product || !product.id) {
     return null;
   }
+
+  product.barcodes =
+    typeof product.barcodes === "string"
+      ? JSON.parse(product.barcodes)
+      : product.barcodes;
 
   product.stock_history =
     typeof product.stock_history === "string"
@@ -51,49 +92,111 @@ const getProductById = async (id) => {
 
 const isProductNameTaken = async (name) => {
   const [rows] = await pool.query(
-    "SELECT id FROM products WHERE name = ?  LIMIT 1",
+    "SELECT id FROM products WHERE name = ? LIMIT 1",
     [name],
   );
-
   return rows.length > 0;
 };
 
-const isBarcodeTaken = async (barcode) => {
+// در product.repository.js
+const getExistingBarcodes = async (barcodesArray) => {
+  if (!barcodesArray || barcodesArray.length === 0) return [];
   const [rows] = await pool.query(
-    "SELECT id FROM products WHERE barcode = ?  LIMIT 1",
+    "SELECT barcode, product_id FROM product_barcodes WHERE barcode IN (?)",
+    [barcodesArray],
+  );
+
+  return rows;
+};
+
+const getProductIDByBarcode = async (barcode) => {
+  const [rows] = await pool.query(
+    "SELECT product_id FROM product_barcodes WHERE barcode = ? LIMIT 1",
     [barcode],
   );
-
-  return rows.length > 0;
+  return rows.length > 0 ? rows[0].product_id : null;
 };
 
-const createProduct = async (productData) => {
-  const payload = { ...productData };
+const createProductWithBarcodes = async ({ name, barcodes }) => {
+  const connection = await pool.getConnection();
+  await connection.beginTransaction();
 
-  const columns = Object.keys(payload);
-  const values = Object.values(payload);
-  const placeholders = columns.map(() => "?").join(", ");
+  try {
+    const [result] = await connection.query(
+      "INSERT INTO products (name) VALUES (?)",
+      [name],
+    );
+    const productId = result.insertId;
 
-  const [result] = await pool.query(
-    `INSERT INTO products (${columns.join(", ")}) VALUES (${placeholders})`,
-    values,
-  );
+    if (barcodes && barcodes.length > 0) {
+      const barcodeValues = barcodes.map((bc, index) => [
+        productId,
+        bc,
+        index === 0 ? 1 : 0,
+      ]);
 
-  return getProductById(result.insertId);
+      await connection.query(
+        "INSERT INTO product_barcodes (product_id, barcode, is_primary) VALUES ?",
+        [barcodeValues],
+      );
+    }
+
+    await connection.commit();
+    return getProductById(productId, pool);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
-const updateProduct = async (id, productData) => {
-  const columns = Object.keys(productData);
-  const values = Object.values(productData);
+const updateProductWithBarcodes = async (id, productData) => {
+  const connection = await pool.getConnection();
+  await connection.beginTransaction();
 
-  const setClause = columns.map((col) => `${col} = ?`).join(", ");
+  try {
+    const { barcodes, ...restData } = productData;
 
-  await pool.query(`UPDATE products SET ${setClause} WHERE id = ? `, [
-    ...values,
-    id,
-  ]);
+    if (Object.keys(restData).length > 0) {
+      const columns = Object.keys(restData);
+      const values = Object.values(restData);
+      const setClause = columns.map((col) => `${col} = ?`).join(", ");
 
-  return getProductById(id);
+      await connection.query(`UPDATE products SET ${setClause} WHERE id = ?`, [
+        ...values,
+        id,
+      ]);
+    }
+
+    if (barcodes && Array.isArray(barcodes)) {
+      await connection.query(
+        "DELETE FROM product_barcodes WHERE product_id = ?",
+        [id],
+      );
+
+      if (barcodes.length > 0) {
+        const barcodeValues = barcodes.map((bc, index) => [
+          id,
+          bc,
+          index === 0 ? 1 : 0,
+        ]);
+
+        await connection.query(
+          "INSERT INTO product_barcodes (product_id, barcode, is_primary) VALUES ?",
+          [barcodeValues],
+        );
+      }
+    }
+
+    await connection.commit();
+    return getProductById(id, pool);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 };
 
 const checkProductUsage = async (productId) => {
@@ -148,7 +251,14 @@ const getProductForUpdate = async (productId, executor = pool) => {
 
 const applyPurchaseUpdate = async (
   productId,
-  { quantity,averagePurchasePrice, purchasePrice, salePrice, invoiceId, supplierId },
+  {
+    quantity,
+    averagePurchasePrice,
+    purchasePrice,
+    salePrice,
+    invoiceId,
+    supplierId,
+  },
   executor = pool,
 ) => {
   await executor.query(
@@ -216,9 +326,10 @@ export default {
   getProducts,
   getProductById,
   isProductNameTaken,
-  isBarcodeTaken,
-  createProduct,
-  updateProduct,
+  getExistingBarcodes,
+  getProductIDByBarcode,
+  createProductWithBarcodes,
+  updateProductWithBarcodes,
   checkProductUsage,
   hardDeleteProduct,
   adjustStock,

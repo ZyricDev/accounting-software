@@ -3,16 +3,16 @@ import supplierRepository from "../supplier/supplier.repository.js";
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import { cleanPayload } from "../../shared/utils/object.js";
-
-const _toApiFields = (dbRow) => {
+const _toApiFields = (dbRow, includeHistory = true) => {
   let lastPurchasePrice = null;
 
-  if (dbRow.stock_history.length > 0) {
-    const history =
-      typeof dbRow.stock_history === "string"
-        ? JSON.parse(dbRow.stock_history)
-        : dbRow.stock_history;
+  const history = dbRow.stock_history
+    ? typeof dbRow.stock_history === "string"
+      ? JSON.parse(dbRow.stock_history)
+      : dbRow.stock_history
+    : [];
 
+  if (history.length > 0) {
     const latestRecord = history.reduce((latest, current) => {
       return new Date(current.date).getTime() > new Date(latest.date).getTime()
         ? current
@@ -22,23 +22,28 @@ const _toApiFields = (dbRow) => {
     lastPurchasePrice = latestRecord.purchasePrice;
   }
 
-  return {
+  const result = {
     id: dbRow.id,
     name: dbRow.name,
-    barcode: dbRow?.barcode,
+    barcodes: dbRow.barcodes,
     stock: dbRow.stock,
     purchasePrice: lastPurchasePrice,
     salePrice: dbRow.sale_price,
     lastStockInAt: dbRow.last_stock_in_at,
-    stockHistory: dbRow?.stock_history,
   };
+
+  if (includeHistory) {
+    result.stockHistory = history;
+  }
+
+  return result;
 };
 
 const getProducts = async (filters) => {
   const { products, total } = await productRepository.getProducts(filters);
 
   return {
-    products: products.map(_toApiFields),
+    products: products.map((product) => _toApiFields(product, false)),
     pagination: generatePaginationData({
       page: filters.page,
       limit: filters.limit,
@@ -48,26 +53,28 @@ const getProducts = async (filters) => {
 };
 
 const addProduct = async (productData) => {
-  const { name, barcode } = productData;
+  const { name, barcodes } = productData;
 
-  const [nameExist, barcodeExist] = await Promise.all([
-    productRepository.isProductNameTaken(name),
-    productRepository.isBarcodeTaken(barcode),
-  ]);
+  const nameExist = await productRepository.isProductNameTaken(name);
   if (nameExist) {
     throw new AppError("محصول با این نام در انبار موجود است", 409);
   }
 
-  if (barcodeExist) {
-    throw new AppError("محصول با این بارکد در انبار موجود است", 409);
+  const existingRecords = await productRepository.getExistingBarcodes(barcodes);
+
+  if (existingRecords.length > 0) {
+    const duplicateBarcodes = existingRecords.map((record) => record.barcode);
+
+    throw new AppError(
+      `بارکدهای زیر قبلاً در سیستم ثبت شده‌اند: ${duplicateBarcodes.join("، ")}`,
+      409,
+    );
   }
 
-  const payload = {
+  const newProduct = await productRepository.createProductWithBarcodes({
     name,
-    barcode,
-  };
-
-  const newProduct = await productRepository.createProduct(payload);
+    barcodes,
+  });
 
   return _toApiFields(newProduct);
 };
@@ -79,7 +86,7 @@ const getProduct = async (productId) => {
     throw new AppError("محصول پیدا نشد", 404);
   }
 
-  if (product.stock_history.length > 0) {
+  if (product.stock_history && product.stock_history.length > 0) {
     const supplierIds = [
       ...new Set(product.stock_history.map((item) => item.supplierId)),
     ].filter(Boolean);
@@ -109,7 +116,7 @@ const getProduct = async (productId) => {
 };
 
 const updateProduct = async (productId, productData) => {
-  const { name, barcode, salePrice } = productData;
+  const { name, barcodes, salePrice } = productData;
   const product = await productRepository.getProductById(productId);
 
   if (!product) {
@@ -123,25 +130,30 @@ const updateProduct = async (productId, productData) => {
       throw new AppError("محصول با این نام در انبار موجود است", 409);
     }
   }
+  if (barcodes?.length > 0) {
+    const existingRecords =
+      await productRepository.getExistingBarcodes(barcodes);
 
-  if (barcode && barcode !== product.barcode) {
-    const barcodeExist = await productRepository.isBarcodeTaken(barcode);
+    if (existingRecords.length > 0) {
+      const duplicateBarcodes = existingRecords.map((record) => record.barcode);
 
-    if (barcodeExist) {
-      throw new AppError("محصول با این بارکد در انبار موجود است", 409);
+      throw new AppError(
+        `بارکدهای زیر قبلاً در سیستم ثبت شده‌اند: ${duplicateBarcodes.join("، ")}`,
+        409,
+      );
     }
   }
 
   const rawPayload = {
     name,
-    barcode,
+    barcodes, // آرایه جدید بارکدها
     sale_price: salePrice,
     updated_at: new Date(),
   };
 
   const payload = cleanPayload(rawPayload);
 
-  const updatedProduct = await productRepository.updateProduct(
+  const updatedProduct = await productRepository.updateProductWithBarcodes(
     productId,
     payload,
   );
@@ -163,6 +175,7 @@ const deleteProduct = async (productId) => {
     );
   }
 
+  // با توجه به تنظیمات ON DELETE CASCADE روی جدول بارکدها، خودکار پاک می‌شوند
   await productRepository.hardDeleteProduct(productId);
 
   return { id: product.id, name: product.name };

@@ -129,7 +129,7 @@ const updateChequeById = async (chequeId, updateData) => {
     const bankAccount =
       await bankAccountRepository.getBankAccountById(targetAccountId);
 
-    if (!bankAccount || !bankAccount.isActive) {
+    if (!bankAccount || !bankAccount.is_active) {
       throw new AppError("حساب بانکی پیدا نشد یا غیرفعال است.", 404);
     }
   }

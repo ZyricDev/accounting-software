@@ -1,4 +1,5 @@
 // database/seed.js
+import logger from "../shared/utils/logger.js";
 import { pool } from "./connection.js";
 
 const seedAdmin = async () => {

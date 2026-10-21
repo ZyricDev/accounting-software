@@ -36,6 +36,15 @@ const isTitleTaken = async (title, excludeId = null) => {
   return rows.length > 0;
 };
 
+const checkCategoryUsage = async (id) => {
+  const [cashFlow] = await pool.query(
+    "SELECT id FROM cash_flows WHERE category_id = ? LIMIT 1",
+    [id],
+  );
+
+  return cashFlow.length > 0;
+};
+
 const getCashFlowCategoryById = async (id) => {
   const [rows] = await pool.query(
     "SELECT id, title, type FROM cash_flow_categories WHERE id= ?",
@@ -80,6 +89,7 @@ const deleteCategoryById = async (id) => {
 export default {
   getCashFlowCategories,
   isTitleTaken,
+  checkCategoryUsage,
   getCashFlowCategoryById,
   createCashFlowCategory,
   updateCashFlowCategoryTitle,

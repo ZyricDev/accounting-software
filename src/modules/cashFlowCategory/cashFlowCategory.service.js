@@ -66,23 +66,20 @@ const updateCashFlowCategoryById = async (categoryId, title) => {
 };
 
 const deleteCashFlowCategoryById = async (categoryId) => {
-  try {
-    const isDeleted =
-      await cashFlowCategoryRepository.deleteCategoryById(categoryId);
+  const [cashFlowCategory, hasUsage] = await Promise.all([
+    cashFlowCategoryRepository.getCashFlowCategoryById(categoryId),
+    cashFlowCategoryRepository.checkCategoryUsage(categoryId),
+  ]);
 
-    if (!isDeleted) {
-      throw new AppError("دسته‌بندی یافت نشد", 404);
-    }
-  } catch (err) {
-    if (err.code === "ER_ROW_IS_REFERENCED_2" || err.errno === 1451) {
-      throw new AppError(
-        "این دسته‌بندی دارای تراکنش مالی است و قابل حذف نیست.",
-        400,
-      );
-    }
-
-    throw err;
+  if (!cashFlowCategory) {
+    throw new AppError("دسته‌بندی یافت نشد", 404);
   }
+
+  if (hasUsage) {
+    throw new AppError("این دسته‌بندی داری تراکنش مالی است و قابل حذف نیست.", 409);
+  }
+
+  await cashFlowCategoryRepository.deleteCategoryById(categoryId);
 };
 
 export default {

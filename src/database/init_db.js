@@ -47,7 +47,6 @@ const createTables = async () => {
   CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
-    barcode VARCHAR(100) NOT NULL UNIQUE,
     stock INT NULL DEFAULT 0,
     purchase_price BIGINT UNSIGNED NULL,
     sale_price BIGINT UNSIGNED NULL,
@@ -284,7 +283,7 @@ CREATE TABLE IF NOT EXISTS purchase_invoice_items (
 
       FOREIGN KEY (account_id) REFERENCES bank_accounts(id) ON DELETE RESTRICT,
       INDEX (account_id),
-      INDEX (flow_type, created_at)
+      INDEX (created_at)
     );
   `;
 

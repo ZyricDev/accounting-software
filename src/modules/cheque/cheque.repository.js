@@ -155,7 +155,9 @@ const getAllCheques = async (filters) => {
 
   const countQuery = `
     SELECT COUNT(*) AS total
-    FROM cash_flows cf
+    FROM cheques c
+    INNER JOIN suppliers s ON c.supplier_id = s.id
+    INNER JOIN bank_accounts b ON c.account_id = b.id
     ${whereClause}
   `;
 

@@ -130,15 +130,21 @@ const updateProduct = async (productId, productData) => {
       throw new AppError("محصول با این نام در انبار موجود است", 409);
     }
   }
+
   if (barcodes?.length > 0) {
     const existingRecords =
       await productRepository.getExistingBarcodes(barcodes);
+    const duplicateBarcodes = [];
 
-    if (existingRecords.length > 0) {
-      const duplicateBarcodes = existingRecords.map((record) => record.barcode);
+    for (const record of existingRecords) {
+      if (record.product_id !== Number(productId)) {
+        duplicateBarcodes.push(record.barcode);
+      }
+    }
 
+    if (duplicateBarcodes.length > 0) {
       throw new AppError(
-        `بارکدهای زیر قبلاً در سیستم ثبت شده‌اند: ${duplicateBarcodes.join("، ")}`,
+        `بارکدهای زیر قبلاً برای محصولات دیگری ثبت شده‌اند: ${duplicateBarcodes.join("، ")}`,
         409,
       );
     }
@@ -146,7 +152,7 @@ const updateProduct = async (productId, productData) => {
 
   const rawPayload = {
     name,
-    barcodes, // آرایه جدید بارکدها
+    barcodes,
     sale_price: salePrice,
     updated_at: new Date(),
   };
@@ -175,7 +181,6 @@ const deleteProduct = async (productId) => {
     );
   }
 
-  // با توجه به تنظیمات ON DELETE CASCADE روی جدول بارکدها، خودکار پاک می‌شوند
   await productRepository.hardDeleteProduct(productId);
 
   return { id: product.id, name: product.name };

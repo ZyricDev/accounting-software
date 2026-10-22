@@ -294,7 +294,7 @@ const getPurchaseInvoiceById = async (purchaseInvoiceId) => {
 
   const [items, payments] = await Promise.all([
     purchaseInvoiceRepository.getInvoiceItems(purchaseInvoiceId),
-    paymentRepository.getPaymentsByInvoiceId(purchaseInvoiceId),
+    paymentRepository.getPaymentsByInvoiceId(purchaseInvoiceId, "PURCHASE"),
   ]);
 
   return {

@@ -87,12 +87,13 @@ const updateBankAccount = async (id, bankAccountData) => {
 };
 
 const checkBankAccountUsage = async (id) => {
-  const [rows] = await pool.query(
-    "SELECT id FROM payments WHERE account_id = ? LIMIT 1",
-    [id],
-  );
+  const [payment, cashFlow, cheque] = await Promise.all([
+    pool.query("SELECT id FROM payments WHERE account_id = ? LIMIT 1", [id]),
+    pool.query("SELECT id FROM cash_flows WHERE account_id = ? LIMIT 1", [id]),
+    pool.query("SELECT id FROM cheques WHERE account_id = ? LIMIT 1", [id]),
+  ]);
 
-  return rows.length > 0;
+  return payment.length > 0 || cashFlow.length > 0 || cheque.length > 0;
 };
 
 const deleteBankAccountById = async (id) => {

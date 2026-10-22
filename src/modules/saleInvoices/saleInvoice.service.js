@@ -112,8 +112,8 @@ const addSaleInvoice = async ({
 
   if (cart.discountType === "COUPON" && cart.couponMinPurchase > subtotal) {
     throw new AppError(
-       `مبلغ سبد خرید از حداقل خرید لازم برای این کد تخفیف (${cart.couponMinPurchase.toLocaleString("fa-IR")} تومان) کمتر شده است. لطفاً کد تخفیف را حذف کنید یا سبد را اصلاح کنید.`,
-    409,
+      `مبلغ سبد خرید از حداقل خرید لازم برای این کد تخفیف (${cart.couponMinPurchase.toLocaleString("fa-IR")} تومان) کمتر شده است. لطفاً کد تخفیف را حذف کنید یا سبد را اصلاح کنید.`,
+      409,
     );
   }
 
@@ -285,7 +285,7 @@ const getSaleInvoiceById = async (saleInvoiceId) => {
 
   const [items, payments] = await Promise.all([
     saleInvoiceRepository.getInvoiceItems(saleInvoiceId),
-    paymentRepository.getPaymentsByInvoiceId(saleInvoiceId),
+    paymentRepository.getPaymentsByInvoiceId(saleInvoiceId, "SALE"),
   ]);
 
   return {

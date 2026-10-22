@@ -87,7 +87,7 @@ const getCashFlows = async ({
   }
 
   if (paymentMethod) {
-    conditions.push("cf.method = ?");
+    conditions.push("cf.payment_method = ?");
     queryParams.push(paymentMethod);
   }
 

@@ -62,7 +62,11 @@ const cancelPaymentsByInvoiceId = async (
   return result;
 };
 
-const getPaymentsByInvoiceId = async (invoiceId, connection = pool) => {
+const getPaymentsByInvoiceId = async (
+  invoiceId,
+  referenceType,
+  connection = pool,
+) => {
   const query = `
     SELECT 
       id,
@@ -72,10 +76,10 @@ const getPaymentsByInvoiceId = async (invoiceId, connection = pool) => {
       payment_date AS paymentDate, 
       description
     FROM payments 
-    WHERE invoice_id = ?
+    WHERE invoice_id = ? AND reference_type = ?
   `;
 
-  const [rows] = await connection.query(query, [invoiceId]);
+  const [rows] = await connection.query(query, [invoiceId, referenceType]);
 
   return rows;
 };
@@ -244,7 +248,7 @@ const updateSettlementById = async (id, { paymentDate, description }) => {
   return result.affectedRows > 0;
 };
 
-const cancelSettlementById = async (id) => {
+const cancelSettlementById = async (id, connection = pool) => {
   await pool.query("UPDATE payments SET status = 'CANCELLED' WHERE id = ?", [
     id,
   ]);

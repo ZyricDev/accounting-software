@@ -169,19 +169,39 @@ const createReturnInvoice = async ({
         connection,
       );
 
-      const stockChange = returnItem.quantity * stockMultiplier;
-      await productRepository.adjustStock(
+      const product = await productRepository.getProductForUpdate(
         returnItem.productId,
-        stockChange,
+        connection,
+      );
+
+      const currentStock = product.stock ?? 0;
+      const currentWAC = product.purchase_price ?? 0;
+
+      const stockChange = returnItem.quantity * stockMultiplier;
+      const finalStock = currentStock + stockChange;
+
+      let newWAC = currentWAC;
+
+      if (!isSaleReturn) {
+        if (finalStock > 0) {
+          const totalCurrentValue = currentStock * currentWAC;
+          const returnedValue = returnItem.quantity * returnItem.unitPrice;
+
+          newWAC = Math.round((totalCurrentValue - returnedValue) / finalStock);
+          if (newWAC < 0) newWAC = 0;
+        } else {
+          newWAC = 0;
+        }
+      }
+
+      await productRepository.updateStockAndWAC(
+        returnItem.productId,
+        finalStock,
+        newWAC,
         connection,
       );
 
       if (!isSaleReturn) {
-        const product = await productRepository.getProductById(
-          returnItem.productId,
-          connection,
-        );
-
         let history =
           typeof product.stock_history === "string"
             ? JSON.parse(product.stock_history)
@@ -313,19 +333,41 @@ const cancelReturnInvoiceById = async (returnInvoiceId) => {
     const stockMultiplier = isSaleReturn ? -1 : 1;
 
     for (const item of items) {
-      const stockChange = item.quantity * stockMultiplier;
-      await productRepository.adjustStock(
+      const product = await productRepository.getProductForUpdate(
         item.product_id,
-        stockChange,
+        connection,
+      );
+
+      const currentStock = product.stock ?? 0;
+      const currentWAC = product.purchase_price ?? 0;
+
+      const stockChange = item.quantity * stockMultiplier;
+      const finalStock = currentStock + stockChange;
+
+      let newWAC = currentWAC;
+
+      if (!isSaleReturn) {
+        const originalItem = originalPurchaseItemsMap[item.product_id];
+        const purchasePriceToRestore = originalItem
+          ? originalItem.purchase_price
+          : item.unit_price;
+
+        if (finalStock > 0) {
+          const totalCurrentValue = currentStock * currentWAC;
+          const restoredValue = item.quantity * purchasePriceToRestore;
+
+          newWAC = Math.round((totalCurrentValue + restoredValue) / finalStock);
+        }
+      }
+
+      await productRepository.updateStockAndWAC(
+        item.product_id,
+        finalStock,
+        newWAC,
         connection,
       );
 
       if (!isSaleReturn) {
-        const product = await productRepository.getProductById(
-          item.product_id,
-          connection,
-        );
-
         let history =
           typeof product.stock_history === "string"
             ? JSON.parse(product.stock_history)

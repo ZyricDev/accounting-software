@@ -3,6 +3,7 @@ import supplierRepository from "../supplier/supplier.repository.js";
 import AppError from "../../shared/errors/AppError.js";
 import { generatePaginationData } from "../../shared/utils/apiResponse.js";
 import { cleanPayload } from "../../shared/utils/object.js";
+
 const _toApiFields = (dbRow, includeHistory = true) => {
   let lastPurchasePrice = null;
 

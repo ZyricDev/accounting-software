@@ -331,18 +331,42 @@ const cancelPurchaseInvoiceById = async (invoiceId) => {
     await connection.beginTransaction();
 
     for (const item of items) {
-      await productRepository.adjustStock(
+      const product = await productRepository.getProductForUpdate(
         item.product_id,
-        -item.quantity,
         connection,
       );
 
-      const product = await productRepository.getProductById(
-        item.product_id,
-        connection,
-      );
       if (product) {
-        let history = product.stock_history;
+        const currentStock = product.stock ?? 0;
+        const currentWAC = product.purchase_price ?? 0;
+
+        const stockAfterCancel = currentStock - item.quantity;
+        let newWAC = currentWAC;
+
+        if (stockAfterCancel > 0) {
+          const totalCurrentValue = currentStock * currentWAC;
+          const cancelledValue = item.quantity * item.purchase_price;
+
+          newWAC = Math.round(
+            (totalCurrentValue - cancelledValue) / stockAfterCancel,
+          );
+
+          if (newWAC < 0) newWAC = 0;
+        } else {
+          newWAC = 0;
+        }
+
+        await productRepository.updateStockAndWAC(
+          item.product_id,
+          stockAfterCancel,
+          newWAC,
+          connection,
+        );
+
+        let history =
+          typeof product.stock_history === "string"
+            ? JSON.parse(product.stock_history)
+            : product.stock_history || [];
 
         history = history.filter(
           (h) => Number(h.invoiceId) !== Number(invoiceId),
@@ -500,46 +524,89 @@ const updatePurchaseInvoiceById = async (
       productDeltas[newItem.productId] += newItem.quantity;
     }
 
-    for (const [productIdStr, diff] of Object.entries(productDeltas)) {
+    for (const productIdStr of Object.keys(productDeltas)) {
       const productId = Number(productIdStr);
 
-      const product = await productRepository.getProductById(
+      const product = await productRepository.getProductForUpdate(
         productId,
         connection,
       );
 
       if (!product) throw new AppError("محصول یافت نشد", 404);
 
-      if (diff < 0) {
-        const removeAmount = Math.abs(diff);
-        if (product.stock < removeAmount) {
-          throw new AppError(
-            `موجودی محصول "${product.name}" برای کاهش این آیتم در فاکتور کافی نیست. (موجودی: ${product.stock} | تعداد کسری: ${removeAmount})`,
-            400,
+      const currentStock = product.stock ?? 0;
+      const currentWAC = product.purchase_price ?? 0;
+
+      const oldItem = oldItemsMap[productId];
+      const newItem = invoiceItems.find(
+        (i) => Number(i.productId) === productId,
+      );
+
+      let stockAfterReversal = currentStock;
+      let revertedWAC = currentWAC;
+
+      if (oldItem) {
+        stockAfterReversal -= oldItem.quantity;
+
+        if (stockAfterReversal > 0) {
+          const totalValue = currentStock * currentWAC;
+          const oldItemValue = oldItem.quantity * oldItem.purchase_price;
+          revertedWAC = Math.round(
+            (totalValue - oldItemValue) / stockAfterReversal,
+          );
+
+          if (revertedWAC < 0) revertedWAC = 0;
+        } else {
+          revertedWAC = 0;
+        }
+      }
+
+      let finalStock = stockAfterReversal;
+      let finalWAC = revertedWAC;
+
+      if (newItem) {
+        finalStock += newItem.quantity;
+
+        if (finalStock > 0) {
+          const totalRevertedValue = stockAfterReversal * revertedWAC;
+          const newItemValue = newItem.quantity * newItem.purchasePrice;
+          finalWAC = Math.round(
+            (totalRevertedValue + newItemValue) / finalStock,
           );
         }
       }
 
-      if (diff !== 0) {
-        await productRepository.adjustStock(productId, diff, connection);
+      if (finalStock < 0) {
+        throw new AppError(
+          `موجودی محصول "${product.name}" برای کاهش این آیتم در فاکتور کافی نیست.`,
+          400,
+        );
       }
 
-      let history = product.stock_history;
+      if (currentStock !== finalStock || currentWAC !== finalWAC) {
+        await productRepository.updateStockAndWAC(
+          productId,
+          finalStock,
+          finalWAC,
+          connection,
+        );
+      }
+
+      let history =
+        typeof product.stock_history === "string"
+          ? JSON.parse(product.stock_history)
+          : product.stock_history || [];
 
       history = history.filter(
         (h) => Number(h.invoiceId) !== Number(invoiceId),
       );
 
-      const updatedItem = invoiceItems.find(
-        (i) => Number(i.productId) === productId,
-      );
-
-      if (updatedItem) {
+      if (newItem) {
         history.push({
           invoiceId: invoiceId,
           supplierId: oldInvoice.supplier_id,
-          quantity: updatedItem.quantity,
-          purchasePrice: updatedItem.purchasePrice,
+          quantity: newItem.quantity,
+          purchasePrice: newItem.purchasePrice,
           date: oldInvoice.created_at,
         });
       }

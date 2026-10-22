@@ -24,7 +24,7 @@ const addSupplier = async ({ name, phone, address, initialBalance }) => {
   }
 
   const balanceValue =
-    initialBalance.type === "CREDIT"
+    initialBalance.type === "DEBT"
       ? -initialBalance.amount
       : initialBalance.amount;
 

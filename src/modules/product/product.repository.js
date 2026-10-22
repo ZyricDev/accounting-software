@@ -239,7 +239,7 @@ const adjustStock = async (id, quantityDelta, executor = pool) => {
 
 const getProductForUpdate = async (productId, executor = pool) => {
   const [rows] = await executor.query(
-    `SELECT id, stock, purchase_price
+    `SELECT id, stock, purchase_price, stock_history
      FROM products
      WHERE id = ? 
      FOR UPDATE`,
@@ -308,7 +308,7 @@ const updateStockHistory = async (
   await connection.query(query, [historyJsonString, lastStockInAt, productId]);
 };
 
-export const getProductValuation = async (connection = pool) => {
+const getProductValuation = async (connection = pool) => {
   const query = `
     SELECT 
         COALESCE(SUM(stock * purchase_price), 0) AS totalProductValue,
@@ -320,6 +320,18 @@ export const getProductValuation = async (connection = pool) => {
   const [rows] = await connection.query(query);
 
   return rows[0];
+};
+
+const updateStockAndWAC = async (productId, newStock, newWAC, connection = pool) => {
+  const query = `
+    UPDATE products 
+    SET stock = ?, purchase_price = ? 
+    WHERE id = ?
+  `;
+
+  const [result] = await connection.query(query, [newStock, newWAC, productId]);
+
+  return result;
 };
 
 export default {
@@ -337,4 +349,5 @@ export default {
   applyPurchaseUpdate,
   updateStockHistory,
   getProductValuation,
+  updateStockAndWAC,
 };

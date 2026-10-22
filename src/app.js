@@ -22,6 +22,7 @@ import cashFlowCategoryRoutes from "./modules/cashFlowCategory/cashFlowCategory.
 import cashFlowRoutes from "./modules/cashFlow/cashFlow.routes.js";
 import paymentRoutes from "./modules/payment/payment.routes.js";
 import chequeRoutes from "./modules/cheque/cheque.routes.js";
+import reportRoutes from "./modules/report/report.routes.js";
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use("/api/v1/cash-flow-categories", cashFlowCategoryRoutes);
 app.use("/api/v1/cash-flow", cashFlowRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/cheques", chequeRoutes);
+app.use("/api/v1/shift", reportRoutes);
 
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../public", "index.html"));

@@ -29,6 +29,11 @@ const config = {
       process.env.MELIPAYAMAK_PURCHASE_DISCOUNT_PATTERN_ID,
   },
 
+  bale: {
+    chatId: process.env.CHAT_ID,
+    botToken: process.env.BOT_TOKEN,
+  },
+
   coupon: {
     general: {
       validityDays: Number(process.env.COUPON_GENERAL_VALIDITY_DAYS, 25),

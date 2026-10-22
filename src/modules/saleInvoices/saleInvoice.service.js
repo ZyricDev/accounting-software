@@ -443,6 +443,14 @@ const updateSaleInvoiceById = async (
   });
 
   const subtotal = invoiceItems.reduce((sum, item) => sum + item.lineTotal, 0);
+
+  if (discountAmount > subtotal) {
+    throw new AppError(
+      "مبلغ تخفیف ثبت شده روی این فاکتور بیشتر از جمع کل اقلام جدید است. لطفاً ابتدا تخفیف را اصلاح کنید.",
+      400,
+    );
+  }
+
   const totalQuantity = invoiceItems.reduce(
     (sum, item) => sum + item.quantity,
     0,

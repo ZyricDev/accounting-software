@@ -27,6 +27,7 @@ router
     validate(saleInvoiceValidation.cancelSaleInvoice),
     saleInvoiceController.cancelSaleInvoice,
   );
+  //! کلا ویرایش فاکتور مشکل زیاد داره اگه روت خواستی باز کنی رفع کن اول
 // .put(
 //   validate(saleInvoiceValidation.updateSaleInvoice),
 //   saleInvoiceController.updateSaleInvoice,

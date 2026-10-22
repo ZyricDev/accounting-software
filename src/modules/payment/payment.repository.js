@@ -249,7 +249,7 @@ const updateSettlementById = async (id, { paymentDate, description }) => {
 };
 
 const cancelSettlementById = async (id, connection = pool) => {
-  await pool.query("UPDATE payments SET status = 'CANCELLED' WHERE id = ?", [
+  await connection.query("UPDATE payments SET status = 'CANCELLED' WHERE id = ?", [
     id,
   ]);
 };

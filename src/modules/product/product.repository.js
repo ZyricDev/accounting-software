@@ -325,7 +325,7 @@ const getProductValuation = async (connection = pool) => {
 const updateStockAndWAC = async (productId, newStock, newWAC, connection = pool) => {
   const query = `
     UPDATE products 
-    SET stock = ?, purchase_price = ? 
+    SET stock = ?, purchase_price = ?, updated_at = NOW()
     WHERE id = ?
   `;
 

@@ -100,6 +100,17 @@ const createReturnInvoice = async ({
   let totalAmount = 0;
   let totalQuantity = 0;
 
+  let discountRatio = 0;
+  if (isSaleReturn && originalInvoice.discount_amount > 0) {
+    const originalSubtotal =
+      Number(originalInvoice.total_amount) +
+      Number(originalInvoice.discount_amount);
+    if (originalSubtotal > 0) {
+      discountRatio =
+        Number(originalInvoice.discount_amount) / originalSubtotal;
+    }
+  }
+
   for (const clientItem of items) {
     const origItem = originalItemsMap[clientItem.productId];
 
@@ -127,9 +138,17 @@ const createReturnInvoice = async ({
       }
     }
 
-    const unitPrice = isSaleReturn
+    const rawUnitPrice = isSaleReturn
       ? origItem.sale_price
       : origItem.purchase_price;
+
+    let unitPrice = rawUnitPrice;
+
+    if (isSaleReturn && discountRatio > 0) {
+      const discountShare = Math.round(rawUnitPrice * discountRatio);
+      unitPrice = rawUnitPrice - discountShare;
+    }
+
     const lineTotal = clientItem.quantity * unitPrice;
 
     finalReturnItems.push({
